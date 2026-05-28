@@ -2140,10 +2140,21 @@ async function loadCiclosSB(){
   if(nums.length) nxCy=Math.max.apply(null,nums)+1;
 }
 
+async function loadMaterialesSB(){
+  const {data,error}=await sb.from('materiales_opet').select('*');
+  if(error||!data||!data.length) return;
+  var dbCodes=data.map(function(r){return r.id_material;});
+  for(var i=RD.length-1;i>=0;i--){if(dbCodes.indexOf(RD[i][0])>=0)RD.splice(i,1);}
+  data.forEach(function(r){
+    RD.push([r.id_material,r.nombre_material||r.id_material,r.nombre_maquina_defecto||'T1',+(r.velocidad||5000),+(r.oee||85),r.nombre_maquina_alternativa||'',+(r.velocidad_alternativa||0)]);
+    if(!MOLDE_MAP[r.id_material])MOLDE_MAP[r.id_material]=String(300000000+Object.keys(MOLDE_MAP).length+1);
+  });
+}
+
 async function initFromSupabase(){
   showLoading(true);
   try{
-    await Promise.all([loadMaquinasSB(),loadFamiliasSB(),loadPedidosSB()]);
+    await Promise.all([loadMaquinasSB(),loadFamiliasSB(),loadMaterialesSB(),loadPedidosSB()]);
     await loadOrdenesSB();
     await loadCiclosSB();
     rR();rPed();rFam();rCyc();rAl();rA();rCal();
@@ -2229,15 +2240,32 @@ dFam=async function(i){
 // Materials — wrap original saveNewArt to also persist to Supabase
 var _origSaveNewArt=saveNewArt;
 saveNewArt=async function(){
-  // Capture the material code before original function runs
   var cod=(document.getElementById('naCod').value||'').trim().toUpperCase();
   var desc=(document.getElementById('naDesc').value||'').trim();
-  var fam=(document.getElementById('naFam')||{}).value||'';
+  var maq=(document.getElementById('naMaq')||{}).value||'T1';
+  var vel=+(document.getElementById('naVel')||{}).value||0;
+  var oee2=+(document.getElementById('naOEE')||{}).value||85;
+  var rAlt=(document.getElementById('naRutaAlt')||{}).value||'';
+  var vAlt=+(document.getElementById('naVelAlt')||{}).value||0;
   _origSaveNewArt();
-  // After original runs, persist to Supabase
-  if(!cod||!desc) return;
-  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,id_familia:fam?parseInt(fam)||null:null},{onConflict:'id_material'});}
+  if(!cod||!desc||!vel) return;
+  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt},{onConflict:'id_material'});}
   catch(e){console.warn('Error saving material:',e);}
+};
+
+// Previsiones — save to ordenes_fabricacion_opet with status='Previsión' so loadOrdenesSB reads them back
+var _sNPsb=saveNewPrev;
+saveNewPrev=async function(){
+  var mt=(document.getElementById('pvMat')||{}).value||'';
+  var qty=+(document.getElementById('pvQty')||{}).value||0;
+  var hrs=+(document.getElementById('pvHrs')||{}).value||0;
+  var mq=(document.getElementById('ordMaq')||{}).value||'';
+  var ym=(document.getElementById('ordMes')||{}).value||'';
+  _sNPsb();
+  if(!mt||!mq||!ym) return;
+  var prevId='PREV-'+Date.now();
+  try{await sb.from('ordenes_fabricacion_opet').insert({id_orden:prevId,id_maquina:mq,id_material:mt,cantidad_orden:qty,fecha_inicio:ym+'-01',fecha_fin:ym+'-28',status_orden:'Previsión'});}
+  catch(e){console.warn('Error saving prevision:',e);}
 };
 
 // Initial data load
