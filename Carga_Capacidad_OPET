@@ -2141,32 +2141,27 @@ async function loadCiclosSB(){
 }
 
 async function loadMaterialesSB(){
+  // Vaciar todos los materiales hardcodeados — solo se muestran los de Supabase
+  RD.length=0;
   const {data,error}=await sb.from('materiales_opet').select('*');
   if(error||!data) return;
-  // Mapa troquel→familia a partir de los troqueles reales de familias_opet (fam.tq[])
+  // Mapa troquel→familia a partir de familias_opet (fam.tq[])
   var troquelToFam={};
   FAM.forEach(function(f){f.tq.forEach(function(tq){troquelToFam[tq]=f;});});
-  // Separar válidos (tienen troquel en maestro) de inválidos
+  // Válidos: tienen troquel en la tabla maestra | Inválidos: borrar de Supabase
   var validData=data.filter(function(r){return r.troquel&&troquelToFam[r.troquel];});
   var invalidIds=data.filter(function(r){return !r.troquel||!troquelToFam[r.troquel];}).map(function(r){return r.id_material;});
-  // Borrar de Supabase los que no están en la tabla maestra
   if(invalidIds.length){try{await sb.from('materiales_opet').delete().in('id_material',invalidIds);}catch(e){console.warn('Borrado materiales no maestro:',e);}}
-  if(!validData.length) return;
-  // Quitar de RD[] los que ya vienen de la BD
-  var dbCodes=validData.map(function(r){return r.id_material;});
-  for(var i=RD.length-1;i>=0;i--){if(dbCodes.indexOf(RD[i][0])>=0)RD.splice(i,1);}
   validData.forEach(function(r){
     var fam=troquelToFam[r.troquel];
     var maqNames=Object.keys(fam.m);
-    // Máquina y velocidad: primero valor guardado, si no el de la familia
+    // Máquina y velocidad: valor guardado > derivado de familia
     var defMaq=r.nombre_maquina_defecto||(maqNames.length?maqNames[0]:'T1');
     var defVel=r.velocidad?+r.velocidad:(fam.m[defMaq]?fam.m[defMaq].v:5000);
     var defOee=r.oee?+r.oee:(fam.m[defMaq]?fam.m[defMaq].o||85:85);
     var altMaq=r.nombre_maquina_alternativa||(maqNames.length>1?maqNames[1]:'');
     var altVel=r.velocidad_alternativa?+r.velocidad_alternativa:(altMaq&&fam.m[altMaq]?fam.m[altMaq].v:0);
-    // Añadir código de material a mt[] de la familia (para que rR() muestre la familia)
     if(fam.mt.indexOf(r.id_material)<0) fam.mt.push(r.id_material);
-    // Troquel como clave de molde
     MOLDE_MAP[r.id_material]=r.troquel;
     RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel]);
   });
@@ -2175,9 +2170,11 @@ async function loadMaterialesSB(){
 function popMaqFilter(){
   var sel=document.getElementById('rMF');if(!sel)return;
   var cur=sel.value;
+  // Solo máquinas que tienen al menos un material
+  var macsConMaterial=new Set(RD.map(function(r){return r[2];}));
   sel.innerHTML='<option value="">Todas</option>';
-  mNamesAll.forEach(function(m){sel.innerHTML+='<option>'+m+'</option>';});
-  if(cur)sel.value=cur;
+  mNamesAll.forEach(function(m){if(macsConMaterial.has(m))sel.innerHTML+='<option>'+m+'</option>';});
+  if(cur&&macsConMaterial.has(cur))sel.value=cur;else sel.value='';
 }
 
 async function initFromSupabase(){
