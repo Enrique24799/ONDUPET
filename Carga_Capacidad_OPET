@@ -2336,7 +2336,7 @@ function rMaq(){
     tb.innerHTML+='<tr><td><strong style="font-size:14px">'+m.nm+'</strong></td>'+
       '<td><span class="b" style="background:'+bgc+';color:#fff;font-size:10px">'+m.tipo+'</span></td>'+
       '<td style="color:var(--tl)">'+m.extrusora+'</td>'+
-      '<td><input type="number" class="oee-input" style="width:70px" value="'+oee+'" min="1" max="100" onchange="maqOEE[''+m.nm+'']=+this.value;rFam();"></td></tr>';
+      '<td><input type="number" class="oee-input" style="width:70px" value="'+oee+'" min="1" max="100" onchange="maqOEE[\''+m.nm+'\']=+this.value;rFam();"></td></tr>';
   });
 }
 async function saveMaqOEE(){
