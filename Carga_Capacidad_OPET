@@ -1707,7 +1707,8 @@ function rFam(){
     var h1=t1&&tu1?Math.round(tu1/v1*10)/10:0;
     var h2=t2&&tu2?Math.round(tu2/v2*10)/10:0;
     var ch=t1&&t2?'<span class="b" style="background:var(--warning);color:#333">T1+T2</span>':t1?'<span class="b bl">T1</span>':'<span class="b" style="background:#a78bfa">T2</span>';
-    var mt=f.mt.map(function(m){return'<span style="font-size:9px;background:#f0f2f5;padding:1px 5px;border-radius:3px;font-family:monospace">'+m+'</span>';}).join(' ');
+    var mtCount=f.mt.length;
+    var mt=mtCount>0?'<button class="btn bsm" style="background:#e0f4fa;color:var(--accent2);border:1px solid var(--accent);font-size:11px" onclick="showFamMat('+i+')">'+mtCount+' material'+(mtCount===1?'':'es')+'</button>':'<span style="color:var(--tl);font-size:11px">—</span>';
     var cellV1=t1?(t1.v+' x '+t1.o+'%<br><small style="color:var(--tl)">'+v1+' ef</small>'):'\u2014';
     var cellV2=t2?(t2.v+' x '+t2.o+'%<br><small style="color:var(--tl)">'+v2+' ef</small>'):'\u2014';
     var cellTu1=t1?'<input type="number" class="oee-input" style="width:80px" value="'+tu1+'" min="0" step="1000" onchange="FAM['+i+'].m.T1.tu=+this.value;rFam();">':'\u2014';
@@ -1723,6 +1724,19 @@ function rFam(){
   });
 }
 function fltFam(){var q=(document.getElementById('famSrch').value||'').toLowerCase(),mf=document.getElementById('famMF').value;document.querySelectorAll('#famTB tr').forEach(function(r){r.style.display=(!mf||r.dataset.mq.indexOf(mf)>=0)&&r.textContent.toLowerCase().indexOf(q)>=0?'':'none';});}
+function showFamMat(i){
+  var f=FAM[i];if(!f)return;
+  var el=document.getElementById('mFamMat');if(!el)return;
+  document.getElementById('mFamMatTitle').textContent=f.id+' — '+f.nm;
+  var list=document.getElementById('mFamMatList');
+  if(!f.mt.length){list.innerHTML='<p style="color:var(--tl);text-align:center;padding:20px">Sin materiales asignados</p>';oM('mFamMat');return;}
+  list.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f8f9fa"><th style="text-align:left;padding:6px 8px;border-bottom:1px solid #dee2e6">Código</th><th style="text-align:left;padding:6px 8px;border-bottom:1px solid #dee2e6">Descripción</th><th style="text-align:left;padding:6px 8px;border-bottom:1px solid #dee2e6">Máq.</th><th style="text-align:right;padding:6px 8px;border-bottom:1px solid #dee2e6">Vel.</th></tr></thead><tbody>'+
+    f.mt.map(function(cod){
+      var r=RD.find(function(x){return x[0]===cod;});
+      return'<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:5px 8px;font-family:monospace;font-weight:600">'+cod+'</td><td style="padding:5px 8px;color:#333">'+((r&&r[1])||'—')+'</td><td style="padding:5px 8px"><span class="b bl" style="font-size:10px">'+(r?r[2]:'—')+'</span></td><td style="padding:5px 8px;text-align:right;color:var(--tl)">'+(r?r[3].toLocaleString():'—')+'</td></tr>';
+    }).join('')+'</tbody></table>';
+  oM('mFamMat');
+}
 function svFam(){var id=document.getElementById('fmId').value.trim().toUpperCase(),nm=document.getElementById('fmNm').value.trim();if(!id||!nm){alert('ID y nombre requeridos');return;}var m={};if(document.getElementById('fmT1').value==='1')m.T1={v:+document.getElementById('fmV1').value,o:+document.getElementById('fmO1').value,tu:+document.getElementById('fmTu1').value||0};if(document.getElementById('fmT2').value==='1')m.T2={v:+document.getElementById('fmV2').value,o:+document.getElementById('fmO2').value,tu:+document.getElementById('fmTu2').value||0};var mt=document.getElementById('fmMt').value.split(',').map(function(s){return s.trim();}).filter(Boolean);var rep=+document.getElementById('fmRep').value||1;var ex=FAM.findIndex(function(f){return f.id===id;});var cols=['#3d8ef0','#2dd4a0','#f59e0b','#f43f5e','#a78bfa','#fb923c','#34d399','#e879f9','#60a5fa'];var cl=ex>=0?FAM[ex].cl:cols[FAM.length%cols.length];var o={id:id,nm:nm,m:m,mt:mt,cl:cl,r:rep};if(ex>=0)FAM[ex]=o;else FAM.push(o);clM('mFam');rFam();}
 function eFam2(i){var f=FAM[i];document.getElementById('fmId').value=f.id;document.getElementById('fmNm').value=f.nm;document.getElementById('fmT1').value=f.m.T1?'1':'0';document.getElementById('fmV1').value=f.m.T1?f.m.T1.v:800;document.getElementById('fmO1').value=f.m.T1?f.m.T1.o:85;document.getElementById('fmTu1').value=f.m.T1?(f.m.T1.tu||0):40000;document.getElementById('fmT2').value=f.m.T2?'1':'0';document.getElementById('fmV2').value=f.m.T2?f.m.T2.v:720;document.getElementById('fmO2').value=f.m.T2?f.m.T2.o:85;document.getElementById('fmTu2').value=f.m.T2?(f.m.T2.tu||0):35000;document.getElementById('fmRep').value=f.r||1;document.getElementById('fmMt').value=f.mt.join(', ');oM('mFam');setTimeout(fmHrPreview,50);}
 function fmHrPreview(){['1','2'].forEach(function(n){var v=+(document.getElementById('fmV'+n).value)||0,o=+(document.getElementById('fmO'+n).value)||0,tu=+(document.getElementById('fmTu'+n).value)||0;var eff=v*o/100;var h=eff>0&&tu>0?Math.round(tu/eff*10)/10:0;var el=document.getElementById('fmH'+n+'Info');if(el)el.textContent='Horas: '+h+'h ('+tu.toLocaleString()+' uds / '+Math.round(eff)+' ef)';});}
@@ -2086,9 +2100,11 @@ async function loadFamiliasSB(){
     if(r.nombre_troquel&&!f.nm_set){f.nm=r.nombre_troquel;} // nombre de la familia = primer troquel
     var temporal=temporalMap[fid]||0;
     var speeds={T1:r.velocidad_t1,T2:r.velocidad_t2,T3:r.velocidad_t3,T4:r.velocidad_t4,T5:r.velocidad_t5,T6:r.velocidad_t6};
+    // Temporal solo en la primera máquina; el resto a 0
+    var isFirstMaq=Object.keys(f.m).length===0;
     Object.keys(speeds).forEach(function(maq){
       var v=speeds[maq];
-      if(v&&+v>0&&!f.m[maq]) f.m[maq]={v:+v,o:85,tu:temporal};
+      if(v&&+v>0&&!f.m[maq]){f.m[maq]={v:+v,o:85,tu:isFirstMaq?temporal:0};isFirstMaq=false;}
     });
   });
   var newFAM=Object.values(byFam);
@@ -2175,13 +2191,13 @@ async function loadMaterialesSB(){
     var defMaq=r.nombre_maquina_defecto
       ||maqIdMap[r.id_maquina_defecto]
       ||(maqNames.length?maqNames[0]:'T1');
-    var altMaq=r.nombre_maquina_alternativa
-      ||maqIdMap[r.id_maquina_alternativa]
-      ||(maqNames.length>1?maqNames[1]:'');
+    // Ruta alternativa: solo si hay máquina alternativa explícita (no inferir)
+    var altMaq=r.nombre_maquina_alternativa||(r.id_maquina_alternativa?maqIdMap[r.id_maquina_alternativa]:'')||'';
     // Velocidad: del troquel (misma para todas las máquinas en el maestro)
     var defVel=r.velocidad?+r.velocidad:(fam.m[defMaq]?fam.m[defMaq].v:(maqNames.length?fam.m[maqNames[0]].v:5000));
     var defOee=r.oee?+r.oee:85;
-    var altVel=r.velocidad_alternativa?+r.velocidad_alternativa:(altMaq&&fam.m[altMaq]?fam.m[altMaq].v:0);
+    // Velocidad alternativa: solo si hay ruta alternativa definida
+    var altVel=altMaq?(r.velocidad_alternativa&&+r.velocidad_alternativa>0?+r.velocidad_alternativa:(fam.m[altMaq]?fam.m[altMaq].v:0)):0;
     // Añadir código a mt[] de la familia → la columna Familia se rellena en la tabla
     if(fam.mt.indexOf(r.id_material)<0) fam.mt.push(r.id_material);
     MOLDE_MAP[r.id_material]=r.troquel;
@@ -2361,6 +2377,17 @@ initFromSupabase();
 <div class="fg"><label>Orden Asociada</label><input type="text" id="pdOF" readonly placeholder="Se rellenará al planificar" style="background:#f0f0f0;font-style:italic;color:var(--tl)"></div>
 <div style="font-size:11px;color:var(--tl);background:#fef3c7;border-left:3px solid #f4a261;padding:8px 12px;border-radius:5px;margin-bottom:12px">ℹ️ La orden asociada se rellena automáticamente cuando planifiques el pedido desde la pantalla <strong>Creación Órdenes</strong>.</div>
 <div class="br"><button class="btn bp" onclick="svPed()">Guardar Pedido</button><button class="btn" onclick="clM('mNewPed')" style="background:#eee">Cancelar</button></div></div></div>
+
+<!-- POPUP MATERIALES DE FAMILIA -->
+<div class="mo" id="mFamMat" onclick="if(event.target===this)clM('mFamMat')">
+  <div class="ml" style="max-width:680px;max-height:80vh;display:flex;flex-direction:column">
+    <button class="cm" onclick="clM('mFamMat')">✕</button>
+    <h3 style="margin-bottom:4px">🧩 Materiales de la familia</h3>
+    <p id="mFamMatTitle" style="font-size:13px;color:var(--tl);margin-bottom:14px;font-weight:600"></p>
+    <div id="mFamMatList" style="overflow-y:auto;flex:1;border:1px solid #dee2e6;border-radius:6px"></div>
+    <div style="margin-top:12px;text-align:right"><button class="btn" onclick="clM('mFamMat')" style="background:#eee">Cerrar</button></div>
+  </div>
+</div>
 
 </body>
 </html>
