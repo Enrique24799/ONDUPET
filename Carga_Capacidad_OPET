@@ -2054,26 +2054,42 @@ var _nv=nav;nav=function(id,el){_nv(id,el);if(id==='familias')rFam();if(id==='ci
 
 /* ========== SUPABASE DATA LOADING ========== */
 
+var maqIdMap={}; // id_maquina (int) → nombre_maquina ('T1','T2'...)
+
 async function loadMaquinasSB(){
   const {data,error}=await sb.from('maquina_opet').select('*').order('id_maquina');
   if(error||!data||!data.length) return;
-  const dbM=data.map(r=>r.nombre_maquina);
-  if(dbM.length){mNamesAll.length=0;dbM.forEach(m=>mNamesAll.push(m));}
+  maqIdMap={};
+  data.forEach(function(r){maqIdMap[r.id_maquina]=r.nombre_maquina;});
+  const dbM=data.map(function(r){return r.nombre_maquina;});
+  if(dbM.length){mNamesAll.length=0;dbM.forEach(function(m){mNamesAll.push(m);});}
 }
 
 async function loadFamiliasSB(){
-  const {data,error}=await sb.from('familias_opet').select('*');
-  if(error||!data||!data.length) return;
+  // troqueles_opet: tiene nombre, velocidades por máquina y troquel real
+  // familias_opet: solo id_familia + temporal (tamaño de lote)
+  const [{data:tData,error:tErr},{data:fData}]=await Promise.all([
+    sb.from('troqueles_opet').select('*'),
+    sb.from('familias_opet').select('id_familia,temporal')
+  ]);
+  if(tErr||!tData||!tData.length) return;
+  // Mapa id_familia → temporal
+  var temporalMap={};
+  if(fData) fData.forEach(function(r){temporalMap[String(r.id_familia)]=+(r.temporal||0);});
   const cols=['#3d8ef0','#2dd4a0','#f59e0b','#f43f5e','#a78bfa','#fb923c','#34d399','#e879f9','#60a5fa','#4ade80'];
   const byFam={};
-  data.forEach(function(r){
+  tData.forEach(function(r){
     var fid=String(r.id_familia);
     if(!byFam[fid]){byFam[fid]={id:fid,nm:r.nombre_troquel||fid,m:{},mt:[],tq:[],cl:cols[Object.keys(byFam).length%cols.length],r:1};}
     var f=byFam[fid];
-    if(r.troquel&&f.tq.indexOf(r.troquel)<0) f.tq.push(r.troquel); // troqueles reales del maestro
-    if(r.nombre_troquel) f.nm=r.nombre_troquel;
+    if(r.troquel&&f.tq.indexOf(r.troquel)<0) f.tq.push(r.troquel);
+    if(r.nombre_troquel&&!f.nm_set){f.nm=r.nombre_troquel;} // nombre de la familia = primer troquel
+    var temporal=temporalMap[fid]||0;
     var speeds={T1:r.velocidad_t1,T2:r.velocidad_t2,T3:r.velocidad_t3,T4:r.velocidad_t4,T5:r.velocidad_t5,T6:r.velocidad_t6};
-    Object.keys(speeds).forEach(function(maq){var v=speeds[maq];if(v&&+v>0&&!f.m[maq])f.m[maq]={v:+v,o:85,tu:+(r.temporal||0)};});
+    Object.keys(speeds).forEach(function(maq){
+      var v=speeds[maq];
+      if(v&&+v>0&&!f.m[maq]) f.m[maq]={v:+v,o:85,tu:temporal};
+    });
   });
   var newFAM=Object.values(byFam);
   if(newFAM.length){FAM.length=0;newFAM.forEach(function(f){FAM.push(f);});}
@@ -2141,26 +2157,32 @@ async function loadCiclosSB(){
 }
 
 async function loadMaterialesSB(){
-  // Vaciar todos los materiales hardcodeados — solo se muestran los de Supabase
+  // Vaciar hardcoded: solo aparecen los materiales reales de Supabase
   RD.length=0;
   const {data,error}=await sb.from('materiales_opet').select('*');
   if(error||!data) return;
-  // Mapa troquel→familia a partir de familias_opet (fam.tq[])
+  // Mapa troquel→familia construido desde troqueles_opet (ya cargado en FAM[].tq[])
   var troquelToFam={};
   FAM.forEach(function(f){f.tq.forEach(function(tq){troquelToFam[tq]=f;});});
-  // Válidos: tienen troquel en la tabla maestra | Inválidos: borrar de Supabase
+  // Separar válidos (troquel existe en troqueles_opet) de inválidos (demo/huérfanos)
   var validData=data.filter(function(r){return r.troquel&&troquelToFam[r.troquel];});
   var invalidIds=data.filter(function(r){return !r.troquel||!troquelToFam[r.troquel];}).map(function(r){return r.id_material;});
-  if(invalidIds.length){try{await sb.from('materiales_opet').delete().in('id_material',invalidIds);}catch(e){console.warn('Borrado materiales no maestro:',e);}}
+  if(invalidIds.length){try{await sb.from('materiales_opet').delete().in('id_material',invalidIds);}catch(e){console.warn('Limpieza materiales no maestro:',e);}}
   validData.forEach(function(r){
     var fam=troquelToFam[r.troquel];
-    var maqNames=Object.keys(fam.m);
-    // Máquina y velocidad: valor guardado > derivado de familia
-    var defMaq=r.nombre_maquina_defecto||(maqNames.length?maqNames[0]:'T1');
-    var defVel=r.velocidad?+r.velocidad:(fam.m[defMaq]?fam.m[defMaq].v:5000);
-    var defOee=r.oee?+r.oee:(fam.m[defMaq]?fam.m[defMaq].o||85:85);
-    var altMaq=r.nombre_maquina_alternativa||(maqNames.length>1?maqNames[1]:'');
+    var maqNames=Object.keys(fam.m); // máquinas disponibles para este troquel
+    // Máquina: nombre guardado > id entero mapeado > primera máquina del troquel > T1
+    var defMaq=r.nombre_maquina_defecto
+      ||maqIdMap[r.id_maquina_defecto]
+      ||(maqNames.length?maqNames[0]:'T1');
+    var altMaq=r.nombre_maquina_alternativa
+      ||maqIdMap[r.id_maquina_alternativa]
+      ||(maqNames.length>1?maqNames[1]:'');
+    // Velocidad: del troquel (misma para todas las máquinas en el maestro)
+    var defVel=r.velocidad?+r.velocidad:(fam.m[defMaq]?fam.m[defMaq].v:(maqNames.length?fam.m[maqNames[0]].v:5000));
+    var defOee=r.oee?+r.oee:85;
     var altVel=r.velocidad_alternativa?+r.velocidad_alternativa:(altMaq&&fam.m[altMaq]?fam.m[altMaq].v:0);
+    // Añadir código a mt[] de la familia → la columna Familia se rellena en la tabla
     if(fam.mt.indexOf(r.id_material)<0) fam.mt.push(r.id_material);
     MOLDE_MAP[r.id_material]=r.troquel;
     RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel]);
