@@ -278,8 +278,8 @@ tr:hover td{background:rgba(0,180,216,.03);}
 
 <!-- FAMILIAS -->
 <div class="pg" id="p-familias">
-<div class="fl"><input type="text" placeholder="Buscar familia..." id="famSrch" oninput="fltFam()"><div><label>Máquina</label><select id="famMF" onchange="fltFam()"><option value="">Todas</option><option>T1</option><option>T2</option></select></div><button class="btn bp" onclick="oM('mFam')">+ Nueva Familia</button></div>
-<div class="cd"><h3>🧩 Maestro de Familias / Moldes</h3><p style="font-size:11px;color:var(--tl);margin-bottom:12px">Cambio de familia = <strong>4h</strong>. <strong>Temporal</strong> = unidades a producir por ciclo; las horas se calculan con velocidad × OEE. <strong>Rep.</strong> = cada cuántos ciclos aparece.</p><div class="tw"><table><thead><tr><th>ID</th><th>Nombre</th><th>Máq.</th><th>Vel T1</th><th>Temp T1 (uds)</th><th>Horas T1</th><th>Vel T2</th><th>Temp T2 (uds)</th><th>Horas T2</th><th>Rep.</th><th>Materiales</th><th>Acc.</th></tr></thead><tbody id="famTB"></tbody></table></div></div></div>
+<div class="fl"><input type="text" placeholder="Buscar familia..." id="famSrch" oninput="fltFam()"><div><label>Máquina</label><select id="famMF" onchange="fltFam()"><option value="">Todas</option></select></div><button class="btn bp" onclick="oM('mFam')">+ Nueva Familia</button></div>
+<div class="cd"><h3>🧩 Maestro de Familias / Moldes</h3><p style="font-size:11px;color:var(--tl);margin-bottom:12px">Cambio de familia = <strong>4h</strong>. <strong>Temporal</strong> = unidades a producir por ciclo; las horas se calculan con velocidad mediana × OEE. <strong>Rep.</strong> = cada cuántos ciclos aparece.</p><div class="tw"><table><thead><tr><th>ID</th><th>Nombre</th><th>Máq. Defecto</th><th>Vel. Mediana</th><th>Temporal (uds)</th><th>Horas</th><th>Rep.</th><th>Materiales</th><th>Acc.</th></tr></thead><tbody id="famTB"></tbody></table></div></div></div>
 <!-- PEDIDOS -->
 <div class="pg" id="p-pedidos">
 <div class="fl">
@@ -1698,30 +1698,37 @@ function fD(d){if(!d)return'-';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];
 
 function rFam(){
   var tb=document.getElementById('famTB');if(!tb)return;tb.innerHTML='';
+  var usedMaqs=new Set();
   FAM.forEach(function(f,i){
-    var t1=f.m.T1,t2=f.m.T2;
-    var v1=t1?Math.round(t1.v*t1.o/100):0;
-    var v2=t2?Math.round(t2.v*t2.o/100):0;
-    var tu1=t1?(t1.tu||0):0;
-    var tu2=t2?(t2.tu||0):0;
-    var h1=t1&&tu1?Math.round(tu1/v1*10)/10:0;
-    var h2=t2&&tu2?Math.round(tu2/v2*10)/10:0;
-    var ch=t1&&t2?'<span class="b" style="background:var(--warning);color:#333">T1+T2</span>':t1?'<span class="b bl">T1</span>':'<span class="b" style="background:#a78bfa">T2</span>';
+    // Máquina defecto = la que más materiales tiene en esta familia
+    var maqCount={};
+    f.mt.forEach(function(cod){var r=RD.find(function(x){return x[0]===cod;});if(r&&r[2])maqCount[r[2]]=(maqCount[r[2]]||0)+1;});
+    var maqKeys=Object.keys(maqCount);
+    var defMaq=maqKeys.length?maqKeys.reduce(function(a,b){return maqCount[a]>=maqCount[b]?a:b;}):(Object.keys(f.m)[0]||'');
+    if(defMaq) usedMaqs.add(defMaq);
+    // Velocidad mediana de los materiales de esa máquina
+    var vels=f.mt.map(function(cod){var r=RD.find(function(x){return x[0]===cod;});return(r&&r[2]===defMaq)?r[3]:null;}).filter(function(v){return v!==null;}).sort(function(a,b){return a-b;});
+    var medVel=0;
+    if(vels.length){var mid=Math.floor(vels.length/2);medVel=vels.length%2?vels[mid]:Math.round((vels[mid-1]+vels[mid])/2);}
+    // Temporal: único para la familia (igual en todas las máquinas)
+    var mObj=f.m[defMaq]||f.m[Object.keys(f.m)[0]];
+    var tu=mObj?(mObj.tu||0):0;
+    var oee=mObj?(mObj.o||85):85;
+    var effVel=medVel?Math.round(medVel*oee/100):0;
+    var h=tu&&effVel?Math.round(tu/effVel*10)/10:0;
     var mtCount=f.mt.length;
     var mt=mtCount>0?'<button class="btn bsm" style="background:#e0f4fa;color:var(--accent2);border:1px solid var(--accent);font-size:11px" onclick="showFamMat('+i+')">'+mtCount+' material'+(mtCount===1?'':'es')+'</button>':'<span style="color:var(--tl);font-size:11px">—</span>';
-    var cellV1=t1?(t1.v+' x '+t1.o+'%<br><small style="color:var(--tl)">'+v1+' ef</small>'):'\u2014';
-    var cellV2=t2?(t2.v+' x '+t2.o+'%<br><small style="color:var(--tl)">'+v2+' ef</small>'):'\u2014';
-    var cellTu1=t1?'<input type="number" class="oee-input" style="width:80px" value="'+tu1+'" min="0" step="1000" onchange="FAM['+i+'].m.T1.tu=+this.value;rFam();">':'\u2014';
-    var cellTu2=t2?'<input type="number" class="oee-input" style="width:80px" value="'+tu2+'" min="0" step="1000" onchange="FAM['+i+'].m.T2.tu=+this.value;rFam();">':'\u2014';
-    var cellH1=t1?(h1>0?'<strong>'+h1+'h</strong>':'<span class="muted">-</span>'):'\u2014';
-    var cellH2=t2?(h2>0?'<strong>'+h2+'h</strong>':'<span class="muted">-</span>'):'\u2014';
+    var maqBadge=defMaq?'<span class="b bl">'+defMaq+'</span><br><small style="color:var(--tl);font-size:9px">'+(maqCount[defMaq]||0)+' mat.</small>':'<span style="color:var(--tl)">—</span>';
+    var cellVel=medVel?medVel.toLocaleString()+' uds/h<br><small style="color:var(--tl)">'+effVel+' ef</small>':'<span style="color:var(--tl)">—</span>';
+    var cellTu='<input type="number" class="oee-input" style="width:90px" value="'+tu+'" min="0" step="1000" onchange="var t=+this.value;Object.keys(FAM['+i+'].m).forEach(function(k){FAM['+i+'].m[k].tu=t;});rFam();">';
+    var cellH=h>0?'<strong>'+h+'h</strong>':'<span class="muted">-</span>';
     var rep=f.r||1;
     var repTxt=rep===1?'cada ciclo':'cada '+rep+' ciclos';
-    var cellRep='<select class="oee-input" style="width:80px;font-size:11px" onchange="FAM['+i+'].r=+this.value;rFam();">'+
-      [1,2,3,4].map(function(n){return'<option value="'+n+'"'+(n===rep?' selected':'')+'>'+(n===1?'cada':'cada '+n)+'</option>';}).join('')+'</select>'+
-      '<br><small style="color:var(--tl);font-size:9px">'+repTxt+'</small>';
-    tb.innerHTML+='<tr data-mq="'+(t1?'T1':'')+(t2?'T2':'')+'"><td><strong style="color:'+f.cl+'">'+f.id+'</strong></td><td style="font-weight:600">'+f.nm+'</td><td>'+ch+'</td><td style="font-size:11px">'+cellV1+'</td><td>'+cellTu1+'</td><td style="text-align:center">'+cellH1+'</td><td style="font-size:11px">'+cellV2+'</td><td>'+cellTu2+'</td><td style="text-align:center">'+cellH2+'</td><td>'+cellRep+'</td><td style="max-width:180px">'+mt+'</td><td><button class="btn bsm bp" onclick="eFam2('+i+')">Ed</button> <button class="btn bsm" style="background:#e63946;color:#fff" onclick="dFam('+i+')">X</button></td></tr>';
+    var cellRep='<select class="oee-input" style="width:80px;font-size:11px" onchange="FAM['+i+'].r=+this.value;rFam();">'+[1,2,3,4].map(function(n){return'<option value="'+n+'"'+(n===rep?' selected':'')+'>'+(n===1?'cada':'cada '+n)+'</option>';}).join('')+'</select><br><small style="color:var(--tl);font-size:9px">'+repTxt+'</small>';
+    tb.innerHTML+='<tr data-mq="'+defMaq+'"><td><strong style="color:'+f.cl+'">'+f.id+'</strong></td><td style="font-weight:600">'+f.nm+'</td><td>'+maqBadge+'</td><td style="font-size:11px">'+cellVel+'</td><td>'+cellTu+'</td><td style="text-align:center">'+cellH+'</td><td>'+cellRep+'</td><td style="max-width:180px">'+mt+'</td><td><button class="btn bsm bp" onclick="eFam2('+i+')">Ed</button> <button class="btn bsm" style="background:#e63946;color:#fff" onclick="dFam('+i+')">X</button></td></tr>';
   });
+  // Actualizar filtro de máquina con las máquinas presentes
+  var sel=document.getElementById('famMF');if(sel){var cur=sel.value;sel.innerHTML='<option value="">Todas</option>';[...usedMaqs].sort().forEach(function(m){sel.innerHTML+='<option value="'+m+'">'+m+'</option>';});if(cur)sel.value=cur;}
 }
 function fltFam(){var q=(document.getElementById('famSrch').value||'').toLowerCase(),mf=document.getElementById('famMF').value;document.querySelectorAll('#famTB tr').forEach(function(r){r.style.display=(!mf||r.dataset.mq.indexOf(mf)>=0)&&r.textContent.toLowerCase().indexOf(q)>=0?'':'none';});}
 function showFamMat(i){
