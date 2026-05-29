@@ -2068,9 +2068,9 @@ async function loadFamiliasSB(){
   const byFam={};
   data.forEach(function(r){
     var fid=String(r.id_familia);
-    if(!byFam[fid]){byFam[fid]={id:fid,nm:r.nombre_troquel||fid,m:{},mt:[],cl:cols[Object.keys(byFam).length%cols.length],r:1};}
+    if(!byFam[fid]){byFam[fid]={id:fid,nm:r.nombre_troquel||fid,m:{},mt:[],tq:[],cl:cols[Object.keys(byFam).length%cols.length],r:1};}
     var f=byFam[fid];
-    if(r.troquel&&f.mt.indexOf(r.troquel)<0) f.mt.push(r.troquel);
+    if(r.troquel&&f.tq.indexOf(r.troquel)<0) f.tq.push(r.troquel); // troqueles reales del maestro
     if(r.nombre_troquel) f.nm=r.nombre_troquel;
     var speeds={T1:r.velocidad_t1,T2:r.velocidad_t2,T3:r.velocidad_t3,T4:r.velocidad_t4,T5:r.velocidad_t5,T6:r.velocidad_t6};
     Object.keys(speeds).forEach(function(maq){var v=speeds[maq];if(v&&+v>0&&!f.m[maq])f.m[maq]={v:+v,o:85,tu:+(r.temporal||0)};});
@@ -2142,21 +2142,53 @@ async function loadCiclosSB(){
 
 async function loadMaterialesSB(){
   const {data,error}=await sb.from('materiales_opet').select('*');
-  if(error||!data||!data.length) return;
-  var dbCodes=data.map(function(r){return r.id_material;});
+  if(error||!data) return;
+  // Mapa troquel→familia a partir de los troqueles reales de familias_opet (fam.tq[])
+  var troquelToFam={};
+  FAM.forEach(function(f){f.tq.forEach(function(tq){troquelToFam[tq]=f;});});
+  // Separar válidos (tienen troquel en maestro) de inválidos
+  var validData=data.filter(function(r){return r.troquel&&troquelToFam[r.troquel];});
+  var invalidIds=data.filter(function(r){return !r.troquel||!troquelToFam[r.troquel];}).map(function(r){return r.id_material;});
+  // Borrar de Supabase los que no están en la tabla maestra
+  if(invalidIds.length){try{await sb.from('materiales_opet').delete().in('id_material',invalidIds);}catch(e){console.warn('Borrado materiales no maestro:',e);}}
+  if(!validData.length) return;
+  // Quitar de RD[] los que ya vienen de la BD
+  var dbCodes=validData.map(function(r){return r.id_material;});
   for(var i=RD.length-1;i>=0;i--){if(dbCodes.indexOf(RD[i][0])>=0)RD.splice(i,1);}
-  data.forEach(function(r){
-    RD.push([r.id_material,r.nombre_material||r.id_material,r.nombre_maquina_defecto||'T1',+(r.velocidad||5000),+(r.oee||85),r.nombre_maquina_alternativa||'',+(r.velocidad_alternativa||0)]);
-    if(!MOLDE_MAP[r.id_material])MOLDE_MAP[r.id_material]=String(300000000+Object.keys(MOLDE_MAP).length+1);
+  validData.forEach(function(r){
+    var fam=troquelToFam[r.troquel];
+    var maqNames=Object.keys(fam.m);
+    // Máquina y velocidad: primero valor guardado, si no el de la familia
+    var defMaq=r.nombre_maquina_defecto||(maqNames.length?maqNames[0]:'T1');
+    var defVel=r.velocidad?+r.velocidad:(fam.m[defMaq]?fam.m[defMaq].v:5000);
+    var defOee=r.oee?+r.oee:(fam.m[defMaq]?fam.m[defMaq].o||85:85);
+    var altMaq=r.nombre_maquina_alternativa||(maqNames.length>1?maqNames[1]:'');
+    var altVel=r.velocidad_alternativa?+r.velocidad_alternativa:(altMaq&&fam.m[altMaq]?fam.m[altMaq].v:0);
+    // Añadir código de material a mt[] de la familia (para que rR() muestre la familia)
+    if(fam.mt.indexOf(r.id_material)<0) fam.mt.push(r.id_material);
+    // Troquel como clave de molde
+    MOLDE_MAP[r.id_material]=r.troquel;
+    RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel]);
   });
+}
+
+function popMaqFilter(){
+  var sel=document.getElementById('rMF');if(!sel)return;
+  var cur=sel.value;
+  sel.innerHTML='<option value="">Todas</option>';
+  mNamesAll.forEach(function(m){sel.innerHTML+='<option>'+m+'</option>';});
+  if(cur)sel.value=cur;
 }
 
 async function initFromSupabase(){
   showLoading(true);
   try{
-    await Promise.all([loadMaquinasSB(),loadFamiliasSB(),loadMaterialesSB(),loadPedidosSB()]);
+    // Familias y máquinas primero — loadMaterialesSB las necesita
+    await Promise.all([loadMaquinasSB(),loadFamiliasSB(),loadPedidosSB()]);
+    await loadMaterialesSB();
     await loadOrdenesSB();
     await loadCiclosSB();
+    popMaqFilter();
     rR();rPed();rFam();rCyc();rAl();rA();rCal();
   }catch(e){console.warn('Supabase init error:',e);}
   showLoading(false);
@@ -2221,7 +2253,8 @@ svFam=async function(){
   _origSvFam();
   var id=document.getElementById('fmId').value.trim().toUpperCase();
   var f=FAM.find(function(x){return x.id===id;});if(!f)return;
-  var rows=f.mt.map(function(troquel){
+  var troquelesSave=(f.tq&&f.tq.length)?f.tq:[f.id];
+  var rows=troquelesSave.map(function(troquel){
     var row={id_familia:f.id,nombre_troquel:f.nm,troquel:troquel,temporal:f.m.T1?(f.m.T1.tu||0):(f.m.T2?f.m.T2.tu||0:0),Minutos_Cambio_Completo:CHG_H*60};
     ['T1','T2','T3','T4','T5','T6'].forEach(function(maq,idx){row['velocidad_t'+(idx+1)]=f.m[maq]?f.m[maq].v:null;});
     return row;
@@ -2247,9 +2280,15 @@ saveNewArt=async function(){
   var oee2=+(document.getElementById('naOEE')||{}).value||85;
   var rAlt=(document.getElementById('naRutaAlt')||{}).value||'';
   var vAlt=+(document.getElementById('naVelAlt')||{}).value||0;
+  var famId=(document.getElementById('naFam')||{}).value||'';
+  var fam=famId?FAM.find(function(f){return f.id===famId;}):null;
+  // Obtener troquel real de la familia para que el enlace maestro funcione al recargar
+  var troquel=fam&&fam.tq&&fam.tq.length?fam.tq[0]:'';
   _origSaveNewArt();
   if(!cod||!desc||!vel) return;
-  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt},{onConflict:'id_material'});}
+  // Añadir código de material a mt[] de la familia
+  if(fam&&fam.mt.indexOf(cod)<0) fam.mt.push(cod);
+  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,troquel:troquel,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt},{onConflict:'id_material'});}
   catch(e){console.warn('Error saving material:',e);}
 };
 
