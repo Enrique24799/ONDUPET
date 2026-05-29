@@ -2074,9 +2074,11 @@ async function loadMaquinasSB(){
   const {data,error}=await sb.from('maquina_opet').select('*').order('id_maquina');
   if(error||!data||!data.length) return;
   maqIdMap={};
-  data.forEach(function(r){maqIdMap[r.id_maquina]=r.nombre_maquina;});
-  const dbM=data.map(function(r){return r.nombre_maquina;});
-  if(dbM.length){mNamesAll.length=0;dbM.forEach(function(m){mNamesAll.push(m);});}
+  // termo_defecto: T1/T2/T3... es la máquina OPET correspondiente al ID SAP
+  data.forEach(function(r){maqIdMap[r.id_maquina]=r.termo_defecto||r.nombre_maquina;});
+  // mNamesAll: termoformadoras únicas (T1, T2, T3...) para filtros y capacidad
+  var uniqueTermo=[...new Set(data.map(function(r){return r.termo_defecto;}).filter(function(t){return t&&t.trim();}))].sort();
+  if(uniqueTermo.length){mNamesAll.length=0;uniqueTermo.forEach(function(m){mNamesAll.push(m);});}
 }
 
 async function loadFamiliasSB(){
