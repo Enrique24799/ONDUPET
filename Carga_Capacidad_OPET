@@ -838,44 +838,8 @@ function refreshBalMonths(mos,mosKey){
 }
 function goDetCarga(maq){/* v4: detail merged into carga page - no navigation needed */}
 
-const DCData={
-T1:[['BAN-T200','Bandeja T200 PET','Planificado','2026-05',80000,12,14,'OF-1001, OF-1002','T4'],['BAN-T200','Bandeja T200 PET','Planificado','2026-06',100000,15,18,'OF-1023','T4'],['BAN-T300','Bandeja T300 PET','Planificado','2026-05',60000,10,12,'OF-1003','T1'],['BAN-T300','Bandeja T300 PET','Previsión','2026-07',60000,10,12,'-','T1'],['TAR-R150','Tarrina R150 PP','Planificado','2026-05',50000,10,12,'OF-1004','T5'],['TAR-R150','Tarrina R150 PP','Previsión','2026-06',40000,8,10,'-','T5'],['TAP-C200','Tapa C200 PP','Planificado','2026-05',30000,4,5,'OF-1005','T4'],['BAN-T500','Bandeja T500 PET','Previsión','2026-08',50000,10,12,'-','T1']],
-T2:[['BAN-T400','Bandeja T400 PET','Planificado','2026-05',150000,29,21,'OF-1010,OF-1011,OF-1012','T3'],['BAN-T400','Bandeja T400 PET','Previsión','2026-06',100000,19,14,'-','T3'],['BAN-T500','Bandeja T500 negro','Planificado','2026-05',80000,17,12,'OF-1013','T1'],['BAN-T500','Bandeja T500 negro','Previsión','2026-07',100000,21,15,'-','T1'],['ENV-T500','Envase T500 PET','Planificado','2026-05',70000,15,11,'OF-1014,OF-1015','T2'],['TAR-R300','Tarrina R300 PP','Planificado','2026-05',50000,10,7,'OF-1016','T6'],['TAP-C100','Tapa C100 PET','Previsión','2026-08',30000,6,4,'-','T3']],
-T3:[['BAN-T300','Bandeja T300 PET','Planificado','2026-05',80000,14,17,'OF-1020','T1'],['TAR-R300','Tarrina R300 PP','Planificado','2026-05',60000,12,14,'OF-1021','T6'],['TAP-C100','Tapa C100 PET','Planificado','2026-05',40000,6,7,'OF-1022','T3'],['BAN-T400','Bandeja T400 PET','Previsión','2026-07',70000,15,18,'-','T3'],['ENV-P200','Envase P200 mini','Planificado','2026-05',20000,4,5,'OF-1023','E1']],
-T4:[['TAR-R150','Tarrina R150 PP','Planificado','2026-05',70000,15,26,'OF-1030,OF-1031','T5'],['TAR-R150','Tarrina R150 PP','Previsión','2026-06',60000,13,22,'-','T5'],['TAP-C200','Tapa C200 PP','Planificado','2026-05',45000,7,12,'OF-1032','T4'],['BAN-T200','Bandeja T200 PET','Planificado','2026-05',30000,5,9,'OF-1033','T1'],['ENV-T500','Envase T500','Previsión','2026-06',40000,9,16,'-','T2']],
-T5:[['TAR-R250','Tarrina R250 PP','Planificado','2026-05',120000,29,20,'OF-1040,OF-1041,OF-1042','T6'],['TAR-R250','Tarrina R250 PP','Previsión','2026-06',100000,24,17,'-','T6'],['ENV-T500','Envase T500 PET','Planificado','2026-05',80000,17,12,'OF-1043','T2'],['TAR-R150','Tarrina R150 PP','Planificado','2026-05',60000,14,10,'OF-1044','T5'],['BAN-T400','Bandeja T400 PET','Planificado','2026-05',50000,10,7,'OF-1045','T3'],['TAP-C100','Tapa C100','Previsión','2026-08',50000,10,7,'-','T3']],
-T6:[['TAP-C100','Tapa C100 PET','Planificado','2026-05',100000,14,19,'OF-1050,OF-1051','T3'],['TAP-C100','Tapa C100 PET','Previsión','2026-06',100000,14,19,'-','T3'],['TAP-C200','Tapa C200 PP','Planificado','2026-05',80000,12,16,'OF-1052','T4'],['TAR-R300','Tarrina R300 PP','Planificado','2026-05',50000,7,9,'OF-1053','T6'],['BAN-T300','Bandeja T300','Previsión','2026-06',50000,10,14,'-','T1']],
-E1:[['ENV-P600','Envase P600 PET','Planificado','2026-05',150000,47,26,'OF-1060,OF-1061,OF-1062,OF-1063','E2'],['ENV-P600','Envase P600 PET','Previsión','2026-06',150000,47,26,'-','E2'],['ENV-P300','Envase P300 PP','Planificado','2026-05',100000,26,14,'OF-1064,OF-1065','E2'],['ENV-P300','Envase P300 PP','Previsión','2026-07',100000,26,14,'-','E2'],['ENV-P400','Envase P400 PET','Planificado','2026-05',60000,17,9,'OF-1066','E1']],
-E2:[['ENV-P400','Envase P400 PET','Planificado','2026-05',80000,23,24,'OF-1070,OF-1071','E1'],['ENV-P400','Envase P400 PET','Previsión','2026-06',80000,23,24,'-','E1'],['ENV-P200','Envase P200 mini','Planificado','2026-05',50000,12,12,'OF-1072','E1'],['ENV-P200','Envase P200 mini','Previsión','2026-07',50000,12,12,'-','E1'],['ENV-P300','Envase P300 PP','Planificado','2026-05',40000,11,11,'OF-1073','E2'],['ENV-P600','Envase P600 PET','Previsión','2026-06',20000,6,6,'-','E1']]
-};
+const DCData={T1:[],T2:[],T3:[],T4:[],T5:[],T6:[],E1:[],E2:[]};
 
-/* V7: Extended DCData Jun planned orders */
-DCData.T1.push(['BAN-T200','Bandeja T200 PET','Planificado','2026-06',90000,14,19,'OF-1080','T4']);
-DCData.T1.push(['TAR-R150','Tarrina R150 PP','Planificado','2026-06',80000,14,19,'OF-1081','T5']);
-DCData.T1.push(['BAN-T300','Bandeja T300 PET','Planificado','2026-06',55000,10,14,'OF-1082','T1']);
-DCData.T2.push(['BAN-T400','Bandeja T400 PET','Planificado','2026-06',120000,25,18,'OF-1083,OF-1084','T3']);
-DCData.T2.push(['BAN-T500','Bandeja T500 negro','Planificado','2026-06',100000,21,15,'OF-1085','T1']);
-DCData.T2.push(['ENV-T500','Envase T500 PET','Planificado','2026-06',80000,17,12,'OF-1086','T2']);
-DCData.T2.push(['TAR-R300','Tarrina R300 PP','Planificado','2026-06',45000,9,6,'OF-1087','T6']);
-DCData.T3.push(['BAN-T300','Bandeja T300 PET','Planificado','2026-06',70000,12,16,'OF-1088','T1']);
-DCData.T3.push(['TAR-R300','Tarrina R300 PP','Planificado','2026-06',50000,10,13,'OF-1089','T6']);
-DCData.T3.push(['TAP-C100','Tapa C100 PET','Planificado','2026-06',35000,5,7,'OF-1090','T3']);
-DCData.T4.push(['TAR-R150','Tarrina R150 PP','Planificado','2026-06',55000,11,18,'OF-1091','T5']);
-DCData.T4.push(['TAP-C200','Tapa C200 PP','Planificado','2026-06',40000,6,10,'OF-1092','T4']);
-DCData.T4.push(['BAN-T200','Bandeja T200 PET','Planificado','2026-06',25000,4,7,'OF-1093','T1']);
-DCData.T5.push(['TAR-R250','Tarrina R250 PP','Planificado','2026-06',100000,26,18,'OF-1094,OF-1095','T6']);
-DCData.T5.push(['ENV-T500','Envase T500 PET','Planificado','2026-06',70000,15,10,'OF-1096','T2']);
-DCData.T5.push(['TAR-R150','Tarrina R150 PP','Planificado','2026-06',55000,13,9,'OF-1097','T5']);
-DCData.T5.push(['BAN-T400','Bandeja T400 PET','Planificado','2026-06',50000,11,8,'OF-1098','T3']);
-DCData.T6.push(['TAP-C100','Tapa C100 PET','Planificado','2026-06',95000,13,18,'OF-1099','T3']);
-DCData.T6.push(['TAP-C200','Tapa C200 PP','Planificado','2026-06',70000,10,14,'OF-1100','T4']);
-DCData.T6.push(['TAR-R300','Tarrina R300 PP','Planificado','2026-06',40000,6,8,'OF-1101','T6']);
-DCData.E1.push(['ENV-P600','Envase P600 PET','Planificado','2026-06',140000,44,24,'OF-1102,OF-1103','E2']);
-DCData.E1.push(['ENV-P300','Envase P300 PP','Planificado','2026-06',90000,24,13,'OF-1104','E2']);
-DCData.E1.push(['ENV-P400','Envase P400 PET','Planificado','2026-06',50000,14,8,'OF-1105','E1']);
-DCData.E2.push(['ENV-P400','Envase P400 PET','Planificado','2026-06',70000,20,21,'OF-1106','E1']);
-DCData.E2.push(['ENV-P200','Envase P200 mini','Planificado','2026-06',45000,11,11,'OF-1107','E1']);
-DCData.E2.push(['ENV-P300','Envase P300 PP','Planificado','2026-06',35000,9,9,'OF-1108','E2']);
 
 function renderDetCarga(){/* v4: merged into Carga page */}
 function toggleOfs(key){const el=document.getElementById('ofs-'+key);if(el)el.classList.toggle('on');}
@@ -962,25 +926,8 @@ setTimeout(loadBalOrders,100);
 
 const AP=[['PED-20201','Mercadona','BAN-T400','150.000','05/05/2026','18/05/2026',13,'Crítico'],['PED-20202','Carrefour','TAR-R250','80.000','08/05/2026','19/05/2026',11,'Crítico'],['PED-20203','Lidl','ENV-P600','200.000','10/05/2026','22/05/2026',12,'Crítico'],['PED-20204','Dia','BAN-T200','60.000','12/05/2026','20/05/2026',8,'Atrasado'],['PED-20205','Aldi','TAP-C100','45.000','09/05/2026','16/05/2026',7,'Atrasado'],['PED-20206','Consum','ENV-P300','120.000','11/05/2026','17/05/2026',6,'Atrasado'],['PED-20207','Eroski','BAN-T400','90.000','06/05/2026','19/05/2026',13,'Crítico'],['PED-20208','Alcampo','TAR-R150','110.000','13/05/2026','18/05/2026',5,'Atrasado'],['PED-20209','BM','ENV-T500','70.000','14/05/2026','18/05/2026',4,'Atrasado'],['PED-20210','Froiz','TAP-C200','55.000','07/05/2026','20/05/2026',13,'Crítico'],['PED-20211','Makro','BAN-T300','180.000','15/05/2026','18/05/2026',3,'Atrasado'],['PED-20212','Spar','ENV-P400','95.000','15/05/2026','17/05/2026',2,'Atrasado'],['PED-20213','Mercadona','TAR-R300','65.000','16/05/2026','16/05/2026',0,'En plazo'],['PED-20214','Carrefour','BAN-T500','130.000','18/05/2026','18/05/2026',0,'En plazo'],['PED-20215','Lidl','TAP-C100','40.000','20/05/2026','19/05/2026',0,'En plazo'],['PED-20216','Dia','ENV-P200','85.000','22/05/2026','20/05/2026',0,'En plazo'],['PED-20217','Aldi','BAN-T400','160.000','13/05/2026','20/05/2026',7,'Atrasado'],['PED-20218','Consum','TAR-R250','100.000','14/05/2026','18/05/2026',4,'Atrasado']];
 /* === PEDIDOS (v16) === */
-// Initialize PED with the AP demo data converted (so atraso shows them too) + leave room for user-created
-var PED=[
- {id:'PED-20201',cli:'Mercadona',mat:'BAN-T400',qty:150000,fE:'2026-05-18',of:''},
- {id:'PED-20202',cli:'Carrefour',mat:'TAR-R250',qty:80000,fE:'2026-05-19',of:''},
- {id:'PED-20203',cli:'Lidl',mat:'ENV-P600',qty:200000,fE:'2026-05-22',of:''},
- {id:'PED-20204',cli:'Dia',mat:'BAN-T200',qty:60000,fE:'2026-05-20',of:''},
- {id:'PED-20205',cli:'Aldi',mat:'TAP-C100',qty:45000,fE:'2026-05-16',of:''},
- {id:'PED-20206',cli:'Consum',mat:'ENV-P300',qty:120000,fE:'2026-05-17',of:''},
- {id:'PED-20207',cli:'Eroski',mat:'BAN-T400',qty:90000,fE:'2026-05-19',of:''},
- {id:'PED-20208',cli:'Alcampo',mat:'TAR-R150',qty:110000,fE:'2026-05-18',of:''},
- {id:'PED-20209',cli:'BM',mat:'ENV-T500',qty:70000,fE:'2026-05-18',of:''},
- {id:'PED-20210',cli:'Froiz',mat:'TAP-C200',qty:55000,fE:'2026-05-20',of:''},
- {id:'PED-20211',cli:'Makro',mat:'BAN-T300',qty:180000,fE:'2026-05-18',of:''},
- {id:'PED-20212',cli:'Spar',mat:'ENV-P400',qty:95000,fE:'2026-05-17',of:''},
- {id:'PED-20213',cli:'Mercadona',mat:'TAR-R300',qty:65000,fE:'2026-05-16',of:''},
- {id:'PED-20214',cli:'Carrefour',mat:'BAN-T500',qty:130000,fE:'2026-05-18',of:''},
- {id:'PED-20215',cli:'Lidl',mat:'TAP-C100',qty:40000,fE:'2026-05-19',of:''}
-];
-var nxPed=20300;
+var PED=[];
+var nxPed=20001;
 // "Today" for status calculation (so demo data behaves consistently with v13)
 var PED_TODAY='2026-05-18';
 function pedDaysDiff(a,b){var da=new Date(a),db=new Date(b);return Math.round((da-db)/(24*3600*1000));}
@@ -1682,13 +1629,8 @@ var FAM=[
 // Helpers: hours from temporal units
 function famEffSpeed(f,mq){if(!f.m||!f.m[mq])return 0;return f.m[mq].v*(f.m[mq].o/100);}
 function famHours(f,mq){var s=famEffSpeed(f,mq);if(!s||!f.m[mq].tu)return 0;return Math.round(f.m[mq].tu/s*10)/10;}
-var CYC=[
-{id:'C001',mq:'T1',ds:'2026-05-04',de:'2026-05-17',sl:[{f:'F01',t:56,c:32,sk:false},{f:'F02',t:40,c:0,sk:false},{f:'F03',t:28,c:15,sk:false},{f:'F04',t:24,c:0,sk:false},{f:'F05',t:16,c:0,sk:false}]},
-{id:'C002',mq:'T1',ds:'2026-05-18',de:'2026-05-31',sl:[{f:'F01',t:60,c:0,sk:false},{f:'F02',t:44,c:0,sk:false},{f:'F03',t:32,c:0,sk:false},{f:'F04',t:22,c:0,sk:false},{f:'F05',t:0,c:0,sk:true}]},
-{id:'C003',mq:'T2',ds:'2026-05-04',de:'2026-05-17',sl:[{f:'F01',t:48,c:20,sk:false},{f:'F06',t:32,c:10,sk:false},{f:'F07',t:28,c:0,sk:false},{f:'F09',t:24,c:0,sk:false},{f:'F03',t:22,c:8,sk:false}]},
-{id:'C004',mq:'T2',ds:'2026-05-18',de:'2026-05-31',sl:[{f:'F06',t:36,c:0,sk:false},{f:'F07',t:30,c:0,sk:false},{f:'F08',t:22,c:0,sk:false},{f:'F09',t:26,c:0,sk:false},{f:'F03',t:18,c:0,sk:false}]}
-];
-var nxCy=5;
+var CYC=[];
+var nxCy=1;
 function gF(id){return FAM.find(function(f){return f.id===id;});}
 function cWD(a,b){var d=new Date(a),e=new Date(b),n=0;while(d<=e){var w=d.getDay();if(w>=1&&w<=5)n++;d.setDate(d.getDate()+1);}return n;}
 function cCH2(c){return cWD(c.ds,c.de)*(dSh[c.mq]||3)*8;}
@@ -2121,15 +2063,17 @@ async function loadFamiliasSB(){
 }
 
 async function loadPedidosSB(){
+  PED.length=0;
   const {data,error}=await sb.from('pedidos_opet').select('*').order('id_pedido');
   if(error||!data||!data.length) return;
-  PED.length=0;
   data.forEach(function(r){PED.push({id:r.id_pedido,cli:r.cliente||'',mat:r.id_material||'',qty:+(r.cantidad_pedido||0),fE:r.fecha_entrega||'',of:''});});
   var maxN=PED.reduce(function(acc,p){var n=parseInt(p.id.replace(/\D/g,''));return isNaN(n)?acc:Math.max(acc,n+1);},nxPed);
   nxPed=maxN;
 }
 
 async function loadOrdenesSB(){
+  ordersCreated={};
+  Object.keys(DCData).forEach(function(k){DCData[k]=[];});
   const {data,error}=await sb.from('ordenes_fabricacion_opet').select('*');
   if(error||!data||!data.length) return;
   data.forEach(function(r){
@@ -2165,9 +2109,9 @@ async function loadOrdenesSB(){
 async function loadCiclosSB(){
   var r1=await sb.from('ciclos_cabecera_opet').select('*').order('fecha_inicio_ciclo');
   var r2=await sb.from('ciclos_detalle_opet').select('*').order('id_ciclo,orden_maquina');
+  CYC.length=0;
   if(r1.error||!r1.data||!r1.data.length) return;
   var cab=r1.data,det=r2.data||[];
-  CYC.length=0;
   cab.forEach(function(c){
     var details=det.filter(function(d){return d.id_ciclo===c.id_ciclo;}).sort(function(a,b){return a.orden_maquina-b.orden_maquina;});
     var sl=details.map(function(d){
