@@ -191,6 +191,7 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="st">Maestros</div>
 <div class="ni sub" onclick="nav('calendario',this)">📅 Calendario Máquinas</div>
 <div class="ni sub" onclick="nav('rutas',this)">🔀 Rutas de Artículos</div>
+<div class="ni sub" onclick="nav('maquinas',this)">⚙️ Máquinas</div>
 <div class="ni sub" onclick="nav('familias',this)">🧩 Familias / Moldes</div>
 <div class="ni sub" onclick="nav('pedidos',this)">📋 Pedidos</div>
 <div class="ni sub" onclick="nav('ciclos',this)">🔄 Ciclos Producción</div>
@@ -272,10 +273,13 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div><label>Máquina por defecto</label><select id="rMF" onchange="fR()"><option value="">Todas</option><option>T1</option><option>T2</option></select></div>
 <button class="btn bp" onclick="oM('mArt')">+ Añadir Artículo</button>
 </div>
-<div class="cd"><h3>🔀 Maestro de Rutas de Artículos</h3><div class="tw"><table><thead><tr><th>Código</th><th>Descripción</th><th>Familia</th><th>Máq. Defecto</th><th>Velocidad (uds/h)</th><th>OEE %</th><th>Ruta Alt.</th><th>Vel. Alt.</th><th>Acciones</th></tr></thead><tbody id="rB"></tbody></table></div></div>
+<div class="cd"><h3>🔀 Maestro de Rutas de Artículos</h3><div class="tw"><table><thead><tr><th>Código</th><th>Descripción</th><th>Familia</th><th>Máq. Defecto</th><th>Velocidad (uds/h)</th><th>OEE %</th><th>Ruta Alt.</th><th>Vel. Alt.</th><th>Estrategia</th><th>Acciones</th></tr></thead><tbody id="rB"></tbody></table></div></div>
 </div>
 
 
+<div class="pg" id="p-maquinas">
+<div class="fl"><button class="btn bp" onclick="saveMaqOEE()">💾 Guardar OEE</button></div>
+<div class="cd"><h3>⚙️ Máquinas — Configuración</h3><p style="font-size:11px;color:var(--tl);margin-bottom:12px">El OEE de cada máquina afecta al cálculo de horas de temporal en ciclos y a las horas de producción en la tabla de carga.</p><div class="tw"><table><thead><tr><th>Máquina</th><th>Tipo</th><th>Extrusora</th><th>OEE % (editable)</th></tr></thead><tbody id="maqTB"></tbody></table></div></div></div>
 <!-- FAMILIAS -->
 <div class="pg" id="p-familias">
 <div class="fl"><input type="text" placeholder="Buscar familia..." id="famSrch" oninput="fltFam()"><div><label>Máquina</label><select id="famMF" onchange="fltFam()"><option value="">Todas</option></select></div><button class="btn bp" onclick="oM('mFam')">+ Nueva Familia</button></div>
@@ -566,7 +570,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function showLoading(on){const el=document.getElementById('loadingOverlay');if(el)el.style.display=on?'flex':'none';}
 
-const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',demanda:'Demanda por Familia',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
+const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',demanda:'Demanda por Familia',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
 function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');document.getElementById('pt').textContent=TT[id]||id;}
 function oM(id){document.getElementById(id).classList.add('sh');}
 function clM(id){document.getElementById(id).classList.remove('sh');}
@@ -738,7 +742,19 @@ const RD=[
 const MOLDE_MAP={'BAN-T400':'300000001','BAN-T200':'300000002','BAN-T300':'300000003','TAR-R250':'300000004','TAR-R150':'300000005','ENV-P600':'300000006','ENV-P300':'300000007','ENV-P400':'300000008','TAP-C100':'300000009','TAP-C200':'300000010','ENV-T500':'300000011','BAN-T500':'300000012','TAR-R300':'300000013','ENV-P200':'300000014'};
 
 let editIdx=-1;
-function rR(){const b=document.getElementById('rB');b.innerHTML='';RD.forEach((r,i)=>{b.innerHTML+='<tr data-maq="'+r[2]+'"><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td><span class="b bl">'+r[2]+'</span></td><td>'+'<input type="number" class="oee-input" value="'+r[3]+'" min="0" onchange="RD['+i+'][3]=+this.value">'+'</td><td><input type="number" class="oee-input" value="'+r[4]+'" min="0" max="100" onchange="RD['+i+'][4]=+this.value"></td><td><span class="b g">'+r[5]+'</span></td><td>'+'<input type="number" class="oee-input" value="'+r[6]+'" min="0" onchange="RD['+i+'][6]=+this.value">'+'</td><td><button class="btn bsm bp" onclick="editArt('+i+')">Editar</button> <button class="btn bsm" style="background:#e63946;color:#fff" onclick="delArt('+i+')">Eliminar</button></td></tr>';});}
+function rR(){
+  const b=document.getElementById('rB');b.innerHTML='';
+  RD.forEach(function(r,i){
+    var estrat=r[7]||'MTS';
+    b.innerHTML+='<tr data-maq="'+r[2]+'"><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td><span class="b bl">'+r[2]+'</span></td>'+
+      '<td><input type="number" class="oee-input" value="'+r[3]+'" min="0" onchange="RD['+i+'][3]=+this.value"></td>'+
+      '<td><input type="number" class="oee-input" value="'+r[4]+'" min="0" max="100" onchange="RD['+i+'][4]=+this.value"></td>'+
+      '<td><span class="b g">'+r[5]+'</span></td>'+
+      '<td><input type="number" class="oee-input" value="'+r[6]+'" min="0" onchange="RD['+i+'][6]=+this.value"></td>'+
+      '<td><select class="oee-input" style="width:60px" onchange="RD['+i+'][7]=this.value"><option value="MTS"'+(estrat==='MTS'?' selected':'')+'>MTS</option><option value="MTO"'+(estrat==='MTO'?' selected':'')+'>MTO</option></select></td>'+
+      '<td><button class="btn bsm bp" onclick="editArt('+i+')">Editar</button> <button class="btn bsm" style="background:#e63946;color:#fff" onclick="delArt('+i+')">Eliminar</button></td></tr>';
+  });
+}
 rR();
 function fR(){const q=document.getElementById('rS').value.toLowerCase(),mf=document.getElementById('rMF').value;document.querySelectorAll('#rB tr').forEach(tr=>{tr.style.display=(tr.textContent.toLowerCase().includes(q))&&(!mf||tr.dataset.maq===mf)?'':'none';});}
 function editArt(i){editIdx=i;const r=RD[i];document.getElementById('eCode').value=r[0];document.getElementById('eDesc').value=r[1];document.getElementById('eMaq').value=r[2];document.getElementById('eVel').value=r[3];document.getElementById('eOEE').value=r[4];document.getElementById('eRutaAlt').value=r[5]||'Ninguna';document.getElementById('eVelAlt').value=r[6];oM('mEdit');}
@@ -1499,7 +1515,7 @@ buildYmTable=function(tipo,mt,pm,mosKey){var calMode=lastCalc.calMode||'actual';
 
 
 /* V12 */
-function saveNewArt(){var cod=document.getElementById('naCod').value.trim();if(!cod){alert('Introduce c\u00f3digo');return;}var desc=document.getElementById('naDesc').value.trim()||cod;var maq=document.getElementById('naMaq').value;var vel=+document.getElementById('naVel').value;if(!vel){alert('Introduce velocidad');return;}var oee=+document.getElementById('naOEE').value||85;var rAlt=document.getElementById('naRutaAlt').value;var vAlt=+document.getElementById('naVelAlt').value||0;RD.push([cod,desc,maq,vel,oee,rAlt==='Ninguna'?'':rAlt,vAlt]);MOLDE_MAP[cod]=String(300000000+RD.length);clM('mArt');rR();document.getElementById('naCod').value='';document.getElementById('naDesc').value='';document.getElementById('naVel').value='';document.getElementById('naVelAlt').value='';}
+function saveNewArt(){var cod=document.getElementById('naCod').value.trim();if(!cod){alert('Introduce c\u00f3digo');return;}var desc=document.getElementById('naDesc').value.trim()||cod;var maq=document.getElementById('naMaq').value;var vel=+document.getElementById('naVel').value;if(!vel){alert('Introduce velocidad');return;}var oee=+document.getElementById('naOEE').value||85;var rAlt=document.getElementById('naRutaAlt').value;var vAlt=+document.getElementById('naVelAlt').value||0;RD.push([cod,desc,maq,vel,oee,rAlt==='Ninguna'?'':rAlt,vAlt,'MTS']);MOLDE_MAP[cod]=String(300000000+RD.length);clM('mArt');rR();document.getElementById('naCod').value='';document.getElementById('naDesc').value='';document.getElementById('naVel').value='';document.getElementById('naVelAlt').value='';}
 function delArt(i){if(!confirm('Eliminar '+RD[i][0]+'?'))return;RD.splice(i,1);rR();}
 function openNewPrev(){var s=document.getElementById('pvMat');s.innerHTML='<option value="">Seleccionar...</option>';RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' \u2014 '+r[1]+'</option>';});document.getElementById('pvQty').value=50000;calcNewPrev();oM('mNewPrev');}
 function calcNewPrev(){var mat=document.getElementById('pvMat').value,qty=+document.getElementById('pvQty').value;var route=RD.find(function(r){return r[0]===mat;});if(!route){document.getElementById('pvHrs').value=0;document.getElementById('pvVelInfo').textContent='-';return;}var vel=route[3],oee=route[4];var hrs=Math.round(qty/(vel*oee/100)*10)/10;document.getElementById('pvHrs').value=hrs;document.getElementById('pvVelInfo').textContent=vel+' x '+oee+'% = '+Math.round(vel*oee/100)+' uds/h ef.';}
@@ -1627,7 +1643,7 @@ var FAM=[
 {id:'F09',nm:'Tarrina G400',m:{T2:{v:500,o:85,tu:11000}},mt:['TAR-R150','TAR-R300'],cl:'#e879f9',r:1}
 ];
 // Helpers: hours from temporal units
-function famEffSpeed(f,mq){if(!f.m||!f.m[mq])return 0;return f.m[mq].v*(f.m[mq].o/100);}
+function famEffSpeed(f,mq){if(!f.m||!f.m[mq])return 0;var oee=maqOEE[mq]!==undefined?maqOEE[mq]:(f.m[mq].o||85);return f.m[mq].v*(oee/100);}
 function famHours(f,mq){var s=famEffSpeed(f,mq);if(!s||!f.m[mq].tu)return 0;return Math.round(f.m[mq].tu/s*10)/10;}
 var CYC=[];
 var nxCy=1;
@@ -2018,14 +2034,20 @@ var _nv=nav;nav=function(id,el){_nv(id,el);if(id==='familias')rFam();if(id==='ci
 /* ========== SUPABASE DATA LOADING ========== */
 
 var maqIdMap={}; // id_maquina (int) → nombre_maquina ('T1','T2'...)
+var maqOEE={}; // termo/extrusora name → OEE %
+var maqData=[]; // full rows from maquina_opet
 
 async function loadMaquinasSB(){
   const {data,error}=await sb.from('maquina_opet').select('*').order('id_maquina');
   if(error||!data||!data.length) return;
-  maqIdMap={};
-  // termo_defecto: T1/T2/T3... es la máquina OPET correspondiente al ID SAP
-  data.forEach(function(r){maqIdMap[r.id_maquina]=r.termo_defecto||r.nombre_maquina;});
-  // mNamesAll: termoformadoras únicas (T1, T2, T3...) para filtros y capacidad
+  maqData=data;maqIdMap={};maqOEE={};
+  data.forEach(function(r){
+    maqIdMap[r.id_maquina]=r.termo_defecto||r.nombre_maquina;
+    if(r.termo_defecto&&maqOEE[r.termo_defecto]===undefined)
+      maqOEE[r.termo_defecto]=(r.oee!==null&&r.oee!==undefined)?+r.oee:85;
+    if(r.extrusora_defecto&&maqOEE[r.extrusora_defecto]===undefined)
+      maqOEE[r.extrusora_defecto]=(r.oee!==null&&r.oee!==undefined)?+r.oee:85;
+  });
   var uniqueTermo=[...new Set(data.map(function(r){return r.termo_defecto;}).filter(function(t){return t&&t.trim();}))].sort();
   if(uniqueTermo.length){mNamesAll.length=0;uniqueTermo.forEach(function(m){mNamesAll.push(m);});}
 }
@@ -2154,7 +2176,7 @@ async function loadMaterialesSB(){
     // Añadir código a mt[] de la familia → la columna Familia se rellena en la tabla
     if(fam.mt.indexOf(r.id_material)<0) fam.mt.push(r.id_material);
     MOLDE_MAP[r.id_material]=r.troquel;
-    RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel]);
+    RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel,r.estrategia||'MTS']);
   });
 }
 
@@ -2177,7 +2199,7 @@ async function initFromSupabase(){
     await loadOrdenesSB();
     await loadCiclosSB();
     popMaqFilter();
-    rR();rPed();rFam();rCyc();rAl();rA();rCal();
+    rR();rMaq();rPed();rFam();rCyc();rAl();rA();rCal();
   }catch(e){console.warn('Supabase init error:',e);}
   showLoading(false);
 }
@@ -2210,6 +2232,7 @@ saveNewOrder=async function(){
   var o=arr[arr.length-1];if(!o)return;
   try{await sb.from('ordenes_fabricacion_opet').upsert({id_orden:o.of,id_material:o.mat,cantidad_orden:o.qty,id_maquina:maq,fecha_inicio:o.fIni||null,fecha_fin:o.fFin||null,status_orden:o.tipo||'Planificado',cantidad_fabricada:0},{onConflict:'id_orden'});}
   catch(e){console.warn('Error saving order:',e);}
+  setTimeout(syncCargaCapacidad,500);
 };
 
 // Cycles
@@ -2221,8 +2244,9 @@ svCyc=async function(){
   var c=CYC[CYC.length-1];if(!c)return;
   var totHrs=c.sl.reduce(function(a,s){return a+s.t;},0);
   try{
-    await sb.from('ciclos_cabecera_opet').upsert({id_ciclo:c.id,id_maquina:c.mq,fecha_inicio_ciclo:c.ds,fecha_fin_ciclo:c.de,temporal:totHrs,temporal_consumido:0,status_ciclo:'Activo'},{onConflict:'id_ciclo'});
-    var rows=c.sl.map(function(s,i){return{id_ciclo:c.id,id_maquina:c.mq,id_familia:s.f,orden_maquina:i+1,tiempo_cambio:CHG_H};});
+    var capHrs=cCH2(c);
+    await sb.from('ciclos_cabecera_opet').upsert({id_ciclo:c.id,id_maquina:c.mq,fecha_inicio_ciclo:c.ds,fecha_fin_ciclo:c.de,temporal:totHrs,temporal_consumido:0,status_ciclo:'Activo',horas_disponibles:capHrs},{onConflict:'id_ciclo'});
+    var rows=c.sl.map(function(s,i){var f=gF(s.f);var tUds=f&&f.m[c.mq]?f.m[c.mq].tu:0;return{id_ciclo:c.id,id_maquina:c.mq,id_familia:s.f,orden_maquina:i+1,tiempo_cambio:CHG_H,horas_familia:s.t,temporal_uds:tUds};});
     if(rows.length) await sb.from('ciclos_detalle_opet').upsert(rows,{onConflict:'id_ciclo,id_maquina,id_familia,orden_maquina'});
   }catch(e){console.warn('Error saving cycle:',e);}
 };
@@ -2276,7 +2300,7 @@ saveNewArt=async function(){
   if(!cod||!desc||!vel) return;
   // Añadir código de material a mt[] de la familia
   if(fam&&fam.mt.indexOf(cod)<0) fam.mt.push(cod);
-  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,troquel:troquel,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt},{onConflict:'id_material'});}
+  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,troquel:troquel,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt,estrategia:'MTS'},{onConflict:'id_material'});}
   catch(e){console.warn('Error saving material:',e);}
 };
 
@@ -2293,7 +2317,73 @@ saveNewPrev=async function(){
   var prevId='PREV-'+Date.now();
   try{await sb.from('ordenes_fabricacion_opet').insert({id_orden:prevId,id_maquina:mq,id_material:mt,cantidad_orden:qty,fecha_inicio:ym+'-01',fecha_fin:ym+'-28',status_orden:'Previsión'});}
   catch(e){console.warn('Error saving prevision:',e);}
+  setTimeout(syncCargaCapacidad,500);
 };
+
+function rMaq(){
+  var tb=document.getElementById('maqTB');if(!tb)return;tb.innerHTML='';
+  var termos={};var extrus={};
+  maqData.forEach(function(r){
+    if(r.termo_defecto&&!termos[r.termo_defecto]) termos[r.termo_defecto]={nm:r.termo_defecto,tipo:'Termoformadora',extrusora:r.extrusora_defecto||'—'};
+    if(r.extrusora_defecto&&!extrus[r.extrusora_defecto]) extrus[r.extrusora_defecto]={nm:r.extrusora_defecto,tipo:'Extrusora',extrusora:'—'};
+  });
+  var rows=Object.values(termos).sort(function(a,b){return a.nm.localeCompare(b.nm);})
+    .concat(Object.values(extrus).sort(function(a,b){return a.nm.localeCompare(b.nm);}));
+  rows.forEach(function(m){
+    var oee=maqOEE[m.nm]!==undefined?maqOEE[m.nm]:85;
+    var bgc=m.tipo==='Termoformadora'?'var(--accent)':'#f59e0b';
+    tb.innerHTML+='<tr><td><strong style="font-size:14px">'+m.nm+'</strong></td>'+
+      '<td><span class="b" style="background:'+bgc+';color:#fff;font-size:10px">'+m.tipo+'</span></td>'+
+      '<td style="color:var(--tl)">'+m.extrusora+'</td>'+
+      '<td><input type="number" class="oee-input" style="width:70px" value="'+oee+'" min="1" max="100" onchange="maqOEE[''+m.nm+'']=+this.value;rFam();"></td></tr>';
+  });
+}
+async function saveMaqOEE(){
+  if(!Object.keys(maqOEE).length){alert('Sin datos de máquinas');return;}
+  var ups=[];
+  Object.keys(maqOEE).forEach(function(nm){
+    var o=maqOEE[nm];
+    ups.push(sb.from('maquina_opet').update({oee:o}).eq('termo_defecto',nm));
+    ups.push(sb.from('maquina_opet').update({oee:o}).eq('extrusora_defecto',nm));
+  });
+  try{await Promise.all(ups);rMaq();alert('OEE guardado correctamente.');}
+  catch(e){console.warn('Error saving OEE:',e);}
+}
+async function syncCargaCapacidad(){
+  var rows=[];
+  mNamesAll.forEach(function(maq){
+    (DCData[maq]||[]).forEach(function(d){
+      var mat=d[0],nm=d[1],tipo=d[2],ym=d[3],qty=+d[4];
+      var route=RD.find(function(r){return r[0]===mat;});
+      var vel=route?route[3]:0;
+      var oee=maqOEE[maq]!==undefined?maqOEE[maq]:(route?route[4]:85);
+      var estrat=route?route[7]||'MTS':'MTS';
+      var hrsObj=vel>0?Math.round(qty/vel*100)/100:0;
+      var hrsReal=vel>0&&oee>0?Math.round(qty/(vel*oee/100)*100)/100:0;
+      var linea=tipo==='Planificado'?maq:(route?route[2]:maq);
+      if(tipo==='Planificado'){
+        var ofs=(d[7]||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+        if(!ofs.length)ofs=[''];
+        ofs.forEach(function(of){
+          var cantMTS=estrat==='MTS'?qty:0,cantMTO=estrat==='MTO'?qty:0;
+          rows.push({anio_mes:ym,tipo_linea:'Planificado',orden:of,id_material:mat,nombre_material:nm,
+            estrategia:estrat,peso_mto:0,planificado_mes_por_orden:qty,planificado_agregado:qty,
+            ordenes_prevision_mes_material:0,cantidad_planificar_mts:cantMTS,cantidad_planificar_mto:cantMTO,
+            cantidad_planificar_total:cantMTS+cantMTO,linea:linea,velocidad:vel,horas_objetivo:hrsObj,horas_real:hrsReal});
+        });
+      }else{
+        var cantMTS=estrat==='MTS'?qty:0,cantMTO=estrat==='MTO'?qty:0;
+        rows.push({anio_mes:ym,tipo_linea:'Previsión',orden:'',id_material:mat,nombre_material:nm,
+          estrategia:estrat,peso_mto:0,planificado_mes_por_orden:0,planificado_agregado:qty,
+          ordenes_prevision_mes_material:qty,cantidad_planificar_mts:cantMTS,cantidad_planificar_mto:cantMTO,
+          cantidad_planificar_total:cantMTS+cantMTO,linea:route?route[2]:maq,velocidad:vel,horas_objetivo:hrsObj,horas_real:hrsReal});
+      }
+    });
+  });
+  if(!rows.length)return;
+  try{await sb.from('carga_capacidad_opet').upsert(rows,{onConflict:'anio_mes,tipo_linea,id_material,linea,orden'});}
+  catch(e){console.warn('Error sync carga capacidad:',e);}
+}
 
 // Initial data load
 initFromSupabase();
