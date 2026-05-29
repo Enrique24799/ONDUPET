@@ -751,7 +751,7 @@ function rR(){
       '<td><input type="number" class="oee-input" value="'+r[4]+'" min="0" max="100" onchange="RD['+i+'][4]=+this.value"></td>'+
       '<td><span class="b g">'+r[5]+'</span></td>'+
       '<td><input type="number" class="oee-input" value="'+r[6]+'" min="0" onchange="RD['+i+'][6]=+this.value"></td>'+
-      '<td><select class="oee-input" style="width:60px" onchange="RD['+i+'][7]=this.value"><option value="MTS"'+(estrat==='MTS'?' selected':'')+'>MTS</option><option value="MTO"'+(estrat==='MTO'?' selected':'')+'>MTO</option></select></td>'+
+      '<td><select class="oee-input" style="width:60px" onchange="saveEstrategia('+i+',this.value)"><option value="MTS"'+(estrat==='MTS'?' selected':'')+'>MTS</option><option value="MTO"'+(estrat==='MTO'?' selected':'')+'>MTO</option></select></td>'+
       '<td><button class="btn bsm bp" onclick="editArt('+i+')">Editar</button> <button class="btn bsm" style="background:#e63946;color:#fff" onclick="delArt('+i+')">Eliminar</button></td></tr>';
   });
 }
@@ -1643,6 +1643,7 @@ var FAM=[
 {id:'F09',nm:'Tarrina G400',m:{T2:{v:500,o:85,tu:11000}},mt:['TAR-R150','TAR-R300'],cl:'#e879f9',r:1}
 ];
 // Helpers: hours from temporal units
+function saveEstrategia(i,v){RD[i][7]=v;sb.from('materiales_opet').update({'Estrategia':v}).eq('id_material',RD[i][0]).catch(function(e){console.warn('Error guardando estrategia:',e);});}
 function famEffSpeed(f,mq){if(!f.m||!f.m[mq])return 0;var oee=maqOEE[mq]!==undefined?maqOEE[mq]:(f.m[mq].o||85);return f.m[mq].v*(oee/100);}
 function famHours(f,mq){var s=famEffSpeed(f,mq);if(!s||!f.m[mq].tu)return 0;return Math.round(f.m[mq].tu/s*10)/10;}
 var CYC=[];
@@ -2176,7 +2177,7 @@ async function loadMaterialesSB(){
     // Añadir código a mt[] de la familia → la columna Familia se rellena en la tabla
     if(fam.mt.indexOf(r.id_material)<0) fam.mt.push(r.id_material);
     MOLDE_MAP[r.id_material]=r.troquel;
-    RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel,r.estrategia||'MTS']);
+    RD.push([r.id_material,r.nombre_material||r.id_material,defMaq,defVel,defOee,altMaq,altVel,r['Estrategia']||'MTS']);
   });
 }
 
@@ -2300,7 +2301,7 @@ saveNewArt=async function(){
   if(!cod||!desc||!vel) return;
   // Añadir código de material a mt[] de la familia
   if(fam&&fam.mt.indexOf(cod)<0) fam.mt.push(cod);
-  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,troquel:troquel,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt,estrategia:'MTS'},{onConflict:'id_material'});}
+  try{await sb.from('materiales_opet').upsert({id_material:cod,nombre_material:desc,troquel:troquel,nombre_maquina_defecto:maq,velocidad:vel,oee:oee2,nombre_maquina_alternativa:rAlt==='Ninguna'?'':rAlt,velocidad_alternativa:vAlt,'Estrategia':RD[RD.length-1]?RD[RD.length-1][7]||'MTS':'MTS'},{onConflict:'id_material'});}
   catch(e){console.warn('Error saving material:',e);}
 };
 
