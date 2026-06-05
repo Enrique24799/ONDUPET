@@ -1427,9 +1427,9 @@ function calcNewOrd(){
   var cycSel=document.getElementById('noCyc');
   if(!route){document.getElementById('noHrs').value=0;document.getElementById('noVelInfo').textContent='-';if(info)info.textContent='-';if(cycSel)cycSel.innerHTML='<option value="">— Selecciona un ciclo —</option>';return;}
   var vel=route[3],oee=maqOEE[route[2]]||85;
-  var hrs=Math.round(qty/(vel*oee/100)*10)/10;
+  var hrs=Math.round(qty/(vel*60*oee/100)*10)/10;
   document.getElementById('noHrs').value=hrs;
-  document.getElementById('noVelInfo').textContent=vel+' x '+oee+'% = '+Math.round(vel*oee/100)+' uds/h';
+  document.getElementById('noVelInfo').textContent=vel+' uds/min × 60 × '+oee+'% = '+Math.round(vel*60*oee/100)+' uds/h';
   var maq=document.getElementById('ordMaq').value;
   var ym=document.getElementById('ordMes').value;
   // Resolve family for material
@@ -1441,7 +1441,7 @@ function calcNewOrd(){
       cycSel.innerHTML='<option value="">⚠ Material sin familia asignada</option>';
       cycSel.disabled=true;
     }else{
-      var matchingCycles=CYC.filter(function(c){return c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds.localeCompare(b.ds);});
+      var matchingCycles=CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds.localeCompare(b.ds);});
       if(!matchingCycles.length){
         cycSel.innerHTML='<option value="">⚠ Sin ciclos en '+maq+' con familia '+fm.id+'</option>';
         cycSel.disabled=true;
@@ -1652,7 +1652,7 @@ var FAM=[
 ];
 // Helpers: hours from temporal units
 function saveEstrategia(i,v){RD[i][7]=v;sb.from('materiales_opet').update({'Estrategia':v}).eq('id_material',RD[i][0]).catch(function(e){console.warn('Error guardando estrategia:',e);});}
-function famEffSpeed(f,mq){if(!f.m||!f.m[mq])return 0;var oee=maqOEE[mq]!==undefined?maqOEE[mq]:(f.m[mq].o||85);return f.m[mq].v*(oee/100);}
+function famEffSpeed(f,mq){if(!f.m||!f.m[mq])return 0;var oee=maqOEE[mq]!==undefined?maqOEE[mq]:(f.m[mq].o||85);return f.m[mq].v*60*(oee/100);}
 function famHours(f,mq){var s=famEffSpeed(f,mq);if(!s||!f.m[mq].tu)return 0;return Math.round(f.m[mq].tu/s*10)/10;}
 var CYC=[];
 var nxCy=1;
@@ -1732,15 +1732,19 @@ function rCyc(){
   });
 }
 
+function tgCycActive(cid){var c=CYC.find(function(x){return x.id===cid;});if(c){c.active=c.active===false;rCyc();}}
 function rCC(c){
+  var isActive=c.active!==false;
   var st=cSt(c),cf=cConf(c.id),wd=cWD(c.ds,c.de);
-  var sc=st.sat>100?'var(--danger)':st.sat>85?'var(--warning)':'var(--success)';
+  var sc=isActive?(st.sat>100?'var(--danger)':st.sat>85?'var(--warning)':'var(--success)'):'#adb5bd';
   var pp=st.pr>0?Math.min(100,Math.round(st.us/st.pr*100)):0;
   var pc=st.pr>0?Math.min(100,Math.round(st.co/st.pr*100)):0;
-  var o='<div class="cd" style="margin-bottom:14px;border-left:4px solid '+sc+'">';
-  o+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-family:monospace;font-size:10px;color:var(--tl)">'+c.id+'</span><strong>'+fD(c.ds)+' \u2192 '+fD(c.de)+'</strong>';
+  var o='<div class="cd" style="margin-bottom:14px;border-left:4px solid '+sc+';'+(isActive?'':'opacity:.5')+'">';
+  var activeBadge='<span style="font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;background:'+(isActive?'#d1fae5':'#e9ecef')+';color:'+(isActive?'#065f46':'#6c757d')+'">'+(isActive?'Activo':'Inactivo')+'</span>';
+  var toggleBtn='<button class="btn bsm" style="background:'+(isActive?'#2a9d8f':'#6c757d')+';color:#fff;font-size:10px" onclick="tgCycActive(\''+c.id+'\')">'+(isActive?'\u23f8 Desactivar':'\u25b6 Activar')+'</button>';
+  o+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-family:monospace;font-size:10px;color:var(--tl)">'+c.id+'</span><strong>'+fD(c.ds)+' \u2192 '+fD(c.de)+'</strong>'+activeBadge;
   if(cf.size) o+='<span class="b r" style="font-size:9px">\u26a0 '+cf.size+'</span>';
-  o+='<span style="flex:1"></span><button class="btn bsm" style="background:#e63946;color:#fff" onclick="delCy(\''+c.id+'\')">X</button></div>';
+  o+='<span style="flex:1"></span>'+toggleBtn+' <button class="btn bsm" style="background:#e63946;color:#fff" onclick="delCy(\''+c.id+'\')">X</button></div>';
   o+='<div class="kg" style="margin-bottom:10px"><div class="kc" style="padding:10px"><div class="kl">Dias</div><div class="kv" style="font-size:18px">'+wd+'d</div></div><div class="kc" style="padding:10px"><div class="kl">Cap</div><div class="kv" style="font-size:18px">'+st.cap+'h</div></div><div class="kc w" style="padding:10px"><div class="kl">Cambios</div><div class="kv" style="font-size:18px">'+st.ch+'h</div></div><div class="kc s" style="padding:10px"><div class="kl">Neta</div><div class="kv" style="font-size:18px">'+st.pr+'h</div></div><div class="kc" style="padding:10px"><div class="kl">Sat</div><div class="kv" style="font-size:18px;color:'+sc+'">'+st.sat+'%</div></div></div>';
   o+='<div style="height:10px;border-radius:5px;background:#e9ecef;overflow:hidden;margin-bottom:6px;display:flex"><div style="width:'+pc+'%;background:var(--success);height:100%"></div><div style="width:'+Math.max(0,pp-pc)+'%;background:'+sc+';opacity:.4;height:100%"></div></div>';
   // Compute per-family start/end dates (cumulative within cycle, including change time between families)
@@ -1822,8 +1826,8 @@ function addWorkHours(start,hrs,mq){
 function uCyI(){
   var s=document.getElementById('cyS').value,m=document.getElementById('cyMq2').value;
   var ch=document.getElementById('cyFCh');
-  // Filter families that run on the selected machine
-  var mf=FAM.filter(function(f){return f.m[m];});
+  // Filter families that run on the selected machine and have temporal defined
+  var mf=FAM.filter(function(f){return f.m[m]&&(f.m[m].tu||0)>0;});
   // Determine next cycle index for repetition logic
   var nIdx=nextCycleIndex(m);
   ch.innerHTML=mf.map(function(f){
@@ -1867,9 +1871,9 @@ function svCyc(){
   if(!s||!e){alert('Fechas inválidas');return;}
   var sel=[].slice.call(document.querySelectorAll('#cyFCh input:checked')).map(function(i){return i.value;});
   if(!sel.length){alert('Selecciona familias');return;}
-  // Build slot list with hours derived from each family temporal
-  var sl=sel.map(function(fid){var f=gF(fid);return{f:fid,t:famHours(f,m),c:0,sk:false};});
-  CYC.push({id:'C00'+nxCy++,mq:m,ds:s,de:e,sl:sl});clM('mCyc');rCyc();
+  // Build slot list; slots with no temporal start as skipped
+  var sl=sel.map(function(fid){var f=gF(fid);var h=famHours(f,m);return{f:fid,t:h,c:0,sk:h===0};});
+  CYC.push({id:'C00'+nxCy++,mq:m,ds:s,de:e,sl:sl,active:true});clM('mCyc');rCyc();
 }
 
 function rDem(){
