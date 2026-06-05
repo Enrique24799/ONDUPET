@@ -196,7 +196,6 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="ni sub" onclick="nav('pedidos',this)">📋 Pedidos</div>
 <div class="ni sub" onclick="nav('ciclos',this)">🔄 Ciclos Producción</div>
 <div class="ni sub" onclick="nav('ordenes',this)">✏️ Creación Órdenes</div>
-<div class="ni sub" onclick="nav('demanda',this)">📈 Demanda</div>
 <div class="st">Planificación</div>
 <div class="ni" onclick="nav('carga',this)">⚙️ Carga de Capacidad</div>
 <div class="ni sub" onclick="nav('balanceo',this)">⚖️ Simulación Balanceo</div>
@@ -299,9 +298,6 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="pg" id="p-ciclos">
 <div class="fl"><div><label>Máquina</label><div class="rg"><label><input type="radio" name="cyMq" value="T1" checked onchange="rCyc()"><span>T1</span></label><label><input type="radio" name="cyMq" value="T2" onchange="rCyc()"><span>T2</span></label><label><input type="radio" name="cyMq" value="all" onchange="rCyc()"><span>Ambas</span></label></div></div><button class="btn bp" onclick="openCyc()">+ Nuevo Ciclo</button></div>
 <div class="cg" id="cycW"><div id="cyC-T1"></div><div id="cyC-T2"></div></div></div>
-<!-- DEMANDA -->
-<div class="pg" id="p-demanda"><div class="kg" id="demKpi"></div><div class="cg" id="demW"></div></div>
-
 <!-- CARGA -->
 <!-- CARGA DE CAPACIDAD (fusionada con Detalle) -->
 <div class="pg" id="p-carga">
@@ -568,7 +564,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function showLoading(on){const el=document.getElementById('loadingOverlay');if(el)el.style.display=on?'flex':'none';}
 
-const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',demanda:'Demanda por Familia',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
+const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
 function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');document.getElementById('pt').textContent=TT[id]||id;}
 function oM(id){document.getElementById(id).classList.add('sh');}
 function clM(id){document.getElementById(id).classList.remove('sh');}
@@ -1681,12 +1677,12 @@ function rFam(){
     var mObj=f.m[defMaq]||f.m[Object.keys(f.m)[0]];
     var tu=mObj?(mObj.tu||0):0;
     var oee=mObj?(mObj.o||85):85;
-    var effVel=medVel?Math.round(medVel*oee/100):0;
+    var effVel=medVel?Math.round(medVel*60*oee/100):0;
     var h=tu&&effVel?Math.round(tu/effVel*10)/10:0;
     var mtCount=f.mt.length;
     var mt=mtCount>0?'<button class="btn bsm" style="background:#e0f4fa;color:var(--accent2);border:1px solid var(--accent);font-size:11px" onclick="showFamMat('+i+')">'+mtCount+' material'+(mtCount===1?'':'es')+'</button>':'<span style="color:var(--tl);font-size:11px">—</span>';
     var maqBadge=defMaq?'<span class="b bl">'+defMaq+'</span><br><small style="color:var(--tl);font-size:9px">'+(maqCount[defMaq]||0)+' mat.</small>':'<span style="color:var(--tl)">—</span>';
-    var cellVel=medVel?medVel.toLocaleString()+' uds/h<br><small style="color:var(--tl)">'+effVel+' ef</small>':'<span style="color:var(--tl)">—</span>';
+    var cellVel=medVel?medVel.toLocaleString()+' uds/min<br><small style="color:var(--tl)">'+effVel+' ef/h</small>':'<span style="color:var(--tl)">—</span>';
     var cellTu='<input type="number" class="oee-input" style="width:90px" value="'+tu+'" min="0" step="1000" onchange="var t=+this.value;Object.keys(FAM['+i+'].m).forEach(function(k){FAM['+i+'].m[k].tu=t;});rFam();">';
     var cellH=h>0?'<strong>'+h+'h</strong>':'<span class="muted">-</span>';
     var rep=f.r||1;
@@ -1713,7 +1709,7 @@ function showFamMat(i){
 }
 function svFam(){var id=document.getElementById('fmId').value.trim().toUpperCase(),nm=document.getElementById('fmNm').value.trim();if(!id||!nm){alert('ID y nombre requeridos');return;}var m={};if(document.getElementById('fmT1').value==='1')m.T1={v:+document.getElementById('fmV1').value,o:+document.getElementById('fmO1').value,tu:+document.getElementById('fmTu1').value||0};if(document.getElementById('fmT2').value==='1')m.T2={v:+document.getElementById('fmV2').value,o:+document.getElementById('fmO2').value,tu:+document.getElementById('fmTu2').value||0};var mt=document.getElementById('fmMt').value.split(',').map(function(s){return s.trim();}).filter(Boolean);var rep=+document.getElementById('fmRep').value||1;var ex=FAM.findIndex(function(f){return f.id===id;});var cols=['#3d8ef0','#2dd4a0','#f59e0b','#f43f5e','#a78bfa','#fb923c','#34d399','#e879f9','#60a5fa'];var cl=ex>=0?FAM[ex].cl:cols[FAM.length%cols.length];var o={id:id,nm:nm,m:m,mt:mt,cl:cl,r:rep};if(ex>=0)FAM[ex]=o;else FAM.push(o);clM('mFam');rFam();}
 function eFam2(i){var f=FAM[i];document.getElementById('fmId').value=f.id;document.getElementById('fmNm').value=f.nm;document.getElementById('fmT1').value=f.m.T1?'1':'0';document.getElementById('fmV1').value=f.m.T1?f.m.T1.v:800;document.getElementById('fmO1').value=f.m.T1?f.m.T1.o:85;document.getElementById('fmTu1').value=f.m.T1?(f.m.T1.tu||0):40000;document.getElementById('fmT2').value=f.m.T2?'1':'0';document.getElementById('fmV2').value=f.m.T2?f.m.T2.v:720;document.getElementById('fmO2').value=f.m.T2?f.m.T2.o:85;document.getElementById('fmTu2').value=f.m.T2?(f.m.T2.tu||0):35000;document.getElementById('fmRep').value=f.r||1;document.getElementById('fmMt').value=f.mt.join(', ');oM('mFam');setTimeout(fmHrPreview,50);}
-function fmHrPreview(){['1','2'].forEach(function(n){var v=+(document.getElementById('fmV'+n).value)||0,o=+(document.getElementById('fmO'+n).value)||0,tu=+(document.getElementById('fmTu'+n).value)||0;var eff=v*o/100;var h=eff>0&&tu>0?Math.round(tu/eff*10)/10:0;var el=document.getElementById('fmH'+n+'Info');if(el)el.textContent='Horas: '+h+'h ('+tu.toLocaleString()+' uds / '+Math.round(eff)+' ef)';});}
+function fmHrPreview(){['1','2'].forEach(function(n){var v=+(document.getElementById('fmV'+n).value)||0,o=+(document.getElementById('fmO'+n).value)||0,tu=+(document.getElementById('fmTu'+n).value)||0;var eff=v*60*o/100;var h=eff>0&&tu>0?Math.round(tu/eff*10)/10:0;var el=document.getElementById('fmH'+n+'Info');if(el)el.textContent='Horas: '+h+'h ('+tu.toLocaleString()+' uds / '+Math.round(eff)+' ef/h)';});}
 // Hook live preview when modal fields change
 ['fmV1','fmO1','fmTu1','fmV2','fmO2','fmTu2'].forEach(function(id){document.addEventListener('input',function(e){if(e.target&&e.target.id===id)fmHrPreview();});});
 function dFam(i){if(!confirm('Eliminar '+FAM[i].id+'?'))return;FAM.splice(i,1);rFam();}
@@ -2043,7 +2039,7 @@ saveNewPrev=function(){
 };
 
 /* NAV HOOK */
-var _nv=nav;nav=function(id,el){_nv(id,el);if(id==='familias')rFam();if(id==='ciclos')rCyc();if(id==='demanda')rDem();if(id==='pedidos')rPed();if(id==='atraso')rA();};
+var _nv=nav;nav=function(id,el){_nv(id,el);if(id==='familias')rFam();if(id==='ciclos')rCyc();if(id==='pedidos')rPed();if(id==='atraso')rA();};
 
 /* ========== SUPABASE DATA LOADING ========== */
 
@@ -2118,7 +2114,7 @@ async function loadOrdenesSB(){
     if(ordersCreated[maq].find(function(o){return o.of===r.id_orden;}))return;
     var route=RD.find(function(x){return x[0]===r.id_material;});
     var vel=route?route[3]:5000,oee=route?maqOEE[route[2]]||85:85;
-    var hrs=Math.round(r.cantidad_orden/(vel*oee/100)*10)/10;
+    var hrs=Math.round(r.cantidad_orden/(vel*60*oee/100)*10)/10;
     var ym=r.fecha_inicio?r.fecha_inicio.slice(0,7):'';
     var desc=(route&&route[1])||r.id_material;
     var altRoute=(route&&route[5])||'-';
