@@ -906,7 +906,7 @@ document.querySelectorAll('#balOrdersBody input[type=checkbox]:checked').forEach
 });
 if(selQty===0){alert('Selecciona al menos una OF o una previsión a balancear');return;}
 const fi=mNamesAll.indexOf(from),ti=mNamesAll.indexOf(to);
-const route=RD.find(r=>r[0]===mat),vel=route?route[3]:5000,hrs=Math.round(selQty/vel*10)/10;
+const route=RD.find(r=>r[0]===mat),vel=route?route[3]:5000,oee=(maqOEE[route?route[2]:'T1']||85)/100,hrs=Math.round(selQty/(vel*60*oee)*10)/10;
 const capH=[520,510];
 const fromSat=satAll[fi],toSat=satAll[ti];
 const impFrom=Math.round(hrs/capH[fi]*10000)/100,impTo=Math.round(hrs/capH[ti]*10000)/100;
@@ -1049,7 +1049,7 @@ let ctpCh=null;
 function cCTP(){
 const mat=document.getElementById('cpM').value,qty=parseInt(document.getElementById('cpQ').value)||100000,ds=document.getElementById('cpD').value;
 const route=RD.find(r=>r[0]===mat);if(!route)return;
-const maq=route[2],vel=route[3],hrs=Math.round(qty/vel*10)/10;
+const maq=route[2],vel=route[3],hrs=Math.round(qty/(vel*60*(maqOEE[maq]||85)/100)*10)/10;
 const si=mNamesAll.indexOf(maq),sa=satAll[si]||80,capTotal=520;
 // CTP uses BALANCED saturation: cap source at 100%, overflow pushes date
 const saBal=Math.min(sa,100);
@@ -1283,7 +1283,7 @@ function genProposals(){
       [ym].forEach(destYm=>{
         const altMi=mNamesAll.indexOf(altMaq);if(altMi<0)return;
         const destS=satMap[altMaq][destYm];if(!destS)return;
-        const hrsD=Math.round(ord.qty/(altVel*oee)*10)/10;
+        const hrsD=Math.round(ord.qty/(altVel*60*oee)*10)/10;
         const mInD=destS.molds.has(ord.molde);const exC=mInD?0:2;
         const nDH=destS.hTot+hrsD+exC;const nDS=destS.capMo>0?Math.round(nDH/destS.capMo*100):999;
         if(nDS>100)return;
@@ -2368,8 +2368,8 @@ async function syncCargaCapacidad(){
       var vel=route?route[3]:0;
       var oee=maqOEE[maq]!==undefined?maqOEE[maq]:(route?route[4]:85);
       var estrat=route?route[7]||'MTS':'MTS';
-      var hrsObj=vel>0?Math.round(qty/vel*100)/100:0;
-      var hrsReal=vel>0&&oee>0?Math.round(qty/(vel*oee/100)*100)/100:0;
+      var hrsObj=vel>0?Math.round(qty/(vel*60)*100)/100:0;
+      var hrsReal=vel>0&&oee>0?Math.round(qty/(vel*60*oee/100)*100)/100:0;
       var linea=tipo==='Planificado'?maq:(route?route[2]:maq);
       if(tipo==='Planificado'){
         var ofs=(d[7]||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
