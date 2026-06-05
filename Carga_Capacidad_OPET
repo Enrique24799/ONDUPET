@@ -292,7 +292,7 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <button class="btn bp" onclick="openNewPed()">+ Nuevo Pedido</button>
 </div>
 <div class="kg" id="pedKpi"></div>
-<div class="cd"><h3>📋 Maestro de Pedidos</h3><p style="font-size:11px;color:var(--tl);margin-bottom:10px">Crea pedidos con material, cliente y fecha de entrega. La columna <strong>Orden Asociada</strong> se rellena automáticamente al planificar el pedido desde <em>Creación Órdenes</em>.</p><div class="tw"><table><thead><tr><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Cantidad</th><th>F. Entrega</th><th>Orden Asociada</th><th>Estado</th><th>Acc.</th></tr></thead><tbody id="pedTB"></tbody></table></div></div>
+<div class="cd"><h3>📋 Maestro de Pedidos</h3><p style="font-size:11px;color:var(--tl);margin-bottom:10px">Crea pedidos con material, cliente y fecha de entrega. La columna <strong>Orden Asociada</strong> se rellena automáticamente al planificar el pedido desde <em>Creación Órdenes</em>.</p><div class="tw"><table><thead><tr><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Estrategia</th><th>Cantidad</th><th>F. Entrega</th><th>Orden Asociada</th><th>Estado</th><th>Acc.</th></tr></thead><tbody id="pedTB"></tbody></table></div></div>
 </div>
 
 <!-- CICLOS -->
@@ -970,7 +970,10 @@ function rPed(){
     var st=pedStatus(p);
     var ofCell=p.of?'<strong style="color:var(--success)">'+p.of+'</strong>':'<span class="muted">— sin planificar —</span>';
     var planChip=p.of?'planif':'sin';
-    tb.innerHTML+='<tr data-plan="'+planChip+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td><span class="b '+st.cls+'">'+st.lbl+(st.dias>0?' ('+st.dias+'d)':'')+'</span></td><td><button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+i+')">X</button></td></tr>';
+    var rdRow=RD.find(function(r){return r[0]===p.mat;});
+    var estrat=rdRow?rdRow[7]||'MTS':'MTS';
+    var estratCell='<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>';
+    tb.innerHTML+='<tr data-plan="'+planChip+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+estratCell+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td><span class="b '+st.cls+'">'+st.lbl+(st.dias>0?' ('+st.dias+'d)':'')+'</span></td><td><button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+i+')">X</button></td></tr>';
   });
   // KPIs
   var kp=document.getElementById('pedKpi');if(kp){
@@ -983,6 +986,13 @@ function rPed(){
   }
 }
 function fltPed(){var q=(document.getElementById('pedSrch').value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');var pf=document.getElementById('pedPlanF').value;document.querySelectorAll('#pedTB tr').forEach(function(tr){var mq=tr.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').indexOf(q)>=0;var mp=!pf||tr.dataset.plan===pf;tr.style.display=mq&&mp?'':'none';});}
+function updPdEstrat(){
+  var mat=document.getElementById('pdMat').value;
+  var rdRow=RD.find(function(r){return r[0]===mat;});
+  var estrat=rdRow?rdRow[7]||'MTS':'—';
+  var el=document.getElementById('pdEstrat');
+  if(el){el.value=estrat;el.style.color=estrat==='MTO'?'#f4a261':'#2a9d8f';}
+}
 function openNewPed(){
   var s=document.getElementById('pdMat');s.innerHTML='';
   RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' — '+r[1]+'</option>';});
@@ -990,6 +1000,7 @@ function openNewPed(){
   document.getElementById('pdQty').value=50000;
   document.getElementById('pdFE').value='2026-06-15';
   document.getElementById('pdOF').value='';
+  updPdEstrat();
   oM('mNewPed');
 }
 function svPed(){
@@ -2412,7 +2423,8 @@ initFromSupabase();
 
 <!-- MODAL NUEVO PEDIDO -->
 <div class="mo" id="mNewPed" onclick="if(event.target===this)clM('mNewPed')"><div class="ml"><button class="cm" onclick="clM('mNewPed')">X</button><h3>📋 Nuevo Pedido</h3>
-<div class="fg"><label>Material</label><select id="pdMat"></select></div>
+<div class="fg"><label>Material</label><select id="pdMat" onchange="updPdEstrat()"></select></div>
+<div class="fg"><label>Estrategia</label><input type="text" id="pdEstrat" readonly style="background:#f0f0f0;font-weight:700;color:var(--tl);cursor:default" placeholder="—"></div>
 <div class="fg"><label>Cliente</label><input type="text" id="pdCli" placeholder="Ej: Mercadona"></div>
 <div class="fg"><label>Cantidad (uds)</label><input type="number" id="pdQty" value="50000" min="1" step="1000"></div>
 <div class="fg"><label>Fecha de Entrega</label><input type="date" id="pdFE" value="2026-06-15"></div>
