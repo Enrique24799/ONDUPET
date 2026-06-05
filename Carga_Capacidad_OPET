@@ -967,8 +967,8 @@ function rPed(){
     var ofCell=p.of?'<strong style="color:var(--success)">'+p.of+'</strong>':'<span class="muted">— sin planificar —</span>';
     var planChip=p.of?'planif':'sin';
     var rdRow=RD.find(function(r){return r[0]===p.mat;});
-    var estrat=rdRow?rdRow[7]||'MTS':'MTS';
-    var estratCell='<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>';
+    var estrat=rdRow?rdRow[7]||'MTS':null;
+    var estratCell=estrat?'<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>':'<span class="muted">—</span>';
     tb.innerHTML+='<tr data-plan="'+planChip+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+estratCell+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td><span class="b '+st.cls+'">'+st.lbl+(st.dias>0?' ('+st.dias+'d)':'')+'</span></td><td><button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+i+')">X</button></td></tr>';
   });
   // KPIs
@@ -1503,7 +1503,7 @@ tb.innerHTML+='<tr'+rowSty+'>'+
   '<td>'+acc+'</td>'+
 '</tr>';});renderGantt(maq,ym);}
 function renderGantt(maq,ym){var g=document.getElementById('ordGantt');var parts=ym.split('-');var yr=+parts[0],mo=+parts[1]-1;var dim=new Date(yr,mo+1,0).getDate();var ords=(ordersCreated[maq]||[]).filter(function(o){return o.ym===ym;});if(!ords.length){g.innerHTML='<div class="muted">Sin \u00f3rdenes con fecha asignada</div>';return;}var h='<div style="position:relative;height:'+(ords.length*28+30)+'px;border:1px solid #ddd;border-radius:6px;padding:4px">';h+='<div style="display:flex;font-size:9px;color:#999;border-bottom:1px solid #eee;padding-bottom:2px;margin-bottom:4px">';for(var d=1;d<=dim;d++)h+='<div style="flex:1;text-align:center">'+d+'</div>';h+='</div>';ords.forEach(function(o,i){var s=new Date(o.fIni),e=new Date(o.fFin);var sd=s.getDate(),ed=e.getDate();var left=((sd-1)/dim*100),width=Math.max(((ed-sd+1)/dim*100),2);var co=['#0077b6','#2a9d8f','#f4a261','#e63946','#6c5ce7','#00b4d8'][i%6];h+='<div style="position:absolute;top:'+(24+i*26)+'px;left:'+left+'%;width:'+width+'%;height:20px;background:'+co+';border-radius:4px;color:#fff;font-size:9px;line-height:20px;padding:0 4px;overflow:hidden;white-space:nowrap" title="'+o.of+': '+o.mat+'">'+o.of+'</div>';});h+='</div>';g.innerHTML=h;}
-function delOrder(maq,idx,ym){var rows=DCData[maq]||[];if(idx>=0&&idx<rows.length){var r=rows[idx];rows.splice(idx,1);var oc=ordersCreated[maq]||[];ordersCreated[maq]=oc.filter(function(o){return !(o.of===r[7]&&o.ym===ym);});}renderOrders();
+function delOrder(maq,idx,ym){var rows=DCData[maq]||[];if(idx>=0&&idx<rows.length){var r=rows[idx];rows.splice(idx,1);var oc=ordersCreated[maq]||[];ordersCreated[maq]=oc.filter(function(o){return !(o.of===r[7]&&o.ym===ym);});var ofId=r[7];Object.keys(CYC_PLACEMENTS).forEach(function(cycId){Object.keys(CYC_PLACEMENTS[cycId]).forEach(function(famId){var arr=CYC_PLACEMENTS[cycId][famId];var pi=arr.findIndex(function(p){return p.of===ofId;});if(pi>=0){var removed=arr[pi];arr.splice(pi,1);var cyc=CYC.find(function(c){return c.id===cycId;});if(cyc){var sl=cyc.sl.find(function(s){return s.f===famId;});if(sl)sl.c=Math.max(0,sl.c-removed.hrs);}}});});rCyc();}renderOrders();
 // Refrescar carga de capacidad si ya fue calculada
 if(lastCalc.mosKey&&lastCalc.mosKey.length){recalcMachineSummary();buildYmTable(lastCalc.tipo,1,1,lastCalc.mosKey);}
 // Mostrar badge de datos modificados
