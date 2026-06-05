@@ -184,6 +184,10 @@ tr:hover td{background:rgba(0,180,216,.03);}
 .ctp-opt{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .ctp-opt-a{border-top:4px solid #2a9d8f;}
 .ctp-opt-b{border-top:4px solid #f4a261;}
+.ctp-opt-c{border-top:4px solid #6c5ce7;}
+.ctp-reco.bad{background:#fdeeee;color:#991b1b;border:1px solid #f3b0b0;}
+.ctp-row-new td{background:#efeafc;font-weight:600;}
+.ctp-row-new:hover td{background:#e6def9;}
 .ctp-opt-h{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .ctp-opt-h h4{margin:0;font-size:15px;color:#0d1b2a;font-weight:700;}
 .ctp-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0;}
@@ -1192,7 +1196,33 @@ function ctpSlotInfo(cyc,fid,maq,hrsNeeded){
   var ordFFin=addWorkHours(new Date(cyc.ds),posHrs+hrsNeeded,maq).toISOString().slice(0,10);
   var freeHrs=Math.round(Math.max(0,sl.t-sl.c)*10)/10;
   var excess=Math.round(Math.max(0,hrsNeeded-freeHrs)*10)/10;
-  return{slot:sl,temporal:sl.t,consumed:sl.c,freeHrs:freeHrs,excess:excess,fits:freeHrs>=hrsNeeded,slotFIni:slotFIni,slotFFin:slotFFin,ordFIni:ordFIni,ordFFin:ordFFin};
+  return{slot:sl,temporal:sl.t,consumed:sl.c,freeHrs:freeHrs,excess:excess,fits:freeHrs>=hrsNeeded,slotFIni:slotFIni,slotFFin:slotFFin,ordFIni:ordFIni,ordFFin:ordFFin,slotStartHrs:startHrs,slotEndHrs:startHrs+sl.t};
+}
+// Render compartido de una tabla de órdenes desplazadas/comprometidas
+function ctpShiftTable(shifted,shiftLabel){
+  if(!shifted.length)return '<div class="ctp-empty">No hay órdenes posteriores afectadas: la nueva orden no compromete a ninguna otra.</div>';
+  var h='<div class="ctp-sub">'+(shiftLabel||'Órdenes afectadas')+':</div>';
+  h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>OF</th><th>Material</th><th>Familia</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
+  shifted.forEach(function(o){
+    var compCell=o.comp?'<span class="ctp-b no">⚠ Sí (FE '+fD2(o.pedFE)+')</span>':'<span class="ctp-b ok">No</span>';
+    h+='<tr'+(o.comp?' class="ctp-row-comp"':'')+'><td style="font-family:monospace"><b>'+o.of+'</b></td><td style="font-family:monospace">'+o.mat+'</td><td>'+(o.fam||'-')+'</td><td>'+o.qty.toLocaleString()+'</td><td style="font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFIni)+'</b></td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFFin)+'</b></td><td>'+(o.ped?'<b>'+o.ped+'</b>':'<span style="color:#adb5bd">—</span>')+'</td><td>'+compCell+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+// Recolecta TODAS las órdenes colocadas de una máquina (todas las familias/ciclos)
+function ctpAllPlaced(maqCyclesAll){
+  var arr=[];
+  maqCyclesAll.forEach(function(cyc){
+    Object.keys(CYC_PLACEMENTS[cyc.id]||{}).forEach(function(famId){
+      (CYC_PLACEMENTS[cyc.id][famId]||[]).forEach(function(p){
+        var famObj=FAM.find(function(f){return f.id===famId;});
+        arr.push({cyc:cyc,famId:famId,famNm:famObj?famObj.nm:famId,p:p});
+      });
+    });
+  });
+  arr.sort(function(a,b){return a.p.fIni<b.p.fIni?-1:1;});
+  return arr;
 }
 function cCTP(){
   initCTPPage();
@@ -1212,28 +1242,66 @@ function cCTP(){
   // === OPCIÓN A: disponibilidad por familia/ciclo (sin mover nada) ===
   var slots=maqCycles.map(function(cyc){var info=ctpSlotInfo(cyc,fm.id,maq,hrsNeeded);return info?{cyc:cyc,info:info}:null;}).filter(Boolean);
   var firstFit=slots.find(function(x){return x.info.fits&&x.info.ordFFin<=fEDesired;})||slots.find(function(x){return x.info.fits;});
-  // === OPCIÓN B: insertar al inicio del primer ciclo moviendo órdenes ===
-  var allPlaced=[];
-  maqCycles.forEach(function(cyc2){var placed=(CYC_PLACEMENTS[cyc2.id]&&CYC_PLACEMENTS[cyc2.id][fm.id])||[];placed.forEach(function(p){allPlaced.push({cyc:cyc2,p:p});});});
-  allPlaced.sort(function(a,b){return a.p.fIni<b.p.fIni?-1:1;});
-  var optB=null,shiftDays=0;
+  var sh8=(dSh[maq]||3)*8;
+  var allPlacedAll=ctpAllPlaced(maqCycles); // todas las familias de esta máquina
+  // === OPCIÓN B: insertar al FINAL de la familia; el exceso desplaza a las familias siguientes ===
+  var optB=null;
   if(maqCycles.length>0){
     var firstCyc=maqCycles[0];
-    var base=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
-    var insFStr=base.slotFIni;
-    var insEStr=addWorkHours(new Date(insFStr),hrsNeeded,maq).toISOString().slice(0,10);
-    shiftDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
-    var shifted=[];
-    allPlaced.forEach(function(item){
-      if(item.p.fIni>=insFStr){
-        var nFI=new Date(item.p.fIni);nFI.setDate(nFI.getDate()+shiftDays);
-        var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDays);
-        var ped=PED.find(function(p){return p.of===item.p.of;});
-        var nFFStr=nFF.toISOString().slice(0,10);
-        shifted.push({of:item.p.of,mat:item.p.mat||'-',qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:!!(ped&&nFFStr>ped.fE)});
-      }
-    });
-    optB={insF:insFStr,insE:insEStr,shifted:shifted,nComp:shifted.filter(function(o){return o.comp;}).length};
+    var baseInfo=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
+    var insStartHrs=baseInfo.slotStartHrs+baseInfo.consumed;
+    var insFStr=addWorkHours(new Date(firstCyc.ds),insStartHrs,maq).toISOString().slice(0,10);
+    var insEStr=addWorkHours(new Date(firstCyc.ds),insStartHrs+hrsNeeded,maq).toISOString().slice(0,10);
+    var overflowHrs=Math.round(Math.max(0,(baseInfo.consumed+hrsNeeded)-baseInfo.temporal)*10)/10;
+    var shiftDaysB=Math.ceil(overflowHrs/sh8);
+    var shiftedB=[];
+    if(shiftDaysB>0){
+      allPlacedAll.forEach(function(item){
+        if(item.p.fIni>=insFStr){
+          var nFI=new Date(item.p.fIni);nFI.setDate(nFI.getDate()+shiftDaysB);
+          var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDaysB);
+          var ped=PED.find(function(p){return p.of===item.p.of;});
+          var nFFStr=nFF.toISOString().slice(0,10);
+          shiftedB.push({of:item.p.of,mat:item.p.mat||'-',fam:item.famNm,qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:!!(ped&&nFFStr>ped.fE)});
+        }
+      });
+    }
+    optB={insF:insFStr,insE:insEStr,overflowHrs:overflowHrs,shiftDays:shiftDaysB,shifted:shiftedB,nComp:shiftedB.filter(function(o){return o.comp;}).length,onTime:insEStr<=fEDesired};
+  }
+  // === OPCIÓN C: forzar cumplimiento de la fecha de entrega (trabajando hacia atrás) ===
+  var optC=null,optCWarn='';
+  var cWindow=slots.find(function(x){return x.info.slotFIni<=fEDesired&&fEDesired<=x.info.slotFFin;});
+  if(!cWindow){
+    optCWarn='La fecha de entrega ('+fD2(fEDesired)+') no está comprendida entre el inicio y el fin de la familia <b>'+fm.nm+'</b> en ningún ciclo. No se puede adelantar toda una familia: utiliza la <b>Opción B</b>.';
+  } else {
+    var cycC=cWindow.cyc,infoC=cWindow.info;
+    var idealStartStr=subWorkHours(new Date(fEDesired),hrsNeeded,maq).toISOString().slice(0,10);
+    var famPlaced=((CYC_PLACEMENTS[cycC.id]&&CYC_PLACEMENTS[cycC.id][fm.id])||[]).slice().sort(function(a,b){return a.fIni<b.fIni?-1:1;});
+    // Órdenes que solapan la ventana [idealStart, fEDesired] (bloqueantes)
+    var blockers=famPlaced.filter(function(p){return p.fIni<=fEDesired&&p.fFin>=idealStartStr;});
+    var actualEndStr,actualStartStr,blocker=null;
+    if(!blockers.length){
+      actualEndStr=fEDesired;actualStartStr=idealStartStr;
+    } else {
+      blocker=blockers[0];
+      actualEndStr=blocker.fIni; // la nueva orden termina justo donde empieza la bloqueante → se hace ANTES
+      actualStartStr=subWorkHours(new Date(actualEndStr),hrsNeeded,maq).toISOString().slice(0,10);
+    }
+    var feasibleC=actualStartStr>=infoC.slotFIni;
+    var shiftDaysC=Math.ceil(hrsNeeded/sh8);
+    var shiftedC=[];
+    if(feasibleC&&blocker){
+      allPlacedAll.forEach(function(item){
+        if(item.p.fIni>=actualStartStr){
+          var nFI=new Date(item.p.fIni);nFI.setDate(nFI.getDate()+shiftDaysC);
+          var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDaysC);
+          var ped=PED.find(function(p){return p.of===item.p.of;});
+          var nFFStr=nFF.toISOString().slice(0,10);
+          shiftedC.push({of:item.p.of,mat:item.p.mat||'-',fam:item.famNm,qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:!!(ped&&nFFStr>ped.fE)});
+        }
+      });
+    }
+    optC={cyc:cycC,insF:actualStartStr,insE:actualEndStr,feasible:feasibleC,blocker:blocker,shiftDays:shiftDaysC,shifted:shiftedC,nComp:shiftedC.filter(function(o){return o.comp;}).length,slotFIni:infoC.slotFIni,slotFFin:infoC.slotFFin};
   }
   // ===== RENDER (professional, light theme, explicit colors) =====
   var h='';
@@ -1271,25 +1339,46 @@ function cCTP(){
   }
   h+='</div>';
   // Opción B
-  h+='<div class="ctp-opt ctp-opt-b"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#f4a261"></span><h4>Opción B — Insertar al inicio del primer ciclo (replanificando órdenes)</h4></div>';
+  h+='<div class="ctp-opt ctp-opt-b"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#f4a261"></span><h4>Opción B — Insertar al final de la familia (replanificando las siguientes)</h4></div>';
   if(optB){
-    var onB=optB.insE<=fEDesired;
+    h+='<div class="ctp-reco '+(optB.onTime?'ok':'warn')+'">'+(optB.onTime?'✅ La nueva orden termina el <b>'+fD2(optB.insE)+'</b>, cumpliendo la fecha deseada.':'⚠️ La nueva orden termina el <b>'+fD2(optB.insE)+'</b>, '+Math.abs(pedDaysDiff(optB.insE,fEDesired))+'d después de la fecha deseada ('+fD2(fEDesired)+').')+'</div>';
     h+='<div class="ctp-kpis">';
-    h+='<div class="ctp-kpi"><span>Nueva F. Inicio</span><b style="font-family:monospace">'+fD2(optB.insF)+'</b></div>';
-    h+='<div class="ctp-kpi"><span>Entrega nueva orden</span><b style="font-family:monospace;color:'+(onB?'#2a9d8f':'#e63946')+'">'+fD2(optB.insE)+'</b></div>';
+    h+='<div class="ctp-kpi"><span>Inserción (F. Inicio)</span><b style="font-family:monospace">'+fD2(optB.insF)+'</b></div>';
+    h+='<div class="ctp-kpi"><span>Entrega nueva orden</span><b style="font-family:monospace;color:'+(optB.onTime?'#2a9d8f':'#e63946')+'">'+fD2(optB.insE)+'</b></div>';
+    h+='<div class="ctp-kpi"><span>Exceso sobre temporal</span><b style="color:'+(optB.overflowHrs>0?'#f4a261':'#2a9d8f')+'">'+optB.overflowHrs+'h</b></div>';
     h+='<div class="ctp-kpi"><span>Órdenes que se mueven</span><b style="color:#f4a261">'+optB.shifted.length+'</b></div>';
     h+='<div class="ctp-kpi"><span>Pedidos comprometidos</span><b style="color:'+(optB.nComp>0?'#e63946':'#2a9d8f')+'">'+optB.nComp+'</b></div>';
     h+='</div>';
-    if(optB.shifted.length){
-      h+='<div class="ctp-sub">Órdenes desplazadas +'+shiftDays+' día(s):</div>';
-      h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>OF</th><th>Material</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
-      optB.shifted.forEach(function(o){
-        var compCell=o.comp?'<span class="ctp-b no">⚠ Sí (FE '+fD2(o.pedFE)+')</span>':'<span class="ctp-b ok">No</span>';
-        h+='<tr'+(o.comp?' class="ctp-row-comp"':'')+'><td style="font-family:monospace"><b>'+o.of+'</b></td><td style="font-family:monospace">'+o.mat+'</td><td>'+o.qty.toLocaleString()+'</td><td style="font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFIni)+'</b></td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFFin)+'</b></td><td>'+(o.ped?'<b>'+o.ped+'</b>':'<span style="color:#adb5bd">—</span>')+'</td><td>'+compCell+'</td></tr>';
-      });
-      h+='</tbody></table></div>';
+    if(optB.overflowHrs>0){
+      h+=ctpShiftTable(optB.shifted,'Órdenes desplazadas +'+optB.shiftDays+' día(s) por el exceso de la familia');
     } else {
-      h+='<div class="ctp-empty">Sin órdenes existentes en esta familia: la nueva orden se inserta directamente sin desplazar nada.</div>';
+      h+='<div class="ctp-empty">La orden cabe dentro del tiempo asignado a la familia: no se desplaza ninguna orden posterior.</div>';
+    }
+  } else {
+    h+='<div class="ctp-empty">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
+  }
+  h+='</div>';
+  // Opción C
+  h+='<div class="ctp-opt ctp-opt-c"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#6c5ce7"></span><h4>Opción C — Forzar la fecha de entrega (adelantando la orden)</h4></div>';
+  if(optCWarn){
+    h+='<div class="ctp-reco warn">⚠️ '+optCWarn+'</div>';
+  } else if(optC){
+    if(!optC.feasible){
+      h+='<div class="ctp-reco bad">⛔ Para cumplir la fecha de entrega habría que empezar la orden el <b>'+fD2(optC.insF)+'</b>, antes del inicio de la familia en el ciclo '+optC.cyc.id+' (<b>'+fD2(optC.slotFIni)+'</b>). No es posible sin adelantar toda una familia: revisa la <b>Opción B</b>.</div>';
+    } else {
+      h+='<div class="ctp-reco ok">✅ La orden se planifica del <b>'+fD2(optC.insF)+'</b> al <b>'+fD2(optC.insE)+'</b> en el ciclo <b>'+optC.cyc.id+'</b>'+(optC.blocker?', insertada ANTES de la OF '+optC.blocker.of+'.':' (sin órdenes que bloqueen).')+'</div>';
+      h+='<div class="ctp-kpis">';
+      h+='<div class="ctp-kpi"><span>Ciclo</span><b>'+optC.cyc.id+'</b></div>';
+      h+='<div class="ctp-kpi"><span>F. Inicio orden</span><b style="font-family:monospace">'+fD2(optC.insF)+'</b></div>';
+      h+='<div class="ctp-kpi"><span>F. Fin orden</span><b style="font-family:monospace;color:#2a9d8f">'+fD2(optC.insE)+'</b></div>';
+      h+='<div class="ctp-kpi"><span>Órdenes que se mueven</span><b style="color:#6c5ce7">'+optC.shifted.length+'</b></div>';
+      h+='<div class="ctp-kpi"><span>Pedidos comprometidos</span><b style="color:'+(optC.nComp>0?'#e63946':'#2a9d8f')+'">'+optC.nComp+'</b></div>';
+      h+='</div>';
+      if(optC.shifted.length){
+        h+=ctpShiftTable(optC.shifted,'Órdenes desplazadas +'+optC.shiftDays+' día(s) al adelantar la nueva orden');
+      } else {
+        h+='<div class="ctp-empty">Hay hueco para cumplir la fecha de entrega sin desplazar ninguna orden existente.</div>';
+      }
     }
   } else {
     h+='<div class="ctp-empty">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
@@ -2052,6 +2141,28 @@ function addWorkHours(start,hrs,mq){
     if(added<days)d.setDate(d.getDate()+1);
   }
   return d;
+}
+// Resta horas de trabajo hacia atrás desde una fecha de fin (L-V)
+function subWorkHours(end,hrs,mq){
+  var sh=(dSh[mq]||3)*8;
+  var days=Math.max(1,Math.ceil(hrs/sh));
+  var d=new Date(end);
+  var subbed=0;
+  while(subbed<days){
+    var dow=d.getDay();
+    if(dow>=1&&dow<=5)subbed++;
+    if(subbed<days)d.setDate(d.getDate()-1);
+  }
+  return d;
+}
+// Cuenta horas de trabajo entre dos fechas (L-V)
+function workHoursBetween(d1,d2,mq){
+  var sh=(dSh[mq]||3)*8;
+  var a=new Date(d1),b=new Date(d2);
+  if(a>b){var t=a;a=b;b=t;}
+  var days=0;var d=new Date(a);
+  while(d<b){var dow=d.getDay();if(dow>=1&&dow<=5)days++;d.setDate(d.getDate()+1);}
+  return days*sh;
 }
 
 function uCyI(){
