@@ -937,6 +937,7 @@ const AP=[['PED-20201','Mercadona','BAN-T400','150.000','05/05/2026','18/05/2026
 /* === PEDIDOS (v16) === */
 var PED=[];
 var nxPed=20001;
+var pedEditIdx=-1;
 // "Today" for status calculation (so demo data behaves consistently with v13)
 var PED_TODAY='2026-05-18';
 function pedDaysDiff(a,b){var da=new Date(a),db=new Date(b);return Math.round((da-db)/(24*3600*1000));}
@@ -969,7 +970,7 @@ function rPed(){
     var rdRow=RD.find(function(r){return r[0]===p.mat;});
     var estrat=rdRow?rdRow[7]||'MTS':null;
     var estratCell=estrat?'<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>':'<span class="muted">—</span>';
-    tb.innerHTML+='<tr data-plan="'+planChip+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+estratCell+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td><span class="b '+st.cls+'">'+st.lbl+(st.dias>0?' ('+st.dias+'d)':'')+'</span></td><td><button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+i+')">X</button></td></tr>';
+    tb.innerHTML+='<tr data-plan="'+planChip+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+estratCell+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td><span class="b '+st.cls+'">'+st.lbl+(st.dias>0?' ('+st.dias+'d)':'')+'</span></td><td><button class="btn bsm" style="background:#0077b6;color:#fff;margin-right:3px" onclick="openEditPed('+i+')">✏</button><button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+i+')">X</button></td></tr>';
   });
   // KPIs
   var kp=document.getElementById('pedKpi');if(kp){
@@ -990,6 +991,7 @@ function updPdEstrat(){
   if(el){el.value=estrat;el.style.color=estrat==='MTO'?'#f4a261':'#2a9d8f';}
 }
 function openNewPed(){
+  pedEditIdx=-1;
   var s=document.getElementById('pdMat');s.innerHTML='';
   RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' — '+r[1]+'</option>';});
   document.getElementById('pdCli').value='';
@@ -997,6 +999,21 @@ function openNewPed(){
   document.getElementById('pdFE').value='2026-06-15';
   document.getElementById('pdOF').value='';
   updPdEstrat();
+  var h3=document.querySelector('#mNewPed h3');if(h3)h3.textContent='📋 Nuevo Pedido';
+  oM('mNewPed');
+}
+function openEditPed(i){
+  var p=PED[i];if(!p)return;
+  pedEditIdx=i;
+  var s=document.getElementById('pdMat');s.innerHTML='';
+  RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' — '+r[1]+'</option>';});
+  s.value=p.mat;
+  document.getElementById('pdCli').value=p.cli;
+  document.getElementById('pdQty').value=p.qty;
+  document.getElementById('pdFE').value=p.fE;
+  document.getElementById('pdOF').value=p.of||'';
+  updPdEstrat();
+  var h3=document.querySelector('#mNewPed h3');if(h3)h3.textContent='✏️ Editar Pedido — '+p.id;
   oM('mNewPed');
 }
 function svPed(){
@@ -1005,7 +1022,12 @@ function svPed(){
   var qty=+document.getElementById('pdQty').value||0;
   var fE=document.getElementById('pdFE').value;
   if(!mat||!cli||!qty||!fE){alert('Todos los campos son obligatorios (excepto Orden Asociada)');return;}
-  PED.push({id:'PED-'+nxPed++,cli:cli,mat:mat,qty:qty,fE:fE,of:''});
+  if(pedEditIdx>=0&&pedEditIdx<PED.length){
+    var p=PED[pedEditIdx];p.mat=mat;p.cli=cli;p.qty=qty;p.fE=fE;
+  } else {
+    PED.push({id:'PED-'+nxPed++,cli:cli,mat:mat,qty:qty,fE:fE,of:''});
+  }
+  pedEditIdx=-1;
   clM('mNewPed');rPed();
 }
 function dPed(i){if(!confirm('Eliminar '+PED[i].id+'?'))return;PED.splice(i,1);rPed();}
@@ -1756,7 +1778,7 @@ function rCC(c){
       var fFinD=addWorkHours(new Date(c.ds),cumHrs+s.t,c.mq);
       fIni=fIniD.toISOString().slice(0,10);
       fFin=fFinD.toISOString().slice(0,10);
-      cumHrs+=s.t+CHG_H; // accumulate slot hours + change time before next family
+      cumHrs+=Math.max(s.t,s.c)+CHG_H; // use actual consumed if > planned so subsequent families cascade
     }
     // Level-2: orders placed in this family slot
     var placed=(CYC_PLACEMENTS[c.id]&&CYC_PLACEMENTS[c.id][s.f])?CYC_PLACEMENTS[c.id][s.f]:[];
@@ -1945,7 +1967,7 @@ function placeOrderInCycle(cyc,fid,hrs,mq){
   // Compute family slot start within cycle: starts at cycle.ds + cumulative hours of previous slots (in cycle.sl order) + change times
   var slotIdx=cyc.sl.findIndex(function(s){return s.f===fid;});
   var startHrs=0;
-  for(var i=0;i<slotIdx;i++){var s=cyc.sl[i];if(!s.sk){startHrs+=s.t+CHG_H;}}
+  for(var i=0;i<slotIdx;i++){var s=cyc.sl[i];if(!s.sk){startHrs+=Math.max(s.t,s.c)+CHG_H;}}
   // If orders already placed in this family slot, position after the last one
   var placedHrs=arr.reduce(function(a,o){return a+o.hrs;},0);
   var posHrs=startHrs+placedHrs;
