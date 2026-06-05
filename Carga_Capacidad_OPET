@@ -172,6 +172,43 @@ tr:hover td{background:rgba(0,180,216,.03);}
 .audit-tbl th{background:#6c5ce7;color:#fff;padding:5px 8px;text-align:left;font-size:10px;}
 .audit-tbl td{padding:4px 8px;border-bottom:1px solid #eee;}
 .prop-detail-inner{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;background:#f8f6ff;border-radius:8px;border:1px dashed #6c5ce7;}
+/* ===== CTP professional ===== */
+.ctp-head{background:linear-gradient(135deg,#0d1b2a,#1b2838);border-radius:12px;padding:20px 22px;margin-bottom:18px;color:#fff;}
+.ctp-head-title{font-size:17px;font-weight:700;margin-bottom:14px;}
+.ctp-chips{display:flex;flex-wrap:wrap;gap:10px;}
+.ctp-chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;}
+.ctp-chip span{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9fb3c8;}
+.ctp-chip b{font-size:16px;color:#fff;}
+.ctp-chip-hl{background:rgba(0,180,216,.18);border-color:rgba(0,180,216,.45);}
+.ctp-chip-hl b{color:#7ee5ff;}
+.ctp-opt{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+.ctp-opt-a{border-top:4px solid #2a9d8f;}
+.ctp-opt-b{border-top:4px solid #f4a261;}
+.ctp-opt-h{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.ctp-opt-h h4{margin:0;font-size:15px;color:#0d1b2a;font-weight:700;}
+.ctp-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.ctp-reco{font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:500;}
+.ctp-reco.ok{background:#e8f5f2;color:#0f5f52;border:1px solid #a7d8cd;}
+.ctp-reco.warn{background:#fef3e7;color:#92500e;border:1px solid #f3cfa0;}
+.ctp-kpis{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;}
+.ctp-kpi{background:#f7f9fc;border:1px solid var(--border);border-radius:9px;padding:10px 16px;min-width:150px;display:flex;flex-direction:column;gap:3px;}
+.ctp-kpi span{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#6c757d;}
+.ctp-kpi b{font-size:19px;color:#0d1b2a;}
+.ctp-sub{font-size:12px;font-weight:600;color:#6c757d;margin-bottom:8px;}
+.ctp-tw{overflow-x:auto;border:1px solid var(--border);border-radius:9px;}
+.ctp-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:760px;}
+.ctp-tbl thead th{background:#0d1b2a;color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;}
+.ctp-tbl tbody td{padding:8px 12px;border-bottom:1px solid #eef1f4;color:#1a1a2e;white-space:nowrap;}
+.ctp-tbl tbody tr:last-child td{border-bottom:none;}
+.ctp-tbl tbody tr:hover td{background:#f5fbfd;}
+.ctp-row-reco td{background:#eafaf6;}
+.ctp-row-reco:hover td{background:#e0f5ef;}
+.ctp-row-comp td{background:#fdeeee;}
+.ctp-row-comp:hover td{background:#fbe3e3;}
+.ctp-b{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:11px;}
+.ctp-b.ok{background:#d1fae5;color:#065f46;}
+.ctp-b.no{background:#fee2e2;color:#991b1b;}
+.ctp-empty{font-size:13px;color:#6c757d;padding:14px;background:#f7f9fc;border:1px dashed var(--border);border-radius:8px;}
 </style>
 </head>
 <body>
@@ -846,16 +883,27 @@ const DCData={T1:[],T2:[],T3:[],T4:[],T5:[],T6:[],E1:[],E2:[]};
 
 function renderDetCarga(){/* v4: merged into Carga page */}
 function toggleOfs(key){const el=document.getElementById('ofs-'+key);if(el)el.classList.toggle('on');}
-function buildOfDetailTable(ofs,totalQty,yearMonth){
-  // Generate consistent fake start/end dates and qty per OF
+function buildOfDetailTable(ofs,totalQty,yearMonth,maq,cap){
+  // Use real order data from ordersCreated when available; fall back to evenly split
   const [y,m]=yearMonth.split('-').map(Number);
   const perOf=Math.round(totalQty/ofs.length);
-  let h='<table style="width:100%"><thead><tr><th>OF</th><th>Fecha inicio</th><th>Fecha fin</th><th>Cantidad (uds)</th></tr></thead><tbody>';
+  const capH=cap||1;
+  let h='<table style="width:100%"><thead><tr><th>OF</th><th>Fecha inicio</th><th>Fecha fin</th><th>Cantidad (uds)</th><th>Horas</th><th>% Carga</th></tr></thead><tbody>';
   ofs.forEach((of,i)=>{
-    const startDay=3+i*5,endDay=Math.min(startDay+4,27);
-    const fi=String(startDay).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y;
-    const ff=String(endDay).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y;
-    h+='<tr><td><strong>'+of+'</strong></td><td>'+fi+'</td><td>'+ff+'</td><td>'+perOf.toLocaleString()+'</td></tr>';
+    var ord=null;
+    if(maq&&ordersCreated[maq]){ord=(ordersCreated[maq]||[]).find(function(o){return o.of===of;});}
+    var fi,ff,qty,hrs;
+    if(ord){
+      fi=fD2(ord.fIni);ff=fD2(ord.fFin);qty=ord.qty||perOf;hrs=ord.hrs||0;
+    } else {
+      const startDay=3+i*5,endDay=Math.min(startDay+4,27);
+      fi=String(startDay).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y;
+      ff=String(endDay).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+y;
+      qty=perOf;hrs=0;
+    }
+    var pct=Math.round(hrs/capH*1000)/10;
+    var pctCo=pct>100?'#e63946':pct>85?'#f4a261':'#2a9d8f';
+    h+='<tr><td><strong>'+of+'</strong></td><td>'+fi+'</td><td>'+ff+'</td><td>'+qty.toLocaleString()+'</td><td>'+hrs+'h</td><td><strong style="color:'+pctCo+'">'+pct+'%</strong></td></tr>';
   });
   h+='</tbody></table>';return h;
 }
@@ -1130,57 +1178,51 @@ function ackAl(i,btn){btn.textContent='✓ Reconocida';btn.className='btn bsm bs
 function fAl(){const s=document.getElementById('alS').value,m=document.getElementById('alM').value;document.querySelectorAll('.ac').forEach(c=>{c.style.display=(!s||c.dataset.s===s)&&(!m||c.dataset.m===m)?'':'none';});}
 
 function initCTPPage(){var s=document.getElementById('cpM');if(!s||s.options.length===RD.length)return;s.innerHTML='';RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' — '+r[1]+'</option>';});}
+// Helper: compute family slot window + new-order placement inside a cycle
+function ctpSlotInfo(cyc,fid,maq,hrsNeeded){
+  var sl=cyc.sl.find(function(s){return s.f===fid&&!s.sk;});
+  if(!sl)return null;
+  var slotIdx=cyc.sl.findIndex(function(s){return s.f===fid;});
+  var startHrs=0;
+  for(var i=0;i<slotIdx;i++){var s=cyc.sl[i];if(!s.sk)startHrs+=Math.max(s.t,s.c)+CHG_H;}
+  var slotFIni=addWorkHours(new Date(cyc.ds),startHrs,maq).toISOString().slice(0,10);
+  var slotFFin=addWorkHours(new Date(cyc.ds),startHrs+sl.t,maq).toISOString().slice(0,10);
+  var posHrs=startHrs+sl.c;
+  var ordFIni=addWorkHours(new Date(cyc.ds),posHrs,maq).toISOString().slice(0,10);
+  var ordFFin=addWorkHours(new Date(cyc.ds),posHrs+hrsNeeded,maq).toISOString().slice(0,10);
+  var freeHrs=Math.round(Math.max(0,sl.t-sl.c)*10)/10;
+  var excess=Math.round(Math.max(0,hrsNeeded-freeHrs)*10)/10;
+  return{slot:sl,temporal:sl.t,consumed:sl.c,freeHrs:freeHrs,excess:excess,fits:freeHrs>=hrsNeeded,slotFIni:slotFIni,slotFFin:slotFFin,ordFIni:ordFIni,ordFFin:ordFFin};
+}
 function cCTP(){
   initCTPPage();
   var mat=document.getElementById('cpM').value;
   var qty=parseInt(document.getElementById('cpQ').value)||100000;
   var fEDesired=document.getElementById('cpD').value;
   var route=RD.find(function(r){return r[0]===mat;});
-  if(!route){alert('Material no encontrado en maestro');return;}
-  var maq=route[2],vel=route[3],oee=maqOEE[maq]||85;
-  var hrsNeeded=Math.round(qty/(vel*60*(oee/100))*10)/10;
-  var fm=findFamilyForMaterial?findFamilyForMaterial(mat):null;
   var r=document.getElementById('cpR');
-  if(!fm){r.innerHTML='<div class="cd"><div class="muted">Material sin familia asignada en el maestro. No se puede calcular CTP por ciclos.</div></div>';r.style.display='block';return;}
-  // Cycles for this machine+family sorted by start date
+  if(!route){r.innerHTML='<div class="ctp-empty">Material no encontrado en el maestro.</div>';r.style.display='block';return;}
+  var maq=route[2],vel=route[3],oee=maqOEE[maq]||85;
+  var velEff=Math.round(vel*60*(oee/100));
+  var hrsNeeded=Math.round(qty/(velEff)*10)/10;
+  var fm=findFamilyForMaterial?findFamilyForMaterial(mat):null;
+  if(!fm){r.innerHTML='<div class="ctp-empty">Material sin familia asignada en el maestro. No se puede calcular CTP por ciclos.</div>';r.style.display='block';return;}
+  // Active cycles for this machine+family, sorted by start date
   var maqCycles=CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds<b.ds?-1:1;});
-  // === OPCIÓN A: Siguiente hueco libre sin mover órdenes ===
-  var optA=null;
-  for(var ci=0;ci<maqCycles.length;ci++){
-    var cyc=maqCycles[ci];
-    var sl=cyc.sl.find(function(s){return s.f===fm.id&&!s.sk;});
-    if(!sl)continue;
-    var freeHrs=Math.max(0,sl.t-sl.c);
-    if(freeHrs>=hrsNeeded){
-      var slotIdx=cyc.sl.findIndex(function(s){return s.f===fm.id;});
-      var startHrs=0;
-      for(var si=0;si<slotIdx;si++){var s2=cyc.sl[si];if(!s2.sk)startHrs+=Math.max(s2.t,s2.c)+CHG_H;}
-      var posHrs=startHrs+sl.c;
-      var fIniA=addWorkHours(new Date(cyc.ds),posHrs,maq);
-      var fFinA=addWorkHours(new Date(cyc.ds),posHrs+hrsNeeded,maq);
-      optA={cyc:cyc,fIni:fIniA.toISOString().slice(0,10),fFin:fFinA.toISOString().slice(0,10),freeHrs:freeHrs};
-      break;
-    }
-  }
-  // === OPCIÓN B: Insertar antes moviendo órdenes existentes ===
+  // === OPCIÓN A: disponibilidad por familia/ciclo (sin mover nada) ===
+  var slots=maqCycles.map(function(cyc){var info=ctpSlotInfo(cyc,fm.id,maq,hrsNeeded);return info?{cyc:cyc,info:info}:null;}).filter(Boolean);
+  var firstFit=slots.find(function(x){return x.info.fits&&x.info.ordFFin<=fEDesired;})||slots.find(function(x){return x.info.fits;});
+  // === OPCIÓN B: insertar al inicio del primer ciclo moviendo órdenes ===
   var allPlaced=[];
-  maqCycles.forEach(function(cyc2){
-    var placed=(CYC_PLACEMENTS[cyc2.id]&&CYC_PLACEMENTS[cyc2.id][fm.id])||[];
-    placed.forEach(function(p){allPlaced.push({cyc:cyc2,p:p});});
-  });
+  maqCycles.forEach(function(cyc2){var placed=(CYC_PLACEMENTS[cyc2.id]&&CYC_PLACEMENTS[cyc2.id][fm.id])||[];placed.forEach(function(p){allPlaced.push({cyc:cyc2,p:p});});});
   allPlaced.sort(function(a,b){return a.p.fIni<b.p.fIni?-1:1;});
-  var optB=null;
+  var optB=null,shiftDays=0;
   if(maqCycles.length>0){
     var firstCyc=maqCycles[0];
-    var sl0=firstCyc.sl.find(function(s){return s.f===fm.id&&!s.sk;});
-    var slIdx0=firstCyc.sl.findIndex(function(s){return s.f===fm.id;});
-    var sHrs0=0;
-    for(var si2=0;si2<slIdx0;si2++){var s3=firstCyc.sl[si2];if(!s3.sk)sHrs0+=Math.max(s3.t,s3.c)+CHG_H;}
-    var insF=addWorkHours(new Date(firstCyc.ds),sHrs0,maq);
-    var insE=addWorkHours(new Date(firstCyc.ds),sHrs0+hrsNeeded,maq);
-    var insFStr=insF.toISOString().slice(0,10);
-    var insEStr=insE.toISOString().slice(0,10);
-    var shiftDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
+    var base=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
+    var insFStr=base.slotFIni;
+    var insEStr=addWorkHours(new Date(insFStr),hrsNeeded,maq).toISOString().slice(0,10);
+    shiftDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
     var shifted=[];
     allPlaced.forEach(function(item){
       if(item.p.fIni>=insFStr){
@@ -1188,54 +1230,71 @@ function cCTP(){
         var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDays);
         var ped=PED.find(function(p){return p.of===item.p.of;});
         var nFFStr=nFF.toISOString().slice(0,10);
-        shifted.push({of:item.p.of,mat:item.p.mat||'-',qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:ped&&nFFStr>ped.fE});
+        shifted.push({of:item.p.of,mat:item.p.mat||'-',qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:!!(ped&&nFFStr>ped.fE)});
       }
     });
     optB={insF:insFStr,insE:insEStr,shifted:shifted,nComp:shifted.filter(function(o){return o.comp;}).length};
   }
-  // Render
-  var h='<div class="cr2" style="margin-top:14px"><h3>📦 Resultado CTP — <span style="font-family:monospace">'+mat+'</span></h3>';
-  h+='<div style="font-size:12px;color:var(--tl);margin-bottom:14px">'+qty.toLocaleString()+' uds · <strong>'+hrsNeeded+'h</strong> necesarias · Máq <strong>'+maq+'</strong> · Familia <strong>'+fm.nm+'</strong></div>';
+  // ===== RENDER (professional, light theme, explicit colors) =====
+  var h='';
+  // Header band
+  h+='<div class="ctp-head">';
+  h+='<div class="ctp-head-title">📦 Resultado CTP · <span style="font-family:monospace">'+mat+'</span></div>';
+  h+='<div class="ctp-chips">';
+  h+='<div class="ctp-chip"><span>Cantidad</span><b>'+qty.toLocaleString()+' uds</b></div>';
+  h+='<div class="ctp-chip ctp-chip-hl"><span>Horas de producción</span><b>'+hrsNeeded+' h</b></div>';
+  h+='<div class="ctp-chip"><span>Velocidad efectiva</span><b>'+velEff.toLocaleString()+' uds/h</b></div>';
+  h+='<div class="ctp-chip"><span>Máquina</span><b>'+maq+'</b></div>';
+  h+='<div class="ctp-chip"><span>Familia</span><b>'+fm.nm+'</b></div>';
+  h+='<div class="ctp-chip"><span>Fecha deseada</span><b>'+fD2(fEDesired)+'</b></div>';
+  h+='</div></div>';
   // Opción A
-  h+='<div class="cd" style="border-left:4px solid var(--success);margin-bottom:12px"><h4 style="margin:0 0 10px;color:var(--success)">🟢 Opción A — Siguiente hueco libre (sin mover órdenes)</h4>';
-  if(optA){
-    var onA=optA.fFin<=fEDesired;
-    h+='<div class="cf" style="gap:20px;flex-wrap:wrap">';
-    h+='<div><div class="kl">F. Inicio propuesta</div><div class="kv" style="font-size:18px;font-family:monospace">'+fD2(optA.fIni)+'</div></div>';
-    h+='<div><div class="kl">Entrega propuesta</div><div class="kv" style="font-size:18px;font-family:monospace;color:'+(onA?'var(--success)':'var(--danger)')+'">'+fD2(optA.fFin)+'</div></div>';
-    h+='<div><div class="kl">¿Cumple fecha?</div><div class="kv" style="font-size:18px;color:'+(onA?'var(--success)':'var(--danger)')+'">'+  (onA?'✅ Sí':'⚠️ No (+'+Math.abs(pedDaysDiff(optA.fFin,fEDesired))+'d)')+'</div></div>';
-    h+='<div><div class="kl">Ciclo</div><div class="kv" style="font-size:13px">'+optA.cyc.id+' ('+fD2(optA.cyc.ds)+' → '+fD2(optA.cyc.de)+')</div></div>';
-    h+='<div><div class="kl">Horas libres en slot</div><div class="kv" style="font-size:18px">'+optA.freeHrs+'h</div></div>';
-    h+='</div>';
+  h+='<div class="ctp-opt ctp-opt-a"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#2a9d8f"></span><h4>Opción A — Huecos libres por familia (sin mover órdenes)</h4></div>';
+  if(slots.length){
+    if(firstFit){
+      var onA=firstFit.info.ordFFin<=fEDesired;
+      h+='<div class="ctp-reco '+(onA?'ok':'warn')+'">'+(onA?'✅':'⚠️')+' Recomendado: ciclo <b>'+firstFit.cyc.id+'</b> — entrega <b>'+fD2(firstFit.info.ordFFin)+'</b>'+(onA?' (cumple la fecha deseada)':' ('+Math.abs(pedDaysDiff(firstFit.info.ordFFin,fEDesired))+'d después de lo deseado)')+'</div>';
+    } else {
+      h+='<div class="ctp-reco warn">⚠️ Ninguna familia tiene '+hrsNeeded+'h libres. Mira la columna <b>Exceso</b> o usa la Opción B.</div>';
+    }
+    h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>Ciclo</th><th>Periodo ciclo</th><th>Familia: Inicio</th><th>Familia: Fin</th><th>Temporal</th><th>Consumido</th><th>Libres</th><th>¿Cabe?</th><th>Inicio nueva orden</th><th>Fin nueva orden</th><th>Exceso</th></tr></thead><tbody>';
+    slots.forEach(function(x){
+      var inf=x.info;
+      var fitBadge=inf.fits?'<span class="ctp-b ok">Sí</span>':'<span class="ctp-b no">No</span>';
+      var excCell=inf.excess>0?'<b style="color:#e63946">+'+inf.excess+'h</b>':'<span style="color:#2a9d8f">0h</span>';
+      var rowCls=(firstFit&&x.cyc.id===firstFit.cyc.id)?' class="ctp-row-reco"':'';
+      h+='<tr'+rowCls+'><td><b>'+x.cyc.id+'</b></td><td>'+fD2(x.cyc.ds)+' → '+fD2(x.cyc.de)+'</td><td style="font-family:monospace">'+fD2(inf.slotFIni)+'</td><td style="font-family:monospace">'+fD2(inf.slotFFin)+'</td><td>'+inf.temporal+'h</td><td>'+inf.consumed+'h</td><td><b style="color:'+(inf.freeHrs>0?'#2a9d8f':'#6c757d')+'">'+inf.freeHrs+'h</b></td><td>'+fitBadge+'</td><td style="font-family:monospace">'+fD2(inf.ordFIni)+'</td><td style="font-family:monospace;color:'+(inf.ordFFin<=fEDesired?'#2a9d8f':'#e63946')+'"><b>'+fD2(inf.ordFFin)+'</b></td><td>'+excCell+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
   } else {
-    h+='<div class="muted">No hay ciclos con '+hrsNeeded+'h libres para la familia <strong>'+fm.nm+'</strong>. Crea un nuevo ciclo o amplía el temporal.</div>';
+    h+='<div class="ctp-empty">No hay ciclos activos en '+maq+' con la familia <b>'+fm.nm+'</b>. Crea un ciclo para esta familia.</div>';
   }
   h+='</div>';
   // Opción B
-  h+='<div class="cd" style="border-left:4px solid var(--warning)"><h4 style="margin:0 0 10px;color:#b45309">🟠 Opción B — Insertar al inicio del primer ciclo (moviendo órdenes)</h4>';
+  h+='<div class="ctp-opt ctp-opt-b"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#f4a261"></span><h4>Opción B — Insertar al inicio del primer ciclo (replanificando órdenes)</h4></div>';
   if(optB){
     var onB=optB.insE<=fEDesired;
-    h+='<div class="cf" style="gap:20px;flex-wrap:wrap;margin-bottom:12px">';
-    h+='<div><div class="kl">Nueva F. Inicio</div><div class="kv" style="font-size:18px;font-family:monospace">'+fD2(optB.insF)+'</div></div>';
-    h+='<div><div class="kl">Entrega nueva orden</div><div class="kv" style="font-size:18px;font-family:monospace;color:'+(onB?'var(--success)':'var(--danger)')+'">'+fD2(optB.insE)+'</div></div>';
-    h+='<div><div class="kl">Órdenes que se mueven</div><div class="kv" style="font-size:18px;color:var(--warning)">'+optB.shifted.length+'</div></div>';
-    h+='<div><div class="kl">Pedidos comprometidos</div><div class="kv" style="font-size:18px;color:'+(optB.nComp>0?'var(--danger)':'var(--success)')+'">'+optB.nComp+'</div></div>';
+    h+='<div class="ctp-kpis">';
+    h+='<div class="ctp-kpi"><span>Nueva F. Inicio</span><b style="font-family:monospace">'+fD2(optB.insF)+'</b></div>';
+    h+='<div class="ctp-kpi"><span>Entrega nueva orden</span><b style="font-family:monospace;color:'+(onB?'#2a9d8f':'#e63946')+'">'+fD2(optB.insE)+'</b></div>';
+    h+='<div class="ctp-kpi"><span>Órdenes que se mueven</span><b style="color:#f4a261">'+optB.shifted.length+'</b></div>';
+    h+='<div class="ctp-kpi"><span>Pedidos comprometidos</span><b style="color:'+(optB.nComp>0?'#e63946':'#2a9d8f')+'">'+optB.nComp+'</b></div>';
     h+='</div>';
     if(optB.shifted.length){
-      h+='<div style="font-size:11px;font-weight:600;color:var(--tl);margin-bottom:6px">Órdenes que se desplazan '+shiftDays+'d:</div>';
-      h+='<div style="overflow-x:auto"><table style="font-size:11px;width:100%;min-width:620px"><thead><tr style="background:#fef3c7"><th style="padding:4px 8px;text-align:left">OF</th><th>Material</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
+      h+='<div class="ctp-sub">Órdenes desplazadas +'+shiftDays+' día(s):</div>';
+      h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>OF</th><th>Material</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
       optB.shifted.forEach(function(o){
-        var compCell=o.comp?'<span class="b r">⚠ Sí (FE: '+fD2(o.pedFE)+')</span>':'<span class="b g">No</span>';
-        h+='<tr style="'+(o.comp?'background:#fff5f5':'')+'"><td style="padding:3px 8px;font-family:monospace"><strong>'+o.of+'</strong></td><td style="padding:3px 8px;font-family:monospace">'+o.mat+'</td><td style="padding:3px 8px">'+o.qty.toLocaleString()+'</td><td style="padding:3px 8px;font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="padding:3px 8px;font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="padding:3px 8px;font-family:monospace;color:var(--warning)">'+fD2(o.newFIni)+'</td><td style="padding:3px 8px;font-family:monospace;color:var(--warning)">'+fD2(o.newFFin)+'</td><td style="padding:3px 8px">'+  (o.ped?'<strong>'+o.ped+'</strong>':'<span class="muted">—</span>')+'</td><td style="padding:3px 8px">'+compCell+'</td></tr>';
+        var compCell=o.comp?'<span class="ctp-b no">⚠ Sí (FE '+fD2(o.pedFE)+')</span>':'<span class="ctp-b ok">No</span>';
+        h+='<tr'+(o.comp?' class="ctp-row-comp"':'')+'><td style="font-family:monospace"><b>'+o.of+'</b></td><td style="font-family:monospace">'+o.mat+'</td><td>'+o.qty.toLocaleString()+'</td><td style="font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFIni)+'</b></td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFFin)+'</b></td><td>'+(o.ped?'<b>'+o.ped+'</b>':'<span style="color:#adb5bd">—</span>')+'</td><td>'+compCell+'</td></tr>';
       });
       h+='</tbody></table></div>';
     } else {
-      h+='<div class="muted">Sin órdenes existentes para esta familia. Se puede insertar directamente.</div>';
+      h+='<div class="ctp-empty">Sin órdenes existentes en esta familia: la nueva orden se inserta directamente sin desplazar nada.</div>';
     }
   } else {
-    h+='<div class="muted">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
+    h+='<div class="ctp-empty">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
   }
-  h+='</div></div>';
+  h+='</div>';
   r.innerHTML=h;r.style.display='block';r.scrollIntoView({behavior:'smooth'});
 }
 
@@ -1285,11 +1344,13 @@ function selectYm(maq, ym){
   const allRows=(DCData[maq]||[]).filter(r=>tipo==='plan'?r[2]==='Planificado':true).filter(r=>r[3]===ym);
   const b=document.getElementById('matBody');b.innerHTML='';
   if(!allRows.length){b.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--tl)">Sin materiales</td></tr>';return;}
+  var _pp=ym.split('-');var _cap=getCapH(+_pp[0],+_pp[1]-1,maq,(lastCalc.calMode||'actual'))||1;
   allRows.forEach((r,idx)=>{const oC=r[2]==='Planificado'?'bl':'y';const molde=MOLDE_MAP[r[0]]||'-';
     const ofsList=(r[7]||'').split(',').map(s=>s.trim()).filter(s=>s&&s!=='-');let ofsCell='-';
     if(ofsList.length){ofsCell='<span class="ofs-cell" onclick="toggleOfs(\'mat-'+maq+'-'+ym+'-'+idx+'\')">▸ '+ofsList.length+' OF'+(ofsList.length>1?'s':'')+'</span>';}
-    b.innerHTML+='<tr><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td><span class="molde-chip normal">'+molde+'</span></td><td><span class="b '+oC+'">'+r[2]+'</span></td><td>'+r[4].toLocaleString()+'</td><td>'+r[5]+'</td><td>'+r[6]+'%</td><td>'+ofsCell+'</td><td><span class="b g">'+r[8]+'</span></td></tr>';
-    if(ofsList.length){b.innerHTML+='<tr class="ofs-detail" id="ofs-mat-'+maq+'-'+ym+'-'+idx+'"><td colspan="9"><div class="ofs-inner">'+buildOfDetailTable(ofsList,r[4],r[3])+'</div></td></tr>';}
+    var pctMat=Math.round(r[5]/_cap*1000)/10;var pctCo=pctMat>100?'var(--danger)':pctMat>85?'var(--warning)':'var(--success)';
+    b.innerHTML+='<tr><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td><span class="molde-chip normal">'+molde+'</span></td><td><span class="b '+oC+'">'+r[2]+'</span></td><td>'+r[4].toLocaleString()+'</td><td>'+r[5]+'h</td><td><strong style="color:'+pctCo+'">'+pctMat+'%</strong></td><td>'+ofsCell+'</td><td><span class="b g">'+r[8]+'</span></td></tr>';
+    if(ofsList.length){b.innerHTML+='<tr class="ofs-detail" id="ofs-mat-'+maq+'-'+ym+'-'+idx+'"><td colspan="9"><div class="ofs-inner">'+buildOfDetailTable(ofsList,r[4],r[3],maq,_cap)+'</div></td></tr>';}
   });panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
 
 /* --- Año_Mes + recalc already integrated into cCa() directly in v10 --- */
