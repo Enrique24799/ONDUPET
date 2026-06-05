@@ -289,6 +289,7 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <input type="text" placeholder="🔍 Buscar pedido, cliente o material..." id="pedSrch" oninput="fltPed()">
 <div><label>Estado planif.</label><select id="pedPlanF" onchange="fltPed()"><option value="">Todos</option><option value="planif">Planificados</option><option value="sin">Sin planificar</option></select></div>
 <button class="btn bp" onclick="openNewPed()">+ Nuevo Pedido</button>
+<button class="btn" style="background:#7c3aed;color:#fff" onclick="genDemoData()">🎲 Generar Demo</button>
 </div>
 <div class="kg" id="pedKpi"></div>
 <div class="cd"><h3>📋 Maestro de Pedidos</h3><p style="font-size:11px;color:var(--tl);margin-bottom:10px">Crea pedidos con material, cliente y fecha de entrega. La columna <strong>Orden Asociada</strong> se rellena automáticamente al planificar el pedido desde <em>Creación Órdenes</em>.</p><div class="tw"><table><thead><tr><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Estrategia</th><th>Cantidad</th><th>F. Entrega</th><th>Orden Asociada</th><th>Estado</th><th>Acc.</th></tr></thead><tbody id="pedTB"></tbody></table></div></div>
@@ -494,22 +495,15 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 
 <!-- CTP -->
 <div class="pg" id="p-ctp">
-<div class="cd"><h3>📦 Cálculo CTP — Capable To Promise <span style="font-size:11px;font-weight:400;color:var(--tl);font-style:italic">(basado en Saturación Balanceada)</span></h3>
+<div class="cd"><h3>📦 CTP — Capable To Promise <span style="font-size:11px;font-weight:400;color:var(--tl);font-style:italic">basado en ciclos de producción planificados</span></h3>
+<p style="font-size:12px;color:var(--tl);margin:0 0 14px">Calcula cuándo puede fabricarse un pedido y muestra las dos opciones: hueco libre sin mover nada, o inserción anticipada con replanificación de órdenes existentes.</p>
 <div class="cf">
-<div class="fg"><label>Material</label><select id="cpM"><option value="BAN-T400">BAN-T400 — Bandeja T400 PET</option><option value="TAR-R250">TAR-R250 — Tarrina R250 PP</option><option value="ENV-P600">ENV-P600 — Envase P600 PET</option><option value="TAP-C100">TAP-C100 — Tapa C100 PET</option><option value="BAN-T200">BAN-T200 — Bandeja T200 PET</option><option value="ENV-P300">ENV-P300 — Envase P300 PP</option><option value="BAN-T300">BAN-T300 — Bandeja T300 PET</option><option value="TAR-R150">TAR-R150 — Tarrina R150 PP</option></select></div>
-<div class="fg"><label>Cantidad (unidades)</label><input type="number" id="cpQ" value="100000"></div>
-<div class="fg"><label>Fecha deseada</label><input type="date" id="cpD" value="2026-06-15"></div>
+<div class="fg"><label>Material</label><select id="cpM" onchange="initCTPPage()"></select></div>
+<div class="fg"><label>Cantidad (uds)</label><input type="number" id="cpQ" value="500000" min="1" step="50000"></div>
+<div class="fg"><label>Fecha deseada entrega</label><input type="date" id="cpD" value="2026-07-15"></div>
 <div class="fg" style="justify-content:flex-end"><button class="btn bp" onclick="cCTP()" style="align-self:flex-end">⚡ Calcular CTP</button></div>
 </div></div>
-<div id="cpR" style="display:none">
-<div class="cr2"><h3>✅ Resultado CTP</h3><div class="rg2">
-<div class="ri"><div class="rl">Fecha propuesta</div><div class="rv" id="cpF">-</div></div>
-<div class="ri"><div class="rl">Máquina asignada</div><div class="rv" id="cpMa">-</div></div>
-<div class="ri"><div class="rl">Horas necesarias</div><div class="rv" id="cpH">-</div></div>
-<div class="ri"><div class="rl">Impacto en carga</div><div class="rv" id="cpI">-</div></div>
-</div></div>
-<div class="cd" style="margin-top:14px"><h3>📊 Impacto en Capacidad</h3><div class="cc"><canvas id="chCTP"></canvas></div></div>
-</div>
+<div id="cpR" style="display:none"></div>
 </div>
 
 </div></div>
@@ -565,7 +559,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 function showLoading(on){const el=document.getElementById('loadingOverlay');if(el)el.style.display=on?'flex':'none';}
 
 const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
-function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');document.getElementById('pt').textContent=TT[id]||id;}
+function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');document.getElementById('pt').textContent=TT[id]||id;if(id==='ctp')initCTPPage();}
 function oM(id){document.getElementById(id).classList.add('sh');}
 function clM(id){document.getElementById(id).classList.remove('sh');}
 
@@ -1032,6 +1026,74 @@ function svPed(){
 }
 function dPed(i){if(!confirm('Eliminar '+PED[i].id+'?'))return;PED.splice(i,1);rPed();}
 
+function genDemoData(){
+  if(!FAM.length||!RD.length){alert('Carga los datos de Supabase primero (botón Sincronizar).');return;}
+  var keepExisting=confirm('¿Añadir datos demo a los existentes?\n\nAceptar = añadir\nCancelar = limpiar y regenerar');
+  if(!keepExisting){
+    CYC.length=0;
+    Object.keys(CYC_PLACEMENTS).forEach(function(k){delete CYC_PLACEMENTS[k];});
+    ['T1','T2','T3','T4','T5','T6','E1','E2'].forEach(function(m){DCData[m]=[];ordersCreated[m]=[];});
+    PED.length=0;nxPed=20001;nxCy=1;nextOfId=90201;
+  }
+  var clients=['Mercadona','Lidl','Alcampo','Carrefour','DIA','Eroski'];
+  var qties=[200000,500000,750000,1000000,1500000,2000000,3000000,400000];
+  var feDts=['2026-06-20','2026-06-30','2026-07-10','2026-07-20','2026-07-31','2026-08-10','2026-08-20','2026-08-31'];
+  // Pedidos: 2 per material
+  RD.forEach(function(r,ri){
+    PED.push({id:'PED-'+nxPed++,cli:clients[ri%6],mat:r[0],qty:qties[ri*2%8],fE:feDts[ri*2%8],of:''});
+    PED.push({id:'PED-'+nxPed++,cli:clients[(ri+3)%6],mat:r[0],qty:qties[(ri*2+1)%8],fE:feDts[(ri*2+1)%8],of:''});
+  });
+  // Cycles: 3 periods per machine
+  var periods=[{ds:'2026-06-01',de:'2026-06-30'},{ds:'2026-07-01',de:'2026-07-31'},{ds:'2026-08-01',de:'2026-08-31'}];
+  var maqSet={};RD.forEach(function(r){maqSet[r[2]]=1;});
+  var newCycs=[];
+  Object.keys(maqSet).forEach(function(maq){
+    var famsForMaq=FAM.filter(function(f){return f.m&&f.m[maq];});
+    if(!famsForMaq.length)return;
+    periods.forEach(function(p){
+      var slots=famsForMaq.map(function(f){var tu=f.m[maq]?f.m[maq].tu||0:0;var hrs=tu>0?Math.round(famHours(f,maq)*10)/10:0;return{f:f.id,t:hrs,c:0,sk:hrs===0};});
+      var cid='C00'+nxCy++;
+      var cyc={id:cid,mq:maq,ds:p.ds,de:p.de,sl:slots,active:true};
+      CYC.push(cyc);newCycs.push(cyc);
+    });
+  });
+  // Orders: place 1-2 orders per material per first 2 periods
+  RD.forEach(function(route,ri){
+    var mat=route[0],maq=route[2],vel=route[3],oee=maqOEE[maq]||85;
+    var fm=findFamilyForMaterial?findFamilyForMaterial(mat):null;if(!fm)return;
+    var machCycs=newCycs.filter(function(c){return c.mq===maq;});
+    [0,1].forEach(function(ci){
+      var cyc=machCycs[ci];if(!cyc)return;
+      var sl=cyc.sl.find(function(s){return s.f===fm.id&&!s.sk;});if(!sl)return;
+      var qty=qties[(ri+ci)%8];
+      var hrs=Math.round(qty/(vel*60*(oee/100))*10)/10;
+      if(sl.c+hrs>sl.t*1.5)return;
+      var placement=placeOrderInCycle(cyc,fm.id,hrs,maq);
+      sl.c=Math.round((sl.c+hrs)*10)/10;
+      var ofId='OF-'+nextOfId++;
+      if(!CYC_PLACEMENTS[cyc.id])CYC_PLACEMENTS[cyc.id]={};
+      if(!CYC_PLACEMENTS[cyc.id][fm.id])CYC_PLACEMENTS[cyc.id][fm.id]=[];
+      var matchPed=PED.find(function(p){return p.mat===mat&&!p.of;});
+      var pedId=matchPed?matchPed.id:'';if(matchPed)matchPed.of=ofId;
+      CYC_PLACEMENTS[cyc.id][fm.id].push({of:ofId,hrs:hrs,fIni:placement.fIni,fFin:placement.fFin,mat:mat,qty:qty,ped:pedId});
+      var ym=cyc.ds.slice(0,7);
+      if(!DCData[maq])DCData[maq]=[];
+      DCData[maq].push([mat,route[1],'Planificado',ym,qty,hrs,0,ofId,route[5]||'']);
+      if(!ordersCreated[maq])ordersCreated[maq]=[];
+      ordersCreated[maq].push({of:ofId,mat:mat,qty:qty,hrs:hrs,fIni:placement.fIni,fFin:placement.fFin,ym:ym,tipo:'Planificado'});
+    });
+    // Previsión en period 3
+    var cyc3=machCycs[2];if(!cyc3)return;
+    var qty3=qties[(ri+4)%8];var hrs3=Math.round(qty3/(vel*60*(oee/100))*10)/10;
+    var ym3=cyc3.ds.slice(0,7);
+    if(!DCData[maq])DCData[maq]=[];
+    DCData[maq].push([mat,route[1],'Previsión',ym3,qty3,hrs3,0,'-',route[5]||'']);
+  });
+  rCyc();rPed();
+  var totalOF=Object.keys(CYC_PLACEMENTS).reduce(function(acc,k){return acc+Object.values(CYC_PLACEMENTS[k]).reduce(function(a,arr){return a+arr.length;},0);},0);
+  alert('✅ Datos demo generados:\n• '+newCycs.length+' ciclos nuevos\n• '+PED.length+' pedidos\n• '+totalOF+' órdenes planificadas\n\nRevisa las pantallas Ciclos, Pedidos y Creación Órdenes.');
+}
+
 function rA(){
   const b=document.getElementById('aB');if(!b)return;b.innerHTML='';
   // Use PED (master pedidos) — show every pedido with its real status
@@ -1067,25 +1129,115 @@ rAl();
 function ackAl(i,btn){btn.textContent='✓ Reconocida';btn.className='btn bsm bs';const t=document.getElementById('alt'+i);if(t)t.textContent=t.textContent.replace('Activa','Reconocida');}
 function fAl(){const s=document.getElementById('alS').value,m=document.getElementById('alM').value;document.querySelectorAll('.ac').forEach(c=>{c.style.display=(!s||c.dataset.s===s)&&(!m||c.dataset.m===m)?'':'none';});}
 
-let ctpCh=null;
+function initCTPPage(){var s=document.getElementById('cpM');if(!s||s.options.length===RD.length)return;s.innerHTML='';RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' — '+r[1]+'</option>';});}
 function cCTP(){
-const mat=document.getElementById('cpM').value,qty=parseInt(document.getElementById('cpQ').value)||100000,ds=document.getElementById('cpD').value;
-const route=RD.find(r=>r[0]===mat);if(!route)return;
-const maq=route[2],vel=route[3],hrs=Math.round(qty/(vel*60*(maqOEE[maq]||85)/100)*10)/10;
-const si=mNamesAll.indexOf(maq),sa=satAll[si]||80,capTotal=520;
-// CTP uses BALANCED saturation: cap source at 100%, overflow pushes date
-const saBal=Math.min(sa,100);
-const overflowDays=sa>100?Math.ceil((sa-100)*1.5):0; // overflow already shifts date in balanced model
-const imp=Math.round(hrs/capTotal*10000)/100;
-const nsRaw=saBal+imp,ns=Math.min(nsRaw,100);
-const extraDays=nsRaw>100?Math.ceil((nsRaw-100)*1.5):0;
-let pd=new Date(ds);pd.setDate(pd.getDate()+overflowDays+extraDays);
-document.getElementById('cpF').textContent=pd.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
-document.getElementById('cpMa').textContent=maq+' (sat. balanceada actual: '+saBal+'%)';document.getElementById('cpH').textContent=hrs+'h';
-document.getElementById('cpI').textContent='+'+imp.toFixed(1)+'%';document.getElementById('cpR').style.display='block';
-if(ctpCh)ctpCh.destroy();
-ctpCh=new Chart(document.getElementById('chCTP'),{type:'bar',data:{labels:['Antes (Balanceada)','Después (Balanceada)','Cap. máx.'],datasets:[{label:maq+' Sat. Bal. %',data:[saBal,ns,100],backgroundColor:[saBal>=100?'#0077b6':'#2a9d8f',ns>=100?'#0077b6':'#f4a261','rgba(0,119,182,.25)'],borderRadius:6,barPercentage:.45}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:(ctx)=>ctx.dataIndex===0&&sa>100?'Sat. normal: '+sa+'% (sobrante trasladado +'+overflowDays+'d)':ctx.dataIndex===1&&nsRaw>100?'Sat. nominal: '+nsRaw.toFixed(1)+'% (+'+extraDays+'d)':''}}},scales:{y:{beginAtZero:true,max:110,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}});
-document.getElementById('cpR').scrollIntoView({behavior:'smooth'});}
+  initCTPPage();
+  var mat=document.getElementById('cpM').value;
+  var qty=parseInt(document.getElementById('cpQ').value)||100000;
+  var fEDesired=document.getElementById('cpD').value;
+  var route=RD.find(function(r){return r[0]===mat;});
+  if(!route){alert('Material no encontrado en maestro');return;}
+  var maq=route[2],vel=route[3],oee=maqOEE[maq]||85;
+  var hrsNeeded=Math.round(qty/(vel*60*(oee/100))*10)/10;
+  var fm=findFamilyForMaterial?findFamilyForMaterial(mat):null;
+  var r=document.getElementById('cpR');
+  if(!fm){r.innerHTML='<div class="cd"><div class="muted">Material sin familia asignada en el maestro. No se puede calcular CTP por ciclos.</div></div>';r.style.display='block';return;}
+  // Cycles for this machine+family sorted by start date
+  var maqCycles=CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds<b.ds?-1:1;});
+  // === OPCIÓN A: Siguiente hueco libre sin mover órdenes ===
+  var optA=null;
+  for(var ci=0;ci<maqCycles.length;ci++){
+    var cyc=maqCycles[ci];
+    var sl=cyc.sl.find(function(s){return s.f===fm.id&&!s.sk;});
+    if(!sl)continue;
+    var freeHrs=Math.max(0,sl.t-sl.c);
+    if(freeHrs>=hrsNeeded){
+      var slotIdx=cyc.sl.findIndex(function(s){return s.f===fm.id;});
+      var startHrs=0;
+      for(var si=0;si<slotIdx;si++){var s2=cyc.sl[si];if(!s2.sk)startHrs+=Math.max(s2.t,s2.c)+CHG_H;}
+      var posHrs=startHrs+sl.c;
+      var fIniA=addWorkHours(new Date(cyc.ds),posHrs,maq);
+      var fFinA=addWorkHours(new Date(cyc.ds),posHrs+hrsNeeded,maq);
+      optA={cyc:cyc,fIni:fIniA.toISOString().slice(0,10),fFin:fFinA.toISOString().slice(0,10),freeHrs:freeHrs};
+      break;
+    }
+  }
+  // === OPCIÓN B: Insertar antes moviendo órdenes existentes ===
+  var allPlaced=[];
+  maqCycles.forEach(function(cyc2){
+    var placed=(CYC_PLACEMENTS[cyc2.id]&&CYC_PLACEMENTS[cyc2.id][fm.id])||[];
+    placed.forEach(function(p){allPlaced.push({cyc:cyc2,p:p});});
+  });
+  allPlaced.sort(function(a,b){return a.p.fIni<b.p.fIni?-1:1;});
+  var optB=null;
+  if(maqCycles.length>0){
+    var firstCyc=maqCycles[0];
+    var sl0=firstCyc.sl.find(function(s){return s.f===fm.id&&!s.sk;});
+    var slIdx0=firstCyc.sl.findIndex(function(s){return s.f===fm.id;});
+    var sHrs0=0;
+    for(var si2=0;si2<slIdx0;si2++){var s3=firstCyc.sl[si2];if(!s3.sk)sHrs0+=Math.max(s3.t,s3.c)+CHG_H;}
+    var insF=addWorkHours(new Date(firstCyc.ds),sHrs0,maq);
+    var insE=addWorkHours(new Date(firstCyc.ds),sHrs0+hrsNeeded,maq);
+    var insFStr=insF.toISOString().slice(0,10);
+    var insEStr=insE.toISOString().slice(0,10);
+    var shiftDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
+    var shifted=[];
+    allPlaced.forEach(function(item){
+      if(item.p.fIni>=insFStr){
+        var nFI=new Date(item.p.fIni);nFI.setDate(nFI.getDate()+shiftDays);
+        var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDays);
+        var ped=PED.find(function(p){return p.of===item.p.of;});
+        var nFFStr=nFF.toISOString().slice(0,10);
+        shifted.push({of:item.p.of,mat:item.p.mat||'-',qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:ped&&nFFStr>ped.fE});
+      }
+    });
+    optB={insF:insFStr,insE:insEStr,shifted:shifted,nComp:shifted.filter(function(o){return o.comp;}).length};
+  }
+  // Render
+  var h='<div class="cr2" style="margin-top:14px"><h3>📦 Resultado CTP — <span style="font-family:monospace">'+mat+'</span></h3>';
+  h+='<div style="font-size:12px;color:var(--tl);margin-bottom:14px">'+qty.toLocaleString()+' uds · <strong>'+hrsNeeded+'h</strong> necesarias · Máq <strong>'+maq+'</strong> · Familia <strong>'+fm.nm+'</strong></div>';
+  // Opción A
+  h+='<div class="cd" style="border-left:4px solid var(--success);margin-bottom:12px"><h4 style="margin:0 0 10px;color:var(--success)">🟢 Opción A — Siguiente hueco libre (sin mover órdenes)</h4>';
+  if(optA){
+    var onA=optA.fFin<=fEDesired;
+    h+='<div class="cf" style="gap:20px;flex-wrap:wrap">';
+    h+='<div><div class="kl">F. Inicio propuesta</div><div class="kv" style="font-size:18px;font-family:monospace">'+fD2(optA.fIni)+'</div></div>';
+    h+='<div><div class="kl">Entrega propuesta</div><div class="kv" style="font-size:18px;font-family:monospace;color:'+(onA?'var(--success)':'var(--danger)')+'">'+fD2(optA.fFin)+'</div></div>';
+    h+='<div><div class="kl">¿Cumple fecha?</div><div class="kv" style="font-size:18px;color:'+(onA?'var(--success)':'var(--danger)')+'">'+  (onA?'✅ Sí':'⚠️ No (+'+Math.abs(pedDaysDiff(optA.fFin,fEDesired))+'d)')+'</div></div>';
+    h+='<div><div class="kl">Ciclo</div><div class="kv" style="font-size:13px">'+optA.cyc.id+' ('+fD2(optA.cyc.ds)+' → '+fD2(optA.cyc.de)+')</div></div>';
+    h+='<div><div class="kl">Horas libres en slot</div><div class="kv" style="font-size:18px">'+optA.freeHrs+'h</div></div>';
+    h+='</div>';
+  } else {
+    h+='<div class="muted">No hay ciclos con '+hrsNeeded+'h libres para la familia <strong>'+fm.nm+'</strong>. Crea un nuevo ciclo o amplía el temporal.</div>';
+  }
+  h+='</div>';
+  // Opción B
+  h+='<div class="cd" style="border-left:4px solid var(--warning)"><h4 style="margin:0 0 10px;color:#b45309">🟠 Opción B — Insertar al inicio del primer ciclo (moviendo órdenes)</h4>';
+  if(optB){
+    var onB=optB.insE<=fEDesired;
+    h+='<div class="cf" style="gap:20px;flex-wrap:wrap;margin-bottom:12px">';
+    h+='<div><div class="kl">Nueva F. Inicio</div><div class="kv" style="font-size:18px;font-family:monospace">'+fD2(optB.insF)+'</div></div>';
+    h+='<div><div class="kl">Entrega nueva orden</div><div class="kv" style="font-size:18px;font-family:monospace;color:'+(onB?'var(--success)':'var(--danger)')+'">'+fD2(optB.insE)+'</div></div>';
+    h+='<div><div class="kl">Órdenes que se mueven</div><div class="kv" style="font-size:18px;color:var(--warning)">'+optB.shifted.length+'</div></div>';
+    h+='<div><div class="kl">Pedidos comprometidos</div><div class="kv" style="font-size:18px;color:'+(optB.nComp>0?'var(--danger)':'var(--success)')+'">'+optB.nComp+'</div></div>';
+    h+='</div>';
+    if(optB.shifted.length){
+      h+='<div style="font-size:11px;font-weight:600;color:var(--tl);margin-bottom:6px">Órdenes que se desplazan '+shiftDays+'d:</div>';
+      h+='<div style="overflow-x:auto"><table style="font-size:11px;width:100%;min-width:620px"><thead><tr style="background:#fef3c7"><th style="padding:4px 8px;text-align:left">OF</th><th>Material</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
+      optB.shifted.forEach(function(o){
+        var compCell=o.comp?'<span class="b r">⚠ Sí (FE: '+fD2(o.pedFE)+')</span>':'<span class="b g">No</span>';
+        h+='<tr style="'+(o.comp?'background:#fff5f5':'')+'"><td style="padding:3px 8px;font-family:monospace"><strong>'+o.of+'</strong></td><td style="padding:3px 8px;font-family:monospace">'+o.mat+'</td><td style="padding:3px 8px">'+o.qty.toLocaleString()+'</td><td style="padding:3px 8px;font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="padding:3px 8px;font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="padding:3px 8px;font-family:monospace;color:var(--warning)">'+fD2(o.newFIni)+'</td><td style="padding:3px 8px;font-family:monospace;color:var(--warning)">'+fD2(o.newFFin)+'</td><td style="padding:3px 8px">'+  (o.ped?'<strong>'+o.ped+'</strong>':'<span class="muted">—</span>')+'</td><td style="padding:3px 8px">'+compCell+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    } else {
+      h+='<div class="muted">Sin órdenes existentes para esta familia. Se puede insertar directamente.</div>';
+    }
+  } else {
+    h+='<div class="muted">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
+  }
+  h+='</div></div>';
+  r.innerHTML=h;r.style.display='block';r.scrollIntoView({behavior:'smooth'});
+}
 
 
 /* ===================== V4 NEW FUNCTIONS ===================== */
@@ -1119,7 +1271,7 @@ function buildYmTable(tipo, mt, pm, mosKey){
   mNamesAll.forEach((maq,mi)=>{const capPerMonth=Math.round(capH[mi]*mt/7);
     mosKey.forEach(ym=>{const d=(ymDataMap[ym]&&ymDataMap[ym][maq])||{hrs:0};const molds=(moldsByYmMaq[ym]&&moldsByYmMaq[ym][maq])||new Set();const ma=Array.from(molds);const sh=shared[ym];
       let mh='';if(!ma.length){mh='-';}else{ma.forEach(m=>{const iS=sh.has(m);let om=[];if(iS)Object.keys(moldsByYmMaq[ym]).forEach(o=>{if(o!==maq&&moldsByYmMaq[ym][o]&&moldsByYmMaq[ym][o].has(m))om.push(o);});const tp=iS?' title="⚠️ También en: '+om.join(', ')+'"':'';const cl=iS?'molde-chip shared':'molde-chip normal';mh+='<span class="'+cl+'"'+tp+'>'+m+'</span>';});}
-      const tC=Math.max(0,(ma.length-1)*2);const hT=d.hrs+tC;const sa=capPerMonth>0?Math.round(hT/capPerMonth*100):0;const fr=Math.max(0,capPerMonth-hT);const co=sa>100?'#e63946':sa>85?'#f4a261':'#2a9d8f';
+      const tC=Math.max(0,(ma.length-1)*CHG_H);const hT=d.hrs+tC;const sa=capPerMonth>0?Math.round(hT/capPerMonth*100):0;const fr=Math.max(0,capPerMonth-hT);const co=sa>100?'#e63946':sa>85?'#f4a261':'#2a9d8f';
       const row='<tr class="ym-ck" onclick="selectYm(\''+maq+'\',\''+ym+'\')" data-maq="'+maq+'" data-ym="'+ym+'"><td><strong>'+maq+'</strong></td><td>'+ym+'</td><td style="max-width:240px">'+mh+'</td><td>'+capPerMonth+'</td><td>'+d.hrs+'</td><td>'+tC+'</td><td><strong>'+hT+'</strong></td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sa,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sa+'%</span></td><td>'+fr+'</td></tr>';
       if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});});
   document.getElementById('tblYmTermo').style.display='';document.getElementById('tblYmExtru').style.display='none';document.getElementById('matDetail').classList.remove('on');}
@@ -1206,7 +1358,7 @@ function buildYmTableBal(tipo, mt, pm, mosKey){
   mNamesAll.forEach((maq,mi)=>{const capPerMonth=Math.round(capH[mi]*mt/7);
     mosKey.forEach(ym=>{const d=(ymDataMap[ym]&&ymDataMap[ym][maq])||{hrs:0};const molds=(moldsByYmMaq[ym]&&moldsByYmMaq[ym][maq])||new Set();const ma=Array.from(molds);const shm=shared[ym];
       let mh='';if(!ma.length){mh='-';}else{ma.forEach(m=>{const iS=shm.has(m);const cl=iS?'molde-chip shared':'molde-chip normal';mh+='<span class="'+cl+'">'+m+'</span>';});}
-      const tC=Math.max(0,(ma.length-1)*2);const hT=d.hrs+tC;const saR=capPerMonth>0?Math.round(hT/capPerMonth*100):0;const sa=Math.min(saR,100);const trans=saR>100?Math.round((saR-100)*capPerMonth/100):0;
+      const tC=Math.max(0,(ma.length-1)*CHG_H);const hT=d.hrs+tC;const saR=capPerMonth>0?Math.round(hT/capPerMonth*100):0;const sa=Math.min(saR,100);const trans=saR>100?Math.round((saR-100)*capPerMonth/100):0;
       const co=sa>=100?'#0077b6':sa>85?'#f4a261':'#2a9d8f';const tt=trans>0?'<span style="color:var(--danger);font-weight:600">'+trans+'h →</span>':'0h';
       const row='<tr class="ym-ck" onclick="selectYmBal(\''+maq+'\',\''+ym+'\')" data-maq="'+maq+'" data-ym="'+ym+'"><td><strong>'+maq+'</strong></td><td>'+ym+'</td><td style="max-width:240px">'+mh+'</td><td>'+capPerMonth+'</td><td>'+d.hrs+'</td><td>'+tC+'</td><td><strong>'+hT+'</strong></td><td><div class="sb2"><div class="sf" style="width:'+sa+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sa+'%</span></td><td>'+tt+'</td></tr>';
       if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});});
@@ -1533,18 +1685,18 @@ var bd=document.getElementById('ordDirtyBadge');if(bd)bd.style.display='flex';}
 function updOrdDate(maq,ofN,newDate,ym){var o=(ordersCreated[maq]||[]).find(function(x){return x.of===ofN&&x.ym===ym;});if(o){o.fIni=newDate;var calMode=(document.querySelector('input[name=ordCal]:checked')||{}).value||'actual';o.fFin=addWD(new Date(newDate),o.hrs,calMode,maq).toISOString().slice(0,10);}renderOrders();}
 /* V9: Override recalcMachineSummary - dynamic getCapH */
 var _origRMS=recalcMachineSummary;
-recalcMachineSummary=function(){if(!lastCalc.mosKey||!lastCalc.mosKey.length)return;var mosKey=lastCalc.mosKey,tipo=lastCalc.tipo;var calMode=lastCalc.calMode||'actual';var tB=document.getElementById('cMBT'),eB=document.getElementById('cMBE');if(!tB||!eB)return;tB.innerHTML='';eB.innerHTML='';mNamesAll.forEach(function(maq,mi){var totalCap=0,totalLoad=0;var rows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});mosKey.forEach(function(ym){var p2=ym.split('-');totalCap+=getCapH(+p2[0],+p2[1]-1,maq,calMode);rows.forEach(function(r){if(r[3]===ym)totalLoad+=r[5];});});var sat=totalCap>0?Math.round(totalLoad/totalCap*100):0;var free=Math.max(0,totalCap-totalLoad);var co=sat>100?'#e63946':sat>85?'#f4a261':'#2a9d8f';satAll[mi]=sat;var row='<tr><td><strong>'+maq+'</strong></td><td>'+totalCap+'</td><td>'+Math.round(totalLoad)+'</td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sat,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sat+'%</span></td><td>'+Math.round(free)+'</td></tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});};
+recalcMachineSummary=function(){if(!lastCalc.mosKey||!lastCalc.mosKey.length)return;var mosKey=lastCalc.mosKey,tipo=lastCalc.tipo;var calMode=lastCalc.calMode||'actual';var tB=document.getElementById('cMBT'),eB=document.getElementById('cMBE');if(!tB||!eB)return;tB.innerHTML='';eB.innerHTML='';mNamesAll.forEach(function(maq,mi){var totalCap=0,totalLoad=0;var rows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});var moldByYm={};rows.forEach(function(r){if(!moldByYm[r[3]])moldByYm[r[3]]=new Set();var mo=MOLDE_MAP[r[0]];if(mo)moldByYm[r[3]].add(mo);});mosKey.forEach(function(ym){var p2=ym.split('-');totalCap+=getCapH(+p2[0],+p2[1]-1,maq,calMode);rows.forEach(function(r){if(r[3]===ym)totalLoad+=r[5];});var molds=moldByYm[ym];if(molds&&molds.size>1)totalLoad+=(molds.size-1)*CHG_H;});var sat=totalCap>0?Math.round(totalLoad/totalCap*100):0;var free=Math.max(0,totalCap-totalLoad);var co=sat>100?'#e63946':sat>85?'#f4a261':'#2a9d8f';satAll[mi]=sat;var row='<tr><td><strong>'+maq+'</strong></td><td>'+totalCap+'</td><td>'+Math.round(totalLoad)+'</td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sat,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sat+'%</span></td><td>'+Math.round(free)+'</td></tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});};
 /* V9: calMode sync removed - now handled inside cCa() directly */
 /* V9: Override buildYmTable - dynamic getCapH */
 var _origBYT=buildYmTable;
-buildYmTable=function(tipo,mt,pm,mosKey){var calMode=lastCalc.calMode||'actual';var tB=document.getElementById('ymTermo'),eB=document.getElementById('ymExtru');tB.innerHTML='';eB.innerHTML='';var moldsByYmMaq={},ymDataMap={};mosKey.forEach(function(ym){moldsByYmMaq[ym]={};ymDataMap[ym]={};});mNamesAll.forEach(function(maq){var allRows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});mosKey.forEach(function(ym){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};});allRows.forEach(function(r){var ym=r[3];if(moldsByYmMaq[ym]){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();var mo=MOLDE_MAP[r[0]];if(mo)moldsByYmMaq[ym][maq].add(mo);if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};ymDataMap[ym][maq].hrs+=r[5];}});});var shared={};mosKey.forEach(function(ym){shared[ym]=new Set();var bm=moldsByYmMaq[ym];var ks=Object.keys(bm);for(var i2=0;i2<ks.length;i2++)for(var j2=i2+1;j2<ks.length;j2++)if(bm[ks[i2]])bm[ks[i2]].forEach(function(m){if(bm[ks[j2]]&&bm[ks[j2]].has(m))shared[ym].add(m);});});mNamesAll.forEach(function(maq,mi){mosKey.forEach(function(ym){var pp=ym.split('-');var capPerMonth=getCapH(+pp[0],+pp[1]-1,maq,calMode);var d2=(ymDataMap[ym]&&ymDataMap[ym][maq])||{hrs:0};var molds=(moldsByYmMaq[ym]&&moldsByYmMaq[ym][maq])||new Set();var ma=Array.from(molds);var sh2=shared[ym];var mh='';if(!ma.length){mh='-';}else{ma.forEach(function(m){var iS=sh2.has(m);var cl=iS?'molde-chip shared':'molde-chip normal';mh+='<span class="'+cl+'">'+m+'</span>';});}var tC=Math.max(0,(ma.length-1)*2);var hT=d2.hrs+tC;var sa=capPerMonth>0?Math.round(hT/capPerMonth*100):0;var fr=Math.max(0,capPerMonth-hT);var co=sa>100?'#e63946':sa>85?'#f4a261':'#2a9d8f';var row='<tr class="ym-ck" onclick="selectYm(\''+maq+'\',\''+ym+'\')" data-maq="'+maq+'" data-ym="'+ym+'"><td><strong>'+maq+'</strong></td><td>'+ym+'</td><td style="max-width:240px">'+mh+'</td><td>'+capPerMonth+'</td><td>'+Math.round(d2.hrs)+'</td><td>'+tC+'</td><td><strong>'+Math.round(hT)+'</strong></td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sa,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sa+'%</span></td><td>'+Math.round(fr)+'</td></tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});});document.getElementById('tblYmTermo').style.display='';document.getElementById('tblYmExtru').style.display='none';document.getElementById('matDetail').classList.remove('on');};
+buildYmTable=function(tipo,mt,pm,mosKey){var calMode=lastCalc.calMode||'actual';var tB=document.getElementById('ymTermo'),eB=document.getElementById('ymExtru');tB.innerHTML='';eB.innerHTML='';var moldsByYmMaq={},ymDataMap={};mosKey.forEach(function(ym){moldsByYmMaq[ym]={};ymDataMap[ym]={};});mNamesAll.forEach(function(maq){var allRows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});mosKey.forEach(function(ym){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};});allRows.forEach(function(r){var ym=r[3];if(moldsByYmMaq[ym]){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();var mo=MOLDE_MAP[r[0]];if(mo)moldsByYmMaq[ym][maq].add(mo);if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};ymDataMap[ym][maq].hrs+=r[5];}});});var shared={};mosKey.forEach(function(ym){shared[ym]=new Set();var bm=moldsByYmMaq[ym];var ks=Object.keys(bm);for(var i2=0;i2<ks.length;i2++)for(var j2=i2+1;j2<ks.length;j2++)if(bm[ks[i2]])bm[ks[i2]].forEach(function(m){if(bm[ks[j2]]&&bm[ks[j2]].has(m))shared[ym].add(m);});});mNamesAll.forEach(function(maq,mi){mosKey.forEach(function(ym){var pp=ym.split('-');var capPerMonth=getCapH(+pp[0],+pp[1]-1,maq,calMode);var d2=(ymDataMap[ym]&&ymDataMap[ym][maq])||{hrs:0};var molds=(moldsByYmMaq[ym]&&moldsByYmMaq[ym][maq])||new Set();var ma=Array.from(molds);var sh2=shared[ym];var mh='';if(!ma.length){mh='-';}else{ma.forEach(function(m){var iS=sh2.has(m);var cl=iS?'molde-chip shared':'molde-chip normal';mh+='<span class="'+cl+'">'+m+'</span>';});}var tC=Math.max(0,(ma.length-1)*CHG_H);var hT=d2.hrs+tC;var sa=capPerMonth>0?Math.round(hT/capPerMonth*100):0;var fr=Math.max(0,capPerMonth-hT);var co=sa>100?'#e63946':sa>85?'#f4a261':'#2a9d8f';var row='<tr class="ym-ck" onclick="selectYm(\''+maq+'\',\''+ym+'\')" data-maq="'+maq+'" data-ym="'+ym+'"><td><strong>'+maq+'</strong></td><td>'+ym+'</td><td style="max-width:240px">'+mh+'</td><td>'+capPerMonth+'</td><td>'+Math.round(d2.hrs)+'</td><td>'+tC+'</td><td><strong>'+Math.round(hT)+'</strong></td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sa,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sa+'%</span></td><td>'+Math.round(fr)+'</td></tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});});document.getElementById('tblYmTermo').style.display='';document.getElementById('tblYmExtru').style.display='none';document.getElementById('matDetail').classList.remove('on');};
 
 
 /* V12 */
 function saveNewArt(){var cod=document.getElementById('naCod').value.trim();if(!cod){alert('Introduce c\u00f3digo');return;}var desc=document.getElementById('naDesc').value.trim()||cod;var maq=document.getElementById('naMaq').value;var vel=+document.getElementById('naVel').value;if(!vel){alert('Introduce velocidad');return;}var oee=maqOEE[maq]||85;var rAlt=document.getElementById('naRutaAlt').value;var vAlt=+document.getElementById('naVelAlt').value||0;RD.push([cod,desc,maq,vel,oee,rAlt==='Ninguna'?'':rAlt,vAlt,'MTS']);MOLDE_MAP[cod]=String(300000000+RD.length);clM('mArt');rR();document.getElementById('naCod').value='';document.getElementById('naDesc').value='';document.getElementById('naVel').value='';document.getElementById('naVelAlt').value='';}
 function delArt(i){if(!confirm('Eliminar '+RD[i][0]+'?'))return;RD.splice(i,1);rR();}
 function openNewPrev(){var s=document.getElementById('pvMat');s.innerHTML='<option value="">Seleccionar...</option>';RD.forEach(function(r){s.innerHTML+='<option value="'+r[0]+'">'+r[0]+' \u2014 '+r[1]+'</option>';});document.getElementById('pvQty').value=50000;calcNewPrev();oM('mNewPrev');}
-function calcNewPrev(){var mat=document.getElementById('pvMat').value,qty=+document.getElementById('pvQty').value;var route=RD.find(function(r){return r[0]===mat;});if(!route){document.getElementById('pvHrs').value=0;document.getElementById('pvVelInfo').textContent='-';return;}var vel=route[3],oee=maqOEE[route[2]]||85;var hrs=Math.round(qty/(vel*oee/100)*10)/10;document.getElementById('pvHrs').value=hrs;document.getElementById('pvVelInfo').textContent=vel+' x '+oee+'% = '+Math.round(vel*oee/100)+' uds/h ef.';}
+function calcNewPrev(){var mat=document.getElementById('pvMat').value,qty=+document.getElementById('pvQty').value;var route=RD.find(function(r){return r[0]===mat;});if(!route){document.getElementById('pvHrs').value=0;document.getElementById('pvVelInfo').textContent='-';return;}var vel=route[3],oee=maqOEE[route[2]]||85;var hrs=Math.round(qty/(vel*60*oee/100)*10)/10;document.getElementById('pvHrs').value=hrs;document.getElementById('pvVelInfo').textContent=vel+' uds/min × 60 × '+oee+'% = '+Math.round(vel*60*oee/100)+' uds/h ef.';}
 function saveNewPrev(){var mat=document.getElementById('pvMat').value;if(!mat){alert('Selecciona material');return;}var qty=+document.getElementById('pvQty').value,hrs=+document.getElementById('pvHrs').value;var maq=document.getElementById('ordMaq').value;var ym=document.getElementById('ordMes').value;var route=RD.find(function(r){return r[0]===mat;});var desc=route?route[1]:mat;if(!DCData[maq])DCData[maq]=[];DCData[maq].push([mat,desc,'Previsi\u00f3n',ym,qty,hrs,0,'-',route?route[5]:'']);clM('mNewPrev');renderOrders();if(lastCalc.mosKey&&lastCalc.mosKey.length){recalcMachineSummary();buildYmTable(lastCalc.tipo,1,1,lastCalc.mosKey);}var bd=document.getElementById('ordDirtyBadge');if(bd)bd.style.display='flex';}
 // Refresh Familia dropdown options
 function refreshBalFamDropdown(){
@@ -1638,7 +1790,7 @@ function getMoldLabel(mat){
 }
 
 recalcMachineSummary=function(){if(!lastCalc.mosKey||!lastCalc.mosKey.length)return;var mosKey=lastCalc.mosKey,tipo=lastCalc.tipo,calMode=lastCalc.calMode||'actual';var tB=document.getElementById('cMBT'),eB=document.getElementById('cMBE');if(!tB||!eB)return;tB.innerHTML='';eB.innerHTML='';mNamesAll.forEach(function(maq,mi){var totalCap=0,totalLoad=0;var rows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});mosKey.forEach(function(ym){var p2=ym.split('-');totalCap+=getCapH(+p2[0],+p2[1]-1,maq,calMode);rows.forEach(function(r){if(r[3]===ym)totalLoad+=r[5];});});var sat=totalCap>0?Math.round(totalLoad/totalCap*100):0;var free=Math.max(0,totalCap-totalLoad);var exc=Math.max(0,totalLoad-totalCap);var co=sat>100?'#e63946':sat>85?'#f4a261':'#2a9d8f';satAll[mi]=sat;var excTd=exc>0?'<td style="color:#e63946;font-weight:700">'+Math.round(exc)+'h</td>':'<td style="color:var(--tl)">0</td>';var row='<tr><td><strong>'+maq+'</strong></td><td>'+totalCap+'</td><td>'+Math.round(totalLoad)+'</td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sat,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sat+'%</span></td><td>'+Math.round(free)+'</td>'+excTd+'</tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});};
-buildYmTable=function(tipo,mt,pm,mosKey){var calMode=lastCalc.calMode||'actual';var tB=document.getElementById('ymTermo'),eB=document.getElementById('ymExtru');tB.innerHTML='';eB.innerHTML='';var moldsByYmMaq={},ymDataMap={};mosKey.forEach(function(ym){moldsByYmMaq[ym]={};ymDataMap[ym]={};});mNamesAll.forEach(function(maq){var allRows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});mosKey.forEach(function(ym){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};});allRows.forEach(function(r){var ym=r[3];if(moldsByYmMaq[ym]){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();var mo=getMoldKey(r[0]);if(mo)moldsByYmMaq[ym][maq].add(mo);if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};ymDataMap[ym][maq].hrs+=r[5];}});});var shared={};mosKey.forEach(function(ym){shared[ym]=new Set();var bm=moldsByYmMaq[ym];var ks=Object.keys(bm);for(var i2=0;i2<ks.length;i2++)for(var j2=i2+1;j2<ks.length;j2++)if(bm[ks[i2]])bm[ks[i2]].forEach(function(m){if(bm[ks[j2]]&&bm[ks[j2]].has(m))shared[ym].add(m);});});mNamesAll.forEach(function(maq,mi){mosKey.forEach(function(ym){var pp=ym.split('-');var capPM=getCapH(+pp[0],+pp[1]-1,maq,calMode);var d2=(ymDataMap[ym]&&ymDataMap[ym][maq])||{hrs:0};var molds=(moldsByYmMaq[ym]&&moldsByYmMaq[ym][maq])||new Set();var ma=Array.from(molds);var sh2=shared[ym];var mh='';if(!ma.length){mh='-';}else{ma.forEach(function(m){var iS=sh2.has(m);var cl=iS?'molde-chip shared':'molde-chip normal';mh+='<span class="'+cl+'">'+m+'</span>';});}var tC=Math.max(0,(ma.length-1)*2);var hT=d2.hrs+tC;var sa=capPM>0?Math.round(hT/capPM*100):0;var fr=Math.max(0,capPM-hT);var exc=Math.max(0,hT-capPM);var co=sa>100?'#e63946':sa>85?'#f4a261':'#2a9d8f';var excTd=exc>0?'<td style="color:#e63946;font-weight:700">'+Math.round(exc)+'h</td>':'<td style="color:var(--tl)">0</td>';var row='<tr class="ym-ck" onclick="selectYm(\''+maq+'\',\''+ym+'\')" data-maq="'+maq+'" data-ym="'+ym+'"><td><strong>'+maq+'</strong></td><td>'+ym+'</td><td style="max-width:240px">'+mh+'</td><td>'+capPM+'</td><td>'+Math.round(d2.hrs)+'</td><td>'+tC+'</td><td><strong>'+Math.round(hT)+'</strong></td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sa,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sa+'%</span></td><td>'+Math.round(fr)+'</td>'+excTd+'</tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});});document.getElementById('tblYmTermo').style.display='';document.getElementById('tblYmExtru').style.display='none';document.getElementById('matDetail').classList.remove('on');};
+buildYmTable=function(tipo,mt,pm,mosKey){var calMode=lastCalc.calMode||'actual';var tB=document.getElementById('ymTermo'),eB=document.getElementById('ymExtru');tB.innerHTML='';eB.innerHTML='';var moldsByYmMaq={},ymDataMap={};mosKey.forEach(function(ym){moldsByYmMaq[ym]={};ymDataMap[ym]={};});mNamesAll.forEach(function(maq){var allRows=(DCData[maq]||[]).filter(function(r){return tipo==='plan'?r[2]==='Planificado':true;});mosKey.forEach(function(ym){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};});allRows.forEach(function(r){var ym=r[3];if(moldsByYmMaq[ym]){if(!moldsByYmMaq[ym][maq])moldsByYmMaq[ym][maq]=new Set();var mo=getMoldKey(r[0]);if(mo)moldsByYmMaq[ym][maq].add(mo);if(!ymDataMap[ym][maq])ymDataMap[ym][maq]={hrs:0};ymDataMap[ym][maq].hrs+=r[5];}});});var shared={};mosKey.forEach(function(ym){shared[ym]=new Set();var bm=moldsByYmMaq[ym];var ks=Object.keys(bm);for(var i2=0;i2<ks.length;i2++)for(var j2=i2+1;j2<ks.length;j2++)if(bm[ks[i2]])bm[ks[i2]].forEach(function(m){if(bm[ks[j2]]&&bm[ks[j2]].has(m))shared[ym].add(m);});});mNamesAll.forEach(function(maq,mi){mosKey.forEach(function(ym){var pp=ym.split('-');var capPM=getCapH(+pp[0],+pp[1]-1,maq,calMode);var d2=(ymDataMap[ym]&&ymDataMap[ym][maq])||{hrs:0};var molds=(moldsByYmMaq[ym]&&moldsByYmMaq[ym][maq])||new Set();var ma=Array.from(molds);var sh2=shared[ym];var mh='';if(!ma.length){mh='-';}else{ma.forEach(function(m){var iS=sh2.has(m);var cl=iS?'molde-chip shared':'molde-chip normal';mh+='<span class="'+cl+'">'+m+'</span>';});}var tC=Math.max(0,(ma.length-1)*CHG_H);var hT=d2.hrs+tC;var sa=capPM>0?Math.round(hT/capPM*100):0;var fr=Math.max(0,capPM-hT);var exc=Math.max(0,hT-capPM);var co=sa>100?'#e63946':sa>85?'#f4a261':'#2a9d8f';var excTd=exc>0?'<td style="color:#e63946;font-weight:700">'+Math.round(exc)+'h</td>':'<td style="color:var(--tl)">0</td>';var row='<tr class="ym-ck" onclick="selectYm(\''+maq+'\',\''+ym+'\')" data-maq="'+maq+'" data-ym="'+ym+'"><td><strong>'+maq+'</strong></td><td>'+ym+'</td><td style="max-width:240px">'+mh+'</td><td>'+capPM+'</td><td>'+Math.round(d2.hrs)+'</td><td>'+tC+'</td><td><strong>'+Math.round(hT)+'</strong></td><td><div class="sb2"><div class="sf" style="width:'+Math.min(sa,100)+'%;background:'+co+'"></div></div><span style="color:'+co+';font-weight:700">'+sa+'%</span></td><td>'+Math.round(fr)+'</td>'+excTd+'</tr>';if(mi<6)tB.innerHTML+=row;else eB.innerHTML+=row;});});document.getElementById('tblYmTermo').style.display='';document.getElementById('tblYmExtru').style.display='none';document.getElementById('matDetail').classList.remove('on');};
 var __origGP=genProposals;genProposals=function(){if(!lastCalc.mosKey||!lastCalc.mosKey.length){document.getElementById('propPeriodInfo').innerHTML='\u26a0\ufe0f Ejecuta <strong>Carga \u2192 Calcular</strong>.';document.getElementById('propResults').style.display='none';return;}var mosKey=lastCalc.mosKey,calMode=lastCalc.calMode||'actual';document.getElementById('propPeriodInfo').innerHTML='\u2705 Periodo: <strong>'+mosKey[0]+' \u2192 '+mosKey[mosKey.length-1]+'</strong>';document.getElementById('propResults').style.display='block';var loadMap={};mNamesAll.forEach(function(maq){(DCData[maq]||[]).filter(function(r){return r[2]==='Planificado';}).forEach(function(r){var ym=r[3],mat=r[0],molde=MOLDE_MAP[mat]||'';if(!loadMap[maq])loadMap[maq]={};if(!loadMap[maq][ym])loadMap[maq][ym]={hrs:0,molds:new Set(),orders:[]};loadMap[maq][ym].hrs+=r[5];if(molde)loadMap[maq][ym].molds.add(molde);var ofL=(r[7]||'').split(',').map(function(s){return s.trim();}).filter(function(s){return s&&s!=='-';});loadMap[maq][ym].orders.push({maq:maq,ym:ym,mat:mat,desc:r[1],qty:r[4],hrs:r[5],pct:r[6],ofs:r[7],rutaAlt:r[8],molde:molde,ofL:ofL});});});var satMap={};mNamesAll.forEach(function(maq){satMap[maq]={};mosKey.forEach(function(ym){var pp=ym.split('-');var capMo=getCapH(+pp[0],+pp[1]-1,maq,calMode);var d=(loadMap[maq]&&loadMap[maq][ym])||{hrs:0,molds:new Set()};var nM=d.molds?d.molds.size:0;var tC2=Math.max(0,(nM-1)*2);var hT=d.hrs+tC2;satMap[maq][ym]={capMo:capMo,hrs:d.hrs,tCambio:tC2,hTot:hT,sat:capMo>0?Math.round(hT/capMo*100):0,molds:new Set(d.molds||[])};});});var proposals=[],pid=0;mNamesAll.forEach(function(maq){mosKey.forEach(function(ym){var s=satMap[maq][ym];if(!s||s.sat<=85)return;var orders=(loadMap[maq]&&loadMap[maq][ym])?loadMap[maq][ym].orders:[];orders.forEach(function(ord){var route=RD.find(function(r){return r[0]===ord.mat;});if(!route)return;var candidates=[];var altMaq=route[5];if(altMaq&&altMaq!=='Ninguna'&&altMaq!==maq)candidates.push({m:altMaq,v:route[6],isAlt:true});mNamesAll.forEach(function(cm){if(cm===maq||candidates.some(function(c){return c.m===cm;}))return;candidates.push({m:cm,v:route[3]*0.85,isAlt:false});});candidates.forEach(function(cand){var destYm=ym;var altMi=mNamesAll.indexOf(cand.m);if(altMi<0)return;var destS=satMap[cand.m][destYm];if(!destS)return;var oee=(maqOEE[route[2]]||85)/100;var hrsD=Math.round(ord.qty/(cand.v*oee)*10)/10;var mInD=destS.molds.has(ord.molde);var exC=mInD?0:2;var nDH=destS.hTot+hrsD+exC;var nDS=destS.capMo>0?Math.round(nDH/destS.capMo*100):999;if(nDS>100)return;var ped=AP.find(function(p){return p[2]===ord.mat;});var fE=ped?ped[4]:'31/12/2026';var exO=(loadMap[cand.m]&&loadMap[cand.m][destYm])?loadMap[cand.m][destYm].orders.length:0;var posQ=exO+1;var pp2=destYm.split('-').map(Number);var sDay=Math.min(3+exO*5,25),pDs=Math.ceil(hrsD/24)+1,eDay=Math.min(sDay+pDs,28);var fF=String(eDay).padStart(2,'0')+'/'+String(pp2[1]).padStart(2,'0')+'/'+pp2[0];var pDt=function(dd){var p3=dd.split('/');return new Date(+p3[2],+p3[1]-1,+p3[0]);};var cum=pDt(fF)<=pDt(fE);if(!cum)return;var nOH2=s.hrs-ord.hrs;var omA=new Set(s.molds);if(!orders.filter(function(o){return o!==ord&&o.molde===ord.molde;}).length)omA.delete(ord.molde);var nOTC=Math.max(0,(omA.size-1)*2);var nOHT=nOH2+nOTC;var nOS=s.capMo>0?Math.round(nOHT/s.capMo*100):0;var sR=s.sat-nOS;var score=Math.round(sR*2+(mInD?20:0)+30+10+(100-nDS)*0.5+(cand.isAlt?15:0));var pr='Baja',pc='low';if(s.sat>100){pr='Cr\u00edtica';pc='crit';}else if(s.sat>90){pr='Alta';pc='high';}else{pr='Media';pc='med';}proposals.push({id:++pid,pr:pr,pc:pc,of:ord.ofL.length?ord.ofL[0]:'OF-'+ord.mat,mat:ord.mat,molde:ord.molde,oM:maq,oY:ym,dM:cand.m,dY:destYm,hO:ord.hrs,hD:hrsD,posQ:posQ,fF:fF,fE:fE,mInD:mInD,sOB:s.sat,sOA:nOS,sDB:destS.sat,sDA:nDS,score:score,exC:exC,qty:ord.qty,isAlt:cand.isAlt,_sR:sR});});});});});proposals.sort(function(a,b){return b.score-a.score;});var seen=new Set(),uniq=[];proposals.forEach(function(p){var k=p.of+'-'+p.oM;if(!seen.has(k)){seen.add(k);uniq.push(p);}});var tP=uniq.length,hF=uniq.reduce(function(s,p){return s+p.hO;},0),cM2=uniq.filter(function(p){return p.pc==='crit';}).length;document.getElementById('propKpis').innerHTML='<div class="kc" style="border-left-color:#6c5ce7"><div class="kl">Total Propuestas</div><div class="kv">'+tP+'</div></div><div class="kc d"><div class="kl">Mov. Cr\u00edticos</div><div class="kv">'+cM2+'</div></div><div class="kc s"><div class="kl">Horas Liberadas</div><div class="kv">'+hF+'h</div></div>';var tb2=document.getElementById('propBody');tb2.innerHTML='';if(!uniq.length){tb2.innerHTML='<tr><td colspan="17" style="text-align:center;color:var(--tl);padding:20px">\u2705 Todas OK (\u226485%).</td></tr>';}else{uniq.forEach(function(p,i){var altTag=p.isAlt?'<span class="chip">Ruta Alt.</span>':'<span class="chip warn">Otra</span>';var mdT=p.mInD?'<span class="molde-ok">\u2713</span>':'<span class="molde-dup">+Nuevo</span>';var soT='<span style="color:#e63946;font-weight:700">'+p.sOB+'%</span>\u2192<span style="color:#2a9d8f;font-weight:700">'+p.sOA+'%</span>';var sdT=p.sDB+'%\u2192'+p.sDA+'%';tb2.innerHTML+='<tr class="prop-row" id="prop-row-'+p.id+'" onclick="showPropDetail('+i+')"><td>'+(i+1)+'</td><td><span class="prop-prio '+p.pc+'">'+p.pr+'</span></td><td><strong>'+p.of+'</strong></td><td>'+p.mat+'</td><td><span class="molde-chip normal">'+p.molde+'</span></td><td><strong>'+p.oM+'</strong><br><span class="muted">'+p.oY+'</span></td><td><strong>'+p.dM+'</strong> '+altTag+'<br><span class="muted">'+p.dY+'</span></td><td>'+p.hO+'h\u2192'+p.hD+'h</td><td><span class="pos-tag">#'+p.posQ+'</span></td><td>'+p.fF+'</td><td>'+p.fE+'</td><td><span class="date-ok">\u2713</span></td><td>'+mdT+'</td><td>'+soT+'</td><td>'+sdT+'</td><td><span class="prop-score">'+p.score+'</span></td><td><button class="btn-accept" onclick="event.stopPropagation();acceptProp('+p.id+')">\u2713</button><button class="btn-reject" onclick="event.stopPropagation();rejectProp('+p.id+')">\u2717</button></td></tr>';});}window._proposals=uniq;var affM2=new Set();uniq.forEach(function(p){affM2.add(p.oM);affM2.add(p.dM);});var cMs2=Array.from(affM2).sort(),bD2=[],aD2=[];cMs2.forEach(function(maq2){var mi2=mNamesAll.indexOf(maq2);var b2=satAll[mi2]||0,d2=0;uniq.forEach(function(p){if(p.oM===maq2)d2-=p._sR;if(p.dM===maq2)d2+=(p.sDA-p.sDB);});bD2.push(b2);aD2.push(Math.max(0,b2+d2));});if(propChart)propChart.destroy();var ctx2=document.getElementById('chProp');if(ctx2){propChart=new Chart(ctx2,{type:'bar',data:{labels:cMs2,datasets:[{label:'Antes',data:bD2,backgroundColor:'rgba(230,57,70,.7)',borderRadius:5,barPercentage:.35},{label:'Despu\u00e9s',data:aD2,backgroundColor:'rgba(42,157,143,.7)',borderRadius:5,barPercentage:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,max:140,ticks:{callback:function(v){return v+'%';}}},x:{grid:{display:false}}}}});}};
 function refreshBalMatDropdown(){
   var bm=document.getElementById('balMat');if(!bm)return;
@@ -2144,9 +2296,7 @@ async function loadOrdenesSB(){
     if(ym&&r.id_material){
       if(!DCData[maq])DCData[maq]=[];
       var pct=Math.round(hrs/160*100);
-      var ex=DCData[maq].find(function(d){return d[0]===r.id_material&&d[3]===ym;});
-      if(ex){ex[4]+=+r.cantidad_orden;ex[5]+=hrs;}
-      else{DCData[maq].push([r.id_material,desc,r.status_orden||'Planificado',ym,+r.cantidad_orden,hrs,pct,r.id_orden,altRoute]);}
+      DCData[maq].push([r.id_material,desc,r.status_orden||'Planificado',ym,+r.cantidad_orden,hrs,pct,r.id_orden,altRoute]);
     }
     var n=parseInt(r.id_orden.replace(/\D/g,''));if(!isNaN(n)&&n>=nextOfId)nextOfId=n+1;
   });
