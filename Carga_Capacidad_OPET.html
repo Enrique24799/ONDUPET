@@ -209,6 +209,45 @@ tr:hover td{background:rgba(0,180,216,.03);}
 .ctp-b.ok{background:#d1fae5;color:#065f46;}
 .ctp-b.no{background:#fee2e2;color:#991b1b;}
 .ctp-empty{font-size:13px;color:#6c757d;padding:14px;background:#f7f9fc;border:1px dashed var(--border);border-radius:8px;}
+/* === CTP Decision Tree === */
+.ctp-tree{background:#f8fafc;border:1px solid #dce6f0;border-radius:12px;padding:18px 20px;margin-bottom:18px;}
+.ctp-tree-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748b;margin-bottom:14px;}
+.ctp-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:12.5px;}
+.ctp-step-pass{background:#ecfdf5;border:1px solid #6ee7b7;}
+.ctp-step-fail{background:#fff7ed;border:1px solid #fdba74;}
+.ctp-step-skip{background:#f1f5f9;border:1px solid #cbd5e1;opacity:.6;}
+.ctp-step-pool{background:#fef2f2;border:1px solid #fca5a5;}
+.ctp-step-icon{font-size:16px;margin-top:1px;flex-shrink:0;}
+.ctp-step-body{flex:1;}
+.ctp-step-label{font-weight:700;color:#1e293b;margin-bottom:2px;}
+.ctp-step-detail{color:#64748b;font-size:11.5px;line-height:1.4;}
+.ctp-step-result{font-weight:700;font-size:12px;margin-top:4px;}
+.ctp-result-banner{border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;}
+.ctp-result-stock{background:#ecfdf5;color:#065f46;border:1.5px solid #34d399;}
+.ctp-result-order{background:#eff6ff;color:#1e40af;border:1.5px solid #60a5fa;}
+.ctp-result-temp{background:#f0fdf4;color:#14532d;border:1.5px solid #86efac;}
+.ctp-result-pool{background:#fef2f2;color:#991b1b;border:1.5px solid #f87171;}
+.ctp-pool-btn{display:inline-flex;align-items:center;gap:6px;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;}
+.ctp-pool-btn:hover{background:#b91c1c;}
+/* === Pool de Consultas === */
+.pool-head{background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;padding:20px 22px;margin-bottom:18px;color:#fff;}
+.pool-kpis{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px;}
+.pool-kpi{background:#fff;border:1px solid var(--border);border-radius:9px;padding:10px 16px;min-width:140px;display:flex;flex-direction:column;gap:3px;}
+.pool-kpi span{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#6c757d;}
+.pool-kpi b{font-size:22px;color:#0d1b2a;}
+.pool-row-urgent td{background:#fff7ed;}
+.pool-row-resolved td{background:#f0fdf4;opacity:.7;}
+.pool-opt-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.pool-opt-a{background:#0d9488;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.pool-opt-b{background:#d97706;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.pool-opt-c{background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.pool-opt-del{background:#e5e7eb;color:#374151;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
+.pool-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.pool-badge-a{background:#ccfbf1;color:#0f766e;}
+.pool-badge-b{background:#fef3c7;color:#92400e;}
+.pool-badge-c{background:#ede9fe;color:#5b21b6;}
+.pool-badge-pend{background:#fee2e2;color:#991b1b;}
+.pool-badge-res{background:#dcfce7;color:#166534;}
 
 /* === SEGUIMIENTO PEDIDOS === */
 .sem-dot{display:inline-block;width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);vertical-align:middle;}
@@ -271,6 +310,7 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="ni sub" onclick="nav('alertas',this)">🔔 Gestión Alertas</div>
 <div class="st">Promesas</div>
 <div class="ni" onclick="nav('ctp',this)">📦 CTP</div>
+<div class="ni sub" onclick="nav('pool',this)">🗂 Pool Consultas</div>
 </div>
 <div class="mn">
 <div class="hd"><h2 id="pt">Dashboard</h2><div class="ui">📅 Mayo 2026 · 👤 Planificación Ondupet</div></div>
@@ -641,6 +681,29 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 <div id="alL"></div>
 </div>
 
+<!-- POOL DE CONSULTAS -->
+<div class="pg" id="p-pool">
+<div class="pool-head">
+  <div style="font-size:17px;font-weight:700;margin-bottom:6px">🗂 Pool de Consultas — Pedidos Sin Fecha Disponibilidad</div>
+  <div style="font-size:12px;color:#94a3b8">Pedidos que no pueden resolverse automáticamente por falta de stock, órdenes lanzadas o temporal. El planificador selecciona la opción de resolución.</div>
+</div>
+<div class="pool-kpis" id="poolKpis"></div>
+<div class="cd">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <h3 style="margin:0">📋 Pedidos en Pool</h3>
+    <button class="btn bsm" style="background:#eee;color:#555" onclick="renderPoolConsultas()">↻ Actualizar</button>
+  </div>
+  <div class="tw"><table><thead><tr>
+    <th>Pedido / Ref</th><th>Material</th><th>Cliente</th>
+    <th style="text-align:right">Cantidad</th><th>Fecha Entrega</th>
+    <th style="text-align:center">Atraso</th><th>Motivo CTP</th>
+    <th>Fecha Disp.</th><th>Opción</th><th>Acciones</th>
+  </tr></thead><tbody id="poolBody"></tbody></table></div>
+  <div id="poolEmpty" style="display:none" class="ctp-empty" style="margin-top:12px">No hay pedidos en el pool. Cuando el CTP no pueda calcular fecha disponibilidad, los pedidos aparecerán aquí.</div>
+</div>
+<div id="poolOptDetail"></div>
+</div>
+
 <!-- CTP -->
 <div class="pg" id="p-ctp">
 <div class="cd"><h3>📦 CTP — Capable To Promise <span style="font-size:11px;font-weight:400;color:var(--tl);font-style:italic">basado en ciclos de producción planificados</span></h3>
@@ -708,8 +771,8 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function showLoading(on){const el=document.getElementById('loadingOverlay');if(el)el.style.display=on?'flex':'none';}
 
-const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
-function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));var p=document.getElementById('p-'+id);if(p)p.classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');var titles={'dashboard':'Dashboard','calendario':'Calendario Máquinas','rutas':'Rutas de Artículos','maquinas':'Máquinas','familias':'Familias / Moldes','pedidos':'Pedidos','ciclos':'Ciclos Producción','ordenes':'Creación Órdenes','carga':'Carga de Capacidad','balanceo':'Simulación Balanceo','atraso':'Atraso Pedidos','alertas':'Gestión Alertas','ctp':'CTP — Capable To Promise','stock':'Stock por Material','asocOrd':'Asociación Órdenes y Pedidos'};document.getElementById('pt').textContent=titles[id]||id;if(id==='pedidos'){allocateMTSOPET();rPed();}if(id==='atraso'){allocateMTSOPET();rA();}if(id==='stock')renderStockPage();if(id==='asocOrd')renderAsocOrdenes();}
+const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise',pool:'Pool de Consultas'};
+function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));var p=document.getElementById('p-'+id);if(p)p.classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');var titles={'dashboard':'Dashboard','calendario':'Calendario Máquinas','rutas':'Rutas de Artículos','maquinas':'Máquinas','familias':'Familias / Moldes','pedidos':'Pedidos','ciclos':'Ciclos Producción','ordenes':'Creación Órdenes','carga':'Carga de Capacidad','balanceo':'Simulación Balanceo','atraso':'Atraso Pedidos','alertas':'Gestión Alertas','ctp':'CTP — Capable To Promise','stock':'Stock por Material','asocOrd':'Asociación Órdenes y Pedidos','pool':'Pool de Consultas'};document.getElementById('pt').textContent=titles[id]||id;if(id==='pedidos'){allocateMTSOPET();rPed();}if(id==='atraso'){allocateMTSOPET();rA();}if(id==='stock')renderStockPage();if(id==='asocOrd')renderAsocOrdenes();if(id==='pool')renderPoolConsultas();}
 function oM(id){document.getElementById(id).classList.add('sh');}
 function clM(id){document.getElementById(id).classList.remove('sh');}
 
@@ -1402,6 +1465,7 @@ function cCTP(){
   var mat=document.getElementById('cpM').value;
   var qty=parseInt(document.getElementById('cpQ').value)||100000;
   var fEDesired=document.getElementById('cpD').value;
+  var cli=(document.getElementById('cpCli')||{value:''}).value||'';
   var route=RD.find(function(r){return r[0]===mat;});
   var r=document.getElementById('cpR');
   if(!route){r.innerHTML='<div class="ctp-empty">Material no encontrado en el maestro.</div>';r.style.display='block';return;}
@@ -1409,98 +1473,325 @@ function cCTP(){
   var velEff=Math.round(vel*60*(oee/100));
   var hrsNeeded=Math.round(qty/(velEff)*10)/10;
   var fm=findFamilyForMaterial?findFamilyForMaterial(mat):null;
-  if(!fm){r.innerHTML='<div class="ctp-empty">Material sin familia asignada en el maestro. No se puede calcular CTP por ciclos.</div>';r.style.display='block';return;}
-  // Active cycles for this machine+family, sorted by start date
-  var maqCycles=CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds<b.ds?-1:1;});
-  // === OPCIÓN A: disponibilidad por familia/ciclo (sin mover nada) ===
-  var slots=maqCycles.map(function(cyc){var info=ctpSlotInfo(cyc,fm.id,maq,hrsNeeded);return info?{cyc:cyc,info:info}:null;}).filter(Boolean);
-  var firstFit=slots.find(function(x){return x.info.fits&&x.info.ordFFin<=fEDesired;})||slots.find(function(x){return x.info.fits;});
-  // === OPCIÓN B: insertar al inicio del primer ciclo moviendo órdenes ===
-  var allPlaced=[];
-  maqCycles.forEach(function(cyc2){var placed=(CYC_PLACEMENTS[cyc2.id]&&CYC_PLACEMENTS[cyc2.id][fm.id])||[];placed.forEach(function(p){allPlaced.push({cyc:cyc2,p:p});});});
-  allPlaced.sort(function(a,b){return a.p.fIni<b.p.fIni?-1:1;});
-  var optB=null,shiftDays=0;
-  if(maqCycles.length>0){
-    var firstCyc=maqCycles[0];
-    var base=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
-    var insFStr=base.slotFIni;
-    var insEStr=addWorkHours(new Date(insFStr),hrsNeeded,maq).toISOString().slice(0,10);
-    shiftDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
-    var shifted=[];
-    allPlaced.forEach(function(item){
-      if(item.p.fIni>=insFStr){
-        var nFI=new Date(item.p.fIni);nFI.setDate(nFI.getDate()+shiftDays);
-        var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDays);
-        var ped=PED.find(function(p){return p.of===item.p.of;});
-        var nFFStr=nFF.toISOString().slice(0,10);
-        shifted.push({of:item.p.of,mat:item.p.mat||'-',qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:!!(ped&&nFFStr>ped.fE)});
-      }
-    });
-    optB={insF:insFStr,insE:insEStr,shifted:shifted,nComp:shifted.filter(function(o){return o.comp;}).length};
+
+  /* ===== STEP 1: Stock libre ===== */
+  var stockLibre=getStockLibreOPET(mat);
+  var step1Pass=stockLibre>=qty;
+
+  /* ===== STEP 2: Ordenes lanzadas con exceso ===== */
+  var ordersForMat=[];
+  Object.keys(ordersCreated).forEach(function(mq){(ordersCreated[mq]||[]).forEach(function(o){if(o.mat===mat)ordersForMat.push(o);});});
+  var totalLaunched=ordersForMat.reduce(function(s,o){return s+(o.qty||0);},0);
+  var committedQty=PED.filter(function(p){return p.mat===mat&&p.of;}).reduce(function(s,p){return s+p.qty;},0);
+  var excessQty=Math.max(0,totalLaunched-committedQty);
+  var step2Pass=!step1Pass&&ordersForMat.length>0&&excessQty>=qty;
+  var coveringOrder=null;
+  if(step2Pass){
+    var sorted=ordersForMat.slice().sort(function(a,b){return a.fFin<b.fFin?-1:1;});
+    var cum=0;
+    for(var i=0;i<sorted.length;i++){cum+=(sorted[i].qty||0);if(cum-committedQty>=qty){coveringOrder=sorted[i];break;}}
   }
-  // ===== RENDER (professional, light theme, explicit colors) =====
+
+  /* ===== STEP 3: Temporal en familia (ciclos) ===== */
+  var maqCycles=[];var slots=[];var firstFit=null;var allPlaced=[];var optB=null;var shiftDays=0;
+  if(!step1Pass&&!step2Pass&&fm){
+    maqCycles=CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds<b.ds?-1:1;});
+    slots=maqCycles.map(function(cyc){var info=ctpSlotInfo(cyc,fm.id,maq,hrsNeeded);return info?{cyc:cyc,info:info}:null;}).filter(Boolean);
+    firstFit=slots.find(function(x){return x.info.fits&&x.info.ordFFin<=fEDesired;})||slots.find(function(x){return x.info.fits;});
+    maqCycles.forEach(function(cyc2){var placed=(CYC_PLACEMENTS[cyc2.id]&&CYC_PLACEMENTS[cyc2.id][fm.id])||[];placed.forEach(function(p){allPlaced.push({cyc:cyc2,p:p});});});
+    allPlaced.sort(function(a,b){return a.p.fIni<b.p.fIni?-1:1;});
+    if(maqCycles.length>0){
+      var firstCyc=maqCycles[0];
+      var base=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
+      var insFStr=base.slotFIni;
+      var insEStr=addWorkHours(new Date(insFStr),hrsNeeded,maq).toISOString().slice(0,10);
+      shiftDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
+      var shifted=[];
+      allPlaced.forEach(function(item){
+        if(item.p.fIni>=insFStr){
+          var nFI=new Date(item.p.fIni);nFI.setDate(nFI.getDate()+shiftDays);
+          var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shiftDays);
+          var ped=PED.find(function(p){return p.of===item.p.of;});
+          var nFFStr=nFF.toISOString().slice(0,10);
+          shifted.push({of:item.p.of,mat:item.p.mat||'-',qty:item.p.qty||0,oldFIni:item.p.fIni,oldFFin:item.p.fFin,newFIni:nFI.toISOString().slice(0,10),newFFin:nFFStr,ped:ped?ped.id:'',pedFE:ped?ped.fE:'',comp:!!(ped&&nFFStr>ped.fE)});
+        }
+      });
+      optB={insF:insFStr,insE:insEStr,shifted:shifted,nComp:shifted.filter(function(o){return o.comp;}).length};
+    }
+  }
+  var step3Pass=!step1Pass&&!step2Pass&&!!firstFit;
+  var step3PoolOnly=!step1Pass&&!step2Pass&&!firstFit;
+
+  /* ===== BUILD HTML ===== */
   var h='';
   // Header band
   h+='<div class="ctp-head">';
   h+='<div class="ctp-head-title">📦 Resultado CTP · <span style="font-family:monospace">'+mat+'</span></div>';
   h+='<div class="ctp-chips">';
-  h+='<div class="ctp-chip"><span>Cantidad</span><b>'+qty.toLocaleString()+' uds</b></div>';
-  h+='<div class="ctp-chip ctp-chip-hl"><span>Horas de producción</span><b>'+hrsNeeded+' h</b></div>';
-  h+='<div class="ctp-chip"><span>Velocidad efectiva</span><b>'+velEff.toLocaleString()+' uds/h</b></div>';
+  h+='<div class="ctp-chip"><span>Cantidad</span><b>'+qty.toLocaleString()+'</b></div>';
+  h+='<div class="ctp-chip ctp-chip-hl"><span>Horas necesarias</span><b>'+hrsNeeded+' h</b></div>';
+  h+='<div class="ctp-chip"><span>Vel. efectiva</span><b>'+velEff.toLocaleString()+' uds/h</b></div>';
   h+='<div class="ctp-chip"><span>Máquina</span><b>'+maq+'</b></div>';
-  h+='<div class="ctp-chip"><span>Familia</span><b>'+fm.nm+'</b></div>';
+  h+='<div class="ctp-chip"><span>Familia</span><b>'+(fm?fm.nm:'—')+'</b></div>';
   h+='<div class="ctp-chip"><span>Fecha deseada</span><b>'+fD2(fEDesired)+'</b></div>';
+  if(cli)h+='<div class="ctp-chip"><span>Cliente</span><b>'+cli+'</b></div>';
   h+='</div></div>';
-  // Opción A
-  h+='<div class="ctp-opt ctp-opt-a"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#2a9d8f"></span><h4>Opción A — Huecos libres por familia (sin mover órdenes)</h4></div>';
-  if(slots.length){
-    if(firstFit){
-      var onA=firstFit.info.ordFFin<=fEDesired;
-      h+='<div class="ctp-reco '+(onA?'ok':'warn')+'">'+(onA?'✅':'⚠️')+' Recomendado: ciclo <b>'+firstFit.cyc.id+'</b> — entrega <b>'+fD2(firstFit.info.ordFFin)+'</b>'+(onA?' (cumple la fecha deseada)':' ('+Math.abs(pedDaysDiff(firstFit.info.ordFFin,fEDesired))+'d después de lo deseado)')+'</div>';
-    } else {
-      h+='<div class="ctp-reco warn">⚠️ Ninguna familia tiene '+hrsNeeded+'h libres. Mira la columna <b>Exceso</b> o usa la Opción B.</div>';
-    }
-    h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>Ciclo</th><th>Periodo ciclo</th><th>Familia: Inicio</th><th>Familia: Fin</th><th>Temporal</th><th>Consumido</th><th>Libres</th><th>¿Cabe?</th><th>Inicio nueva orden</th><th>Fin nueva orden</th><th>Exceso</th></tr></thead><tbody>';
-    slots.forEach(function(x){
-      var inf=x.info;
-      var fitBadge=inf.fits?'<span class="ctp-b ok">Sí</span>':'<span class="ctp-b no">No</span>';
-      var excCell=inf.excess>0?'<b style="color:#e63946">+'+inf.excess+'h</b>':'<span style="color:#2a9d8f">0h</span>';
-      var rowCls=(firstFit&&x.cyc.id===firstFit.cyc.id)?' class="ctp-row-reco"':'';
-      h+='<tr'+rowCls+'><td><b>'+x.cyc.id+'</b></td><td>'+fD2(x.cyc.ds)+' → '+fD2(x.cyc.de)+'</td><td style="font-family:monospace">'+fD2(inf.slotFIni)+'</td><td style="font-family:monospace">'+fD2(inf.slotFFin)+'</td><td>'+inf.temporal+'h</td><td>'+inf.consumed+'h</td><td><b style="color:'+(inf.freeHrs>0?'#2a9d8f':'#6c757d')+'">'+inf.freeHrs+'h</b></td><td>'+fitBadge+'</td><td style="font-family:monospace">'+fD2(inf.ordFIni)+'</td><td style="font-family:monospace;color:'+(inf.ordFFin<=fEDesired?'#2a9d8f':'#e63946')+'"><b>'+fD2(inf.ordFFin)+'</b></td><td>'+excCell+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
+
+  /* Decision tree display */
+  h+='<div class="ctp-tree">';
+  h+='<div class="ctp-tree-title">🌳 Árbol de decisión CTP</div>';
+
+  // Step 1
+  var s1cls=step1Pass?'ctp-step-pass':'ctp-step-fail';
+  var s1icon=step1Pass?'✅':'❌';
+  h+='<div class="ctp-step '+s1cls+'">';
+  h+='<span class="ctp-step-icon">'+s1icon+'</span>';
+  h+='<div class="ctp-step-body">';
+  h+='<div class="ctp-step-label">Paso 1 — ¿Hay stock libre suficiente para cubrir el pedido?</div>';
+  h+='<div class="ctp-step-detail">Stock libre disponible: <b>'+stockLibre.toLocaleString('es-ES')+' uds</b> · Necesario: <b>'+qty.toLocaleString('es-ES')+' uds</b></div>';
+  if(step1Pass)h+='<div class="ctp-step-result" style="color:#065f46">→ FECHA DISPONIBILIDAD = HOY ('+fD2(PED_TODAY)+')</div>';
+  else h+='<div class="ctp-step-result" style="color:#9a3412">→ Stock insuficiente. Continúa al Paso 2.</div>';
+  h+='</div></div>';
+
+  // Step 2
+  var s2cls=step2Pass?'ctp-step-pass':(!step1Pass?'ctp-step-fail':'ctp-step-skip');
+  var s2icon=step1Pass?'⬜':step2Pass?'✅':'❌';
+  h+='<div class="ctp-step '+s2cls+'">';
+  h+='<span class="ctp-step-icon">'+s2icon+'</span>';
+  h+='<div class="ctp-step-body">';
+  h+='<div class="ctp-step-label">Paso 2 — ¿Hay órdenes lanzadas con exceso suficiente?</div>';
+  if(step1Pass){
+    h+='<div class="ctp-step-detail">No alcanzado (Paso 1 resolvió).</div>';
   } else {
-    h+='<div class="ctp-empty">No hay ciclos activos en '+maq+' con la familia <b>'+fm.nm+'</b>. Crea un ciclo para esta familia.</div>';
+    h+='<div class="ctp-step-detail">Órdenes para '+mat+': <b>'+ordersForMat.length+'</b> · Producción total: <b>'+totalLaunched.toLocaleString('es-ES')+' uds</b> · Comprometido pedidos MTO: <b>'+committedQty.toLocaleString('es-ES')+' uds</b> · Exceso libre: <b>'+excessQty.toLocaleString('es-ES')+' uds</b></div>';
+    if(step2Pass&&coveringOrder)h+='<div class="ctp-step-result" style="color:#1e40af">→ FECHA DISPONIBILIDAD = Fin OF '+coveringOrder.of+' ('+fD2(coveringOrder.fFin)+')</div>';
+    else if(!step2Pass)h+='<div class="ctp-step-result" style="color:#9a3412">→ Sin exceso suficiente. Continúa al Paso 3.</div>';
   }
-  h+='</div>';
-  // Opción B
-  h+='<div class="ctp-opt ctp-opt-b"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#f4a261"></span><h4>Opción B — Insertar al inicio del primer ciclo (replanificando órdenes)</h4></div>';
-  if(optB){
-    var onB=optB.insE<=fEDesired;
-    h+='<div class="ctp-kpis">';
-    h+='<div class="ctp-kpi"><span>Nueva F. Inicio</span><b style="font-family:monospace">'+fD2(optB.insF)+'</b></div>';
-    h+='<div class="ctp-kpi"><span>Entrega nueva orden</span><b style="font-family:monospace;color:'+(onB?'#2a9d8f':'#e63946')+'">'+fD2(optB.insE)+'</b></div>';
-    h+='<div class="ctp-kpi"><span>Órdenes que se mueven</span><b style="color:#f4a261">'+optB.shifted.length+'</b></div>';
-    h+='<div class="ctp-kpi"><span>Pedidos comprometidos</span><b style="color:'+(optB.nComp>0?'#e63946':'#2a9d8f')+'">'+optB.nComp+'</b></div>';
+  h+='</div></div>';
+
+  // Step 3
+  var s3cls=step1Pass||step2Pass?'ctp-step-skip':step3Pass?'ctp-step-pass':'ctp-step-pool';
+  var s3icon=step1Pass||step2Pass?'⬜':step3Pass?'✅':'🔴';
+  h+='<div class="ctp-step '+s3cls+'">';
+  h+='<span class="ctp-step-icon">'+s3icon+'</span>';
+  h+='<div class="ctp-step-body">';
+  h+='<div class="ctp-step-label">Paso 3 — ¿Hay temporal disponible en familia?</div>';
+  if(step1Pass||step2Pass){
+    h+='<div class="ctp-step-detail">No alcanzado.</div>';
+  } else if(!fm){
+    h+='<div class="ctp-step-detail" style="color:#991b1b">Material sin familia asignada. No se puede calcular temporal por ciclos.</div>';
+  } else {
+    var totalTemporal=slots.reduce(function(s,x){return s+x.info.freeHrs;},0);
+    h+='<div class="ctp-step-detail">Familia: <b>'+fm.nm+'</b> · Ciclos activos: <b>'+maqCycles.length+'</b> · Temporal libre total: <b>'+totalTemporal+'h</b> (necesario: '+hrsNeeded+'h)</div>';
+    if(step3Pass)h+='<div class="ctp-step-result" style="color:#166534">→ Temporal disponible. Ver opciones A y B.</div>';
+    else h+='<div class="ctp-step-result" style="color:#991b1b">→ SIN FECHA DISPONIBILIDAD. Añadir al Pool de Consultas.</div>';
+  }
+  h+='</div></div>';
+  h+='</div>'; // end tree
+
+  /* Result banner */
+  if(step1Pass){
+    h+='<div class="ctp-result-banner ctp-result-stock">📦 CUBIERTO POR STOCK — Fecha disponibilidad: <b>'+fD2(PED_TODAY)+'</b> (hoy)</div>';
+  } else if(step2Pass&&coveringOrder){
+    h+='<div class="ctp-result-banner ctp-result-order">🏭 CUBIERTO POR ÓRDENES LANZADAS — Fecha disponibilidad: <b>'+fD2(coveringOrder.fFin)+'</b> · OF: '+coveringOrder.of+'</div>';
+  } else if(step3Pass){
+    var onFE=firstFit.info.ordFFin<=fEDesired;
+    h+='<div class="ctp-result-banner ctp-result-temp">'+(onFE?'✅':'⚠️')+' CUBIERTO POR TEMPORAL — Fecha disponibilidad estimada: <b>'+fD2(firstFit.info.ordFFin)+'</b>'+(onFE?' (cumple fecha deseada)':' ('+Math.abs(pedDaysDiff(firstFit.info.ordFFin,fEDesired))+'d tarde)')+'</div>';
+  } else {
+    h+='<div class="ctp-result-banner ctp-result-pool">🔴 SIN FECHA DISPONIBILIDAD — Este pedido debe gestionarse en el Pool de Consultas</div>';
+    h+='<div style="margin-bottom:18px">';
+    h+='<button class="ctp-pool-btn" onclick="ctpAddToPool(\''+mat+'\','+qty+',\''+fEDesired+'\',\''+cli.replace(/'/g,'')+'\')">🗂 Añadir al Pool de Consultas</button>';
+    h+='<span style="font-size:11.5px;color:#6c757d;margin-left:12px">El planificador elegirá la opción A, B o C para resolverlo.</span>';
     h+='</div>';
-    if(optB.shifted.length){
-      h+='<div class="ctp-sub">Órdenes desplazadas +'+shiftDays+' día(s):</div>';
-      h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>OF</th><th>Material</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
-      optB.shifted.forEach(function(o){
-        var compCell=o.comp?'<span class="ctp-b no">⚠ Sí (FE '+fD2(o.pedFE)+')</span>':'<span class="ctp-b ok">No</span>';
-        h+='<tr'+(o.comp?' class="ctp-row-comp"':'')+'><td style="font-family:monospace"><b>'+o.of+'</b></td><td style="font-family:monospace">'+o.mat+'</td><td>'+o.qty.toLocaleString()+'</td><td style="font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFIni)+'</b></td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFFin)+'</b></td><td>'+(o.ped?'<b>'+o.ped+'</b>':'<span style="color:#adb5bd">—</span>')+'</td><td>'+compCell+'</td></tr>';
-      });
-      h+='</tbody></table></div>';
-    } else {
-      h+='<div class="ctp-empty">Sin órdenes existentes en esta familia: la nueva orden se inserta directamente sin desplazar nada.</div>';
-    }
-  } else {
-    h+='<div class="ctp-empty">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
   }
-  h+='</div>';
+
+  /* Opciones A y B (solo si hay temporal, Paso 3 resolvió) */
+  if(!step1Pass&&!step2Pass){
+    if(fm){
+      h+='<div class="ctp-opt ctp-opt-a"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#2a9d8f"></span><h4>Opción A — Temporal disponible en familia (sin mover órdenes)</h4></div>';
+      if(slots.length){
+        if(firstFit){
+          var onA=firstFit.info.ordFFin<=fEDesired;
+          h+='<div class="ctp-reco '+(onA?'ok':'warn')+'">'+(onA?'✅':'⚠️')+' Recomendado: ciclo <b>'+firstFit.cyc.id+'</b> — entrega <b>'+fD2(firstFit.info.ordFFin)+'</b>'+(onA?' (cumple fecha deseada)':' ('+Math.abs(pedDaysDiff(firstFit.info.ordFFin,fEDesired))+'d después de lo deseado)')+'</div>';
+        } else {
+          h+='<div class="ctp-reco warn">⚠️ Ningún ciclo tiene '+hrsNeeded+'h libres. Usa la Opción B o añade al Pool.</div>';
+        }
+        h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>Ciclo</th><th>Periodo</th><th>Familia Ini</th><th>Familia Fin</th><th>Temporal</th><th>Consumido</th><th>Libres</th><th>¿Cabe?</th><th>Inicio OF</th><th>Fin OF</th><th>Exceso</th></tr></thead><tbody>';
+        slots.forEach(function(x){
+          var inf=x.info;
+          var fitBadge=inf.fits?'<span class="ctp-b ok">Sí</span>':'<span class="ctp-b no">No</span>';
+          var excCell=inf.excess>0?'<b style="color:#e63946">+'+inf.excess+'h</b>':'<span style="color:#2a9d8f">0h</span>';
+          var rowCls=(firstFit&&x.cyc.id===firstFit.cyc.id)?' class="ctp-row-reco"':'';
+          h+='<tr'+rowCls+'><td><b>'+x.cyc.id+'</b></td><td>'+fD2(x.cyc.ds)+' → '+fD2(x.cyc.de)+'</td><td style="font-family:monospace">'+fD2(inf.slotFIni)+'</td><td style="font-family:monospace">'+fD2(inf.slotFFin)+'</td><td>'+inf.temporal+'h</td><td>'+inf.consumed+'h</td><td><b style="color:'+(inf.freeHrs>0?'#2a9d8f':'#6c757d')+'">'+inf.freeHrs+'h</b></td><td>'+fitBadge+'</td><td style="font-family:monospace">'+fD2(inf.ordFIni)+'</td><td style="font-family:monospace;color:'+(inf.ordFFin<=fEDesired?'#2a9d8f':'#e63946')+'"><b>'+fD2(inf.ordFFin)+'</b></td><td>'+excCell+'</td></tr>';
+        });
+        h+='</tbody></table></div>';
+      } else {
+        h+='<div class="ctp-empty">No hay ciclos activos en '+maq+' con la familia <b>'+fm.nm+'</b>.</div>';
+      }
+      h+='</div>';
+      h+='<div class="ctp-opt ctp-opt-b"><div class="ctp-opt-h"><span class="ctp-dot" style="background:#f4a261"></span><h4>Opción B — Insertar al inicio del primer ciclo (replanificando órdenes)</h4></div>';
+      if(optB){
+        var onB=optB.insE<=fEDesired;
+        h+='<div class="ctp-kpis">';
+        h+='<div class="ctp-kpi"><span>Nueva F. Inicio</span><b style="font-family:monospace">'+fD2(optB.insF)+'</b></div>';
+        h+='<div class="ctp-kpi"><span>Entrega nueva OF</span><b style="font-family:monospace;color:'+(onB?'#2a9d8f':'#e63946')+'">'+fD2(optB.insE)+'</b></div>';
+        h+='<div class="ctp-kpi"><span>Órdenes desplazadas</span><b style="color:#f4a261">'+optB.shifted.length+'</b></div>';
+        h+='<div class="ctp-kpi"><span>Pedidos comprometidos</span><b style="color:'+(optB.nComp>0?'#e63946':'#2a9d8f')+'">'+optB.nComp+'</b></div>';
+        h+='</div>';
+        if(optB.nComp>0){
+          h+='<div style="font-size:11.5px;background:#fef3c7;border:1px solid #fcd34d;border-radius:7px;padding:9px 12px;margin-bottom:10px;color:#78350f">⚠️ <b>Informe de afectación:</b> '+optB.nComp+' pedido(s) podrían incumplir su fecha de entrega si se replanifica.</div>';
+        }
+        if(optB.shifted.length){
+          h+='<div class="ctp-sub">Órdenes desplazadas +'+shiftDays+' día(s):</div>';
+          h+='<div class="ctp-tw"><table class="ctp-tbl"><thead><tr><th>OF</th><th>Material</th><th>Cant.</th><th>F.Ini actual</th><th>F.Fin actual</th><th>Nueva F.Ini</th><th>Nueva F.Fin</th><th>Pedido</th><th>¿Comprometido?</th></tr></thead><tbody>';
+          optB.shifted.forEach(function(o){
+            var compCell=o.comp?'<span class="ctp-b no">⚠ Sí (FE '+fD2(o.pedFE)+')</span>':'<span class="ctp-b ok">No</span>';
+            h+='<tr'+(o.comp?' class="ctp-row-comp"':'')+'><td style="font-family:monospace"><b>'+o.of+'</b></td><td style="font-family:monospace">'+o.mat+'</td><td>'+o.qty.toLocaleString()+'</td><td style="font-family:monospace">'+fD2(o.oldFIni)+'</td><td style="font-family:monospace">'+fD2(o.oldFFin)+'</td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFIni)+'</b></td><td style="font-family:monospace;color:#b45309"><b>'+fD2(o.newFFin)+'</b></td><td>'+(o.ped?'<b>'+o.ped+'</b>':'<span style="color:#adb5bd">—</span>')+'</td><td>'+compCell+'</td></tr>';
+          });
+          h+='</tbody></table></div>';
+        } else {
+          h+='<div class="ctp-empty">Sin órdenes existentes: la nueva OF se inserta directamente sin desplazar nada.</div>';
+        }
+      } else {
+        h+='<div class="ctp-empty">Sin ciclos activos para '+maq+'. Crea un ciclo para esta familia primero.</div>';
+      }
+      h+='</div>';
+    } else {
+      h+='<div class="ctp-empty">Material sin familia asignada. No se puede calcular por ciclos.</div>';
+    }
+  }
+
   r.innerHTML=h;r.style.display='block';r.scrollIntoView({behavior:'smooth'});
 }
 
+
+/* ===================== POOL DE CONSULTAS ===================== */
+var poolConsultas=[];
+
+function ctpAddToPool(mat,qty,fE,cli){
+  var exists=poolConsultas.some(function(e){return e.mat===mat&&e.qty===qty&&e.fE===fE;});
+  if(exists){alert('Este pedido ya está en el pool.');return;}
+  var rdRow=RD.find(function(r){return r[0]===mat;});
+  var estrat=rdRow?rdRow[7]||'MTS':'MTS';
+  var atraso=pedDaysDiff(PED_TODAY,fE);
+  poolConsultas.push({
+    id:'POOL-'+Date.now(),mat:mat,qty:qty,fE:fE,cli:cli||'',
+    estrat:estrat,atraso:atraso,
+    fechaAdd:PED_TODAY,opcion:null,fechaDisp:null,estado:'pendiente',
+    nota:''
+  });
+  alert('Pedido añadido al Pool de Consultas. Ve a "🗂 Pool Consultas" para gestionar la opción de resolución.');
+  renderPoolConsultas();
+}
+
+function removeFromPool(idx){
+  if(!confirm('¿Eliminar del pool?'))return;
+  poolConsultas.splice(idx,1);
+  renderPoolConsultas();
+}
+
+function applyPoolOption(idx,opcion){
+  var e=poolConsultas[idx];
+  if(!e)return;
+  var route=RD.find(function(r){return r[0]===e.mat;});
+  if(!route){alert('Material no encontrado en rutas.');return;}
+  var maq=route[2],vel=route[3],oee=maqOEE[maq]||85;
+  var velEff=Math.round(vel*60*(oee/100));
+  var hrsNeeded=Math.round(e.qty/velEff*10)/10;
+  var fm=findFamilyForMaterial?findFamilyForMaterial(e.mat):null;
+  var maqCycles=fm?CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds<b.ds?-1:1;}):[];
+  var slots=maqCycles.map(function(cyc){var info=ctpSlotInfo(cyc,fm.id,maq,hrsNeeded);return info?{cyc:cyc,info:info}:null;}).filter(Boolean);
+  var firstFit=slots.find(function(x){return x.info.fits;})||slots[0];
+
+  if(opcion==='A'){
+    /* Opción A: primer ciclo con temporal suficiente */
+    if(!fm||!firstFit){alert('No hay familia asignada o ciclos con temporal para Opción A.');return;}
+    e.opcion='A';
+    e.fechaDisp=firstFit.info.ordFFin;
+    e.estado=e.fechaDisp<=e.fE?'resuelto':'resuelto-tarde';
+    e.detalle='Ciclo '+firstFit.cyc.id+' · '+firstFit.info.freeHrs+'h libres';
+  } else if(opcion==='B'){
+    /* Opción B: insertar en primer ciclo planificado + informe afectación */
+    if(!fm||maqCycles.length===0){alert('No hay ciclos activos para Opción B.');return;}
+    var firstCyc=maqCycles[0];
+    var base=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
+    var insE=addWorkHours(new Date(base.slotFIni),hrsNeeded,maq).toISOString().slice(0,10);
+    var shDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
+    var allPlaced=[];
+    maqCycles.forEach(function(c){var pl=(CYC_PLACEMENTS[c.id]&&CYC_PLACEMENTS[c.id][fm.id])||[];pl.forEach(function(p){allPlaced.push({cyc:c,p:p});});});
+    var nComp=allPlaced.filter(function(item){
+      if(item.p.fIni<base.slotFIni)return false;
+      var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shDays);
+      var ped=PED.find(function(p){return p.of===item.p.of;});
+      return ped&&nFF.toISOString().slice(0,10)>ped.fE;
+    }).length;
+    e.opcion='B';
+    e.fechaDisp=insE;
+    e.estado=insE<=e.fE?'resuelto':'resuelto-tarde';
+    e.detalle='Insertar en '+firstCyc.id+' · '+shDays+'d desplazamiento · '+nComp+' ped. comprometidos';
+  } else if(opcion==='C'){
+    /* Opción C: forzar fecha = fecha entrega cliente */
+    e.opcion='C';
+    e.fechaDisp=e.fE;
+    e.estado='resuelto-forzado';
+    e.detalle='Forzado a fE='+e.fE+' (mover órdenes enteras sin reducir qty)';
+  }
+  renderPoolConsultas();
+}
+
+function renderPoolConsultas(){
+  var tb=document.getElementById('poolBody');
+  var emEl=document.getElementById('poolEmpty');
+  var kpiEl=document.getElementById('poolKpis');
+  if(!tb)return;
+  if(!poolConsultas.length){
+    tb.innerHTML='';
+    if(emEl)emEl.style.display='block';
+    if(kpiEl)kpiEl.innerHTML='';
+    return;
+  }
+  if(emEl)emEl.style.display='none';
+  var tot=poolConsultas.length;
+  var urgentes=poolConsultas.filter(function(e){return e.atraso>0;}).length;
+  var resueltos=poolConsultas.filter(function(e){return e.estado&&e.estado!=='pendiente';}).length;
+  var pendientes=tot-resueltos;
+  if(kpiEl){
+    kpiEl.innerHTML=
+      '<div class="pool-kpi"><span>Total en Pool</span><b>'+tot+'</b></div>'+
+      '<div class="pool-kpi"><span>Urgentes (atrasados)</span><b style="color:'+(urgentes>0?'#dc2626':'#2a9d8f')+'">'+urgentes+'</b></div>'+
+      '<div class="pool-kpi"><span>Pendientes</span><b style="color:'+(pendientes>0?'#f4a261':'#2a9d8f')+'">'+pendientes+'</b></div>'+
+      '<div class="pool-kpi"><span>Resueltos</span><b style="color:#2a9d8f">'+resueltos+'</b></div>';
+  }
+  var rows='';
+  poolConsultas.forEach(function(e,i){
+    var isUrgent=e.atraso>0&&e.estado==='pendiente';
+    var isRes=e.estado&&e.estado!=='pendiente';
+    var rowCls=isUrgent?'pool-row-urgent':isRes?'pool-row-resolved':'';
+    var atrasoCell=e.atraso>0?'<span style="color:#dc2626;font-weight:700">+'+e.atraso+'d</span>':e.atraso===0?'<span style="color:#f4a261">Hoy</span>':'<span style="color:#2a9d8f">'+Math.abs(e.atraso)+'d</span>';
+    var opBadge=e.opcion?'<span class="pool-badge pool-badge-'+e.opcion.toLowerCase()+'">Opción '+e.opcion+'</span>':'<span class="pool-badge pool-badge-pend">Pendiente</span>';
+    var resBadge=isRes?'<span class="pool-badge pool-badge-res">'+e.estado+'</span>':'';
+    var fdCell=e.fechaDisp?'<b style="font-family:monospace;color:'+(e.fechaDisp<=e.fE?'#065f46':'#dc2626')+'">'+fD2(e.fechaDisp)+'</b>':'<span style="color:#9ca3af">Sin fecha</span>';
+    var detCell=e.detalle?'<div style="font-size:10.5px;color:#6b7280;margin-top:3px">'+e.detalle+'</div>':'';
+    rows+='<tr class="'+rowCls+'">'+
+      '<td><b>'+e.id+'</b></td>'+
+      '<td style="font-family:monospace;font-size:10px">'+e.mat+'</td>'+
+      '<td>'+(e.cli||'—')+'</td>'+
+      '<td style="text-align:right">'+e.qty.toLocaleString('es-ES')+'</td>'+
+      '<td style="font-family:monospace">'+fD2(e.fE)+'</td>'+
+      '<td style="text-align:center">'+atrasoCell+'</td>'+
+      '<td><span style="font-size:11px">Sin stock/temporal</span></td>'+
+      '<td>'+fdCell+detCell+'</td>'+
+      '<td>'+opBadge+' '+resBadge+'</td>'+
+      '<td><div class="pool-opt-btns">'+
+        '<button class="pool-opt-a" onclick="applyPoolOption('+i+',\'A\')" title="Opción A: primer ciclo con temporal">A</button>'+
+        '<button class="pool-opt-b" onclick="applyPoolOption('+i+',\'B\')" title="Opción B: insertar en primer ciclo planificado">B</button>'+
+        '<button class="pool-opt-c" onclick="applyPoolOption('+i+',\'C\')" title="Opción C: forzar a fecha de entrega cliente">C</button>'+
+        '<button class="pool-opt-del" onclick="removeFromPool('+i+')" title="Eliminar del pool">✕</button>'+
+      '</div></td>'+
+    '</tr>';
+  });
+  tb.innerHTML=rows;
+}
 
 /* ===================== V4 NEW FUNCTIONS ===================== */
 
