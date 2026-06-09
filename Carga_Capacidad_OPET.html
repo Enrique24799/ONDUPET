@@ -349,8 +349,8 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <label><input type="radio" name="cC" value="1t"><span>1T (L-V)</span></label>
 <label><input type="radio" name="cC" value="2t"><span>2T (L-V)</span></label>
 <label><input type="radio" name="cC" value="3t"><span>3T (L-V)</span></label>
-<label><input type="radio" name="cC" value="4t"><span>4T (L-S)</span></label>
-<label><input type="radio" name="cC" value="5t"><span>5T (L-D)</span></label>
+<label><input type="radio" name="cC" value="4t"><span>4T (L-Sáb)</span></label>
+<label><input type="radio" name="cC" value="5t"><span>5T (L-Dom)</span></label>
 <label><input type="radio" name="cC" value="custom"><span>Personalizado</span></label>
 </div></div>
 <div><label>Desde</label><br><select id="cdM"><option value="0">Ene</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Abr</option><option value="4" selected>May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dic</option></select><select id="cdY"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
@@ -467,8 +467,8 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 <label><input type="radio" name="bcC" value="1t"><span>1T (L-V)</span></label>
 <label><input type="radio" name="bcC" value="2t"><span>2T (L-V)</span></label>
 <label><input type="radio" name="bcC" value="3t"><span>3T (L-V)</span></label>
-<label><input type="radio" name="bcC" value="4t"><span>4T (L-S)</span></label>
-<label><input type="radio" name="bcC" value="5t"><span>5T (L-D)</span></label>
+<label><input type="radio" name="bcC" value="4t"><span>4T (L-Sáb)</span></label>
+<label><input type="radio" name="bcC" value="5t"><span>5T (L-Dom)</span></label>
 <label><input type="radio" name="bcC" value="custom"><span>Personalizado</span></label>
 </div></div>
 <div><label>Desde</label><br><select id="bcdM"><option value="0">Ene</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Abr</option><option value="4" selected>May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dic</option></select><select id="bcdY"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
@@ -553,7 +553,7 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 </div></div>
 
 <!-- MODALS -->
-<div class="mo" id="mCalPers" onclick="if(event.target===this)clM('mCalPers')"><div class="ml" style="max-width:1150px;width:97vw"><button class="cm" onclick="clM('mCalPers')">✕</button><h3>📅 Calendario Personalizado de Capacidad</h3><p style="font-size:11px;color:var(--tl);margin-bottom:14px">Define turnos por máquina y mes. No afecta al calendario real. Al guardar activa el modo <strong>Personalizado</strong>.</p><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)"><div class="fg" style="min-width:120px"><label>Familia</label><select id="cpFam" onchange="renderCalPers()"><option value="">Todas</option></select></div><div class="fg" style="min-width:80px"><label>Año</label><select id="cpYear" onchange="renderCalPers()"><option>2025</option><option selected>2026</option><option>2027</option></select></div><div class="fg" style="min-width:130px"><label>Filtrar máquinas</label><input type="text" id="cpFilter" placeholder="Ej: T1, T4…" oninput="renderCalPers()" style="padding:6px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;width:100%"></div><div style="display:flex;gap:14px;flex-wrap:wrap"><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a TODO</div><div style="display:flex;gap:4px"><select id="cpAllVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option><option value="4">4T</option><option value="5">5T</option></select><button class="btn bp bsm" onclick="applyCalPersAll()">Aplicar</button></div></div><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a MES</div><div style="display:flex;gap:4px"><select id="cpMonthSel" class="oee-input"><option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option></select><select id="cpMonthVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option><option value="4">4T</option><option value="5">5T</option></select><button class="btn bp bsm" onclick="applyCalPersMes()">Aplicar</button></div></div><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a LÍNEA</div><div style="display:flex;gap:4px"><select id="cpLineSel" class="oee-input"></select><select id="cpLineVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option><option value="4">4T</option><option value="5">5T</option></select><button class="btn bp bsm" onclick="applyCalPersLine()">Aplicar</button></div></div></div></div><div class="tw" style="overflow-x:auto"><table style="min-width:900px"><thead><tr><th>Máquina</th><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th></tr></thead><tbody id="cpBody"></tbody></table></div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn" style="background:#eee;color:#333" onclick="resetCalPers()">Restablecer</button><button class="btn bp" onclick="saveCalPers()">Guardar cambios</button></div></div></div>
+<div class="mo" id="mCalPers" onclick="if(event.target===this)clM('mCalPers')"><div class="ml" style="max-width:1150px;width:97vw"><button class="cm" onclick="clM('mCalPers')">✕</button><h3>📅 Calendario Personalizado de Capacidad</h3><p style="font-size:11px;color:var(--tl);margin-bottom:14px">Define turnos por máquina y mes. No afecta al calendario real. Al guardar activa el modo <strong>Personalizado</strong>.</p><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)"><div class="fg" style="min-width:120px"><label>Familia</label><select id="cpFam" onchange="renderCalPers()"><option value="">Todas</option></select></div><div class="fg" style="min-width:80px"><label>Año</label><select id="cpYear" onchange="renderCalPers()"><option>2025</option><option selected>2026</option><option>2027</option></select></div><div class="fg" style="min-width:130px"><label>Filtrar máquinas</label><input type="text" id="cpFilter" placeholder="Ej: T1, T4…" oninput="renderCalPers()" style="padding:6px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;width:100%"></div><div style="display:flex;gap:14px;flex-wrap:wrap"><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a TODO</div><div style="display:flex;gap:4px"><select id="cpAllVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option><option value="4">4T (L-Sáb)</option><option value="5">5T (L-Dom)</option></select><button class="btn bp bsm" onclick="applyCalPersAll()">Aplicar</button></div></div><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a MES</div><div style="display:flex;gap:4px"><select id="cpMonthSel" class="oee-input"><option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option></select><select id="cpMonthVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option><option value="4">4T (L-Sáb)</option><option value="5">5T (L-Dom)</option></select><button class="btn bp bsm" onclick="applyCalPersMes()">Aplicar</button></div></div><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a LÍNEA</div><div style="display:flex;gap:4px"><select id="cpLineSel" class="oee-input"></select><select id="cpLineVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option><option value="4">4T (L-Sáb)</option><option value="5">5T (L-Dom)</option></select><button class="btn bp bsm" onclick="applyCalPersLine()">Aplicar</button></div></div></div></div><div class="tw" style="overflow-x:auto"><table style="min-width:900px"><thead><tr><th>Máquina</th><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th></tr></thead><tbody id="cpBody"></tbody></table></div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn" style="background:#eee;color:#333" onclick="resetCalPers()">Restablecer</button><button class="btn bp" onclick="saveCalPers()">Guardar cambios</button></div></div></div>
 <div class="mo" id="mStop" onclick="if(event.target===this)clM('mStop')">
 <div class="ml"><button class="cm" onclick="clM('mStop')">✕</button><h3>Añadir Parada Planificada</h3>
 <div class="fg"><label>Máquina</label><select id="stMaq"><option>T1</option><option>T2</option></select></div>
@@ -665,11 +665,13 @@ function getDayShiftsCapH(maq,yr,mo,d,calMode){
   }
   if(calMode==='4t'||calMode==='5t'){
     const isWork=calMode==='5t'?true:(dow>=1&&dow<=6);
-    return isWork?(dSh[maq]||3)*8:0;
+    return isWork?24:0;
   }
   if(calMode==='custom'){
     const ym=yr+'-'+String(mo+1).padStart(2,'0');
     const shN=(customShifts[maq]&&customShifts[maq][ym]!==undefined)?customShifts[maq][ym]:(dSh[maq]||3);
+    if(shN===4){const isWork=dow>=1&&dow<=6;return isWork?24:0;}
+    if(shN===5){return 24;}
     return (dow>=1&&dow<=5)?shN*8:0;
   }
   if(calShifts[maq]&&calShifts[maq][dateStr]!==undefined){
@@ -2680,8 +2682,8 @@ function renderCalPers(){
         +'<option value="1"'+(cur===1?' selected':'')+'>1T</option>'
         +'<option value="2"'+(cur===2?' selected':'')+'>2T</option>'
         +'<option value="3"'+(cur===3?' selected':'')+'>3T</option>'
-        +'<option value="4"'+(cur===4?' selected':'')+'>4T</option>'
-        +'<option value="5"'+(cur===5?' selected':'')+'>5T</option>'
+        +'<option value="4"'+(cur===4?' selected':'')+'>4T (L-Sáb)</option>'
+        +'<option value="5"'+(cur===5?' selected':'')+'>5T (L-Dom)</option>'
         +'</select></td>';
     });
     row+='</tr>';
