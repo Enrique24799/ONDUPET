@@ -209,6 +209,36 @@ tr:hover td{background:rgba(0,180,216,.03);}
 .ctp-b.ok{background:#d1fae5;color:#065f46;}
 .ctp-b.no{background:#fee2e2;color:#991b1b;}
 .ctp-empty{font-size:13px;color:#6c757d;padding:14px;background:#f7f9fc;border:1px dashed var(--border);border-radius:8px;}
+
+/* === SEGUIMIENTO PEDIDOS === */
+.sem-dot{display:inline-block;width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);vertical-align:middle;}
+.sem-green{background:#16a34a}.sem-yellow{background:#f59e0b}.sem-red{background:#dc2626}
+.pill-si{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#dcfce7;color:#166534;}
+.pill-no{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#fee2e2;color:#991b1b;}
+.pill-stock{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#e0f2fe;color:#075985;}
+.late-r{background:#ffc9c9!important;color:#991b1b;font-weight:800;}
+.late-t{background:#fff0b8!important;color:#854d0e;font-weight:800;}
+.ok-cell{background:#dcfce7!important;color:#166534;font-weight:800;}
+.neut-cell{background:#f1f5f9!important;color:#475569;}
+.motivo-tag-op{display:inline-flex;align-items:center;gap:5px;background:#eef7ff;border:1px solid #bad3e8;color:#0f4770;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:600;}
+.motivo-tag-op button{background:none;border:none;color:#dc2626;font-size:14px;cursor:pointer;padding:0 2px;line-height:1;}
+.motivo-sel{width:100%;min-width:140px;padding:4px 7px;border:1px solid var(--border);border-radius:6px;font-size:11px;background:#fff;}
+.motivo-sel.has-val{background:#e0f2fe!important;border-color:#7dd3fc;}
+/* === STOCK PAGE === */
+.stk-bar{display:inline-flex;width:90px;height:8px;border-radius:4px;overflow:hidden;background:#e5e7eb;vertical-align:middle;}
+.stk-bar-r{background:#3b82f6;}.stk-bar-l{background:#22c55e;}
+.stk-expand-row td{padding:0!important;background:#f8fbff!important;white-space:normal;}
+.stk-inner{padding:12px 16px;}
+.stk-res-row{display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid #f0f3f7;font-size:12px;}
+.stk-res-row:last-child{border-bottom:none;}
+.stk-badge{background:#dbeafe;color:#1e40af;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;}
+.stk-inp{width:85px;padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:11px;text-align:right;}
+.stk-del{background:#fee2e2;color:#dc2626;border:none;border-radius:5px;padding:2px 7px;cursor:pointer;font-weight:700;font-size:12px;}
+.stk-tot-inp{width:80px;padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:11px;text-align:right;}
+/* === ASOCIACION ORDENES === */
+.asoc-mto{background:#dcfce7;color:#166534;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;}
+.asoc-mts{background:#fef3c7;color:#854d0e;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;}
+.asoc-sin{background:#f1f5f9;color:#475569;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;}
 </style>
 </head>
 <body>
@@ -230,14 +260,14 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="ni sub" onclick="nav('rutas',this)">🔀 Rutas de Artículos</div>
 <div class="ni sub" onclick="nav('maquinas',this)">⚙️ Máquinas</div>
 <div class="ni sub" onclick="nav('familias',this)">🧩 Familias / Moldes</div>
-<div class="ni sub" onclick="nav('pedidos',this)">📋 Pedidos</div>
+<div class="ni sub" onclick="nav('pedidos',this)">📋 Pedidos</div><div class="ni sub" onclick="nav('stock',this)">📦 Stock</div>
 <div class="ni sub" onclick="nav('ciclos',this)">🔄 Ciclos Producción</div>
 <div class="ni sub" onclick="nav('ordenes',this)">✏️ Creación Órdenes</div>
 <div class="st">Planificación</div>
 <div class="ni" onclick="nav('carga',this)">⚙️ Carga de Capacidad</div>
 <div class="ni sub" onclick="nav('balanceo',this)">⚖️ Simulación Balanceo</div>
 <div class="st">Reporting</div>
-<div class="ni sub" onclick="nav('atraso',this)">⏰ Atraso Pedidos</div>
+<div class="ni sub" onclick="nav('atraso',this)">⏰ Atraso Pedidos</div><div class="ni sub" onclick="nav('asocOrd',this)">🔗 Asociación Órdenes</div>
 <div class="ni sub" onclick="nav('alertas',this)">🔔 Gestión Alertas</div>
 <div class="st">Promesas</div>
 <div class="ni" onclick="nav('ctp',this)">📦 CTP</div>
@@ -322,14 +352,79 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="cd"><h3>🧩 Maestro de Familias / Moldes</h3><p style="font-size:11px;color:var(--tl);margin-bottom:12px">Cambio de familia = <strong>4h</strong>. <strong>Temporal</strong> = unidades a producir por ciclo; las horas se calculan con velocidad mediana × OEE. <strong>Rep.</strong> = cada cuántos ciclos aparece.</p><div class="tw"><table><thead><tr><th>ID</th><th>Nombre</th><th>Máq. Defecto</th><th>Vel. Mediana</th><th>Temporal (uds)</th><th>Horas</th><th>Rep.</th><th>Materiales</th><th>Acc.</th></tr></thead><tbody id="famTB"></tbody></table></div></div></div>
 <!-- PEDIDOS -->
 <div class="pg" id="p-pedidos">
+<div class="cd" style="margin-bottom:12px;padding:12px 16px">
+  <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:700;font-size:13px;color:var(--accent2)" onclick="toggleMotPed()">
+    <span>⚙️ Gestión de Motivos de Atraso</span><span id="motPedToggle">▼</span></div>
+  <div id="motPedBody" style="display:none;margin-top:12px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="nuevoMotivoPed" placeholder="Nuevo motivo..." style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px" onkeydown="if(event.key==='Enter')addMotivoPed()">
+      <button class="btn bp" style="font-size:11px" onclick="addMotivoPed()">+ Añadir</button>
+    </div>
+    <div id="motivosListPed" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+</div>
 <div class="fl">
-<input type="text" placeholder="🔍 Buscar pedido, cliente o material..." id="pedSrch" oninput="fltPed()">
-<div><label>Estado planif.</label><select id="pedPlanF" onchange="fltPed()"><option value="">Todos</option><option value="planif">Planificados</option><option value="sin">Sin planificar</option></select></div>
-<button class="btn bp" onclick="openNewPed()">+ Nuevo Pedido</button>
-<button class="btn" style="background:#7c3aed;color:#fff" onclick="genDemoData()">🎲 Generar Demo</button>
+  <input type="text" placeholder="🔍 Buscar pedido, cliente o material..." id="pedSrch" oninput="rPed()">
+  <div><label>Estrategia</label><select id="pedEstrF" onchange="rPed()"><option value="">Todas</option><option>MTO</option><option>MTS</option></select></div>
+  <div><label>Cumplimiento</label><select id="pedSemF" onchange="rPed()"><option value="">Todos</option><option value="red">🔴 Atraso Real</option><option value="yellow">⚠️ Riesgo</option><option value="green">✅ En Fecha</option></select></div>
+  <div><label>Planificado</label><select id="pedPlanF" onchange="rPed()"><option value="">Todos</option><option>SI</option><option>NO</option><option>STOCK</option></select></div>
+  <button class="btn bp" onclick="openNewPed()">+ Nuevo Pedido</button>
+  <button class="btn" style="background:#7c3aed;color:#fff" onclick="genDemoData()">🎲 Generar Demo</button>
 </div>
 <div class="kg" id="pedKpi"></div>
-<div class="cd"><h3>📋 Maestro de Pedidos</h3><p style="font-size:11px;color:var(--tl);margin-bottom:10px">Crea pedidos con material, cliente y fecha de entrega. La columna <strong>Orden Asociada</strong> se rellena automáticamente al planificar el pedido desde <em>Creación Órdenes</em>.</p><div class="tw"><table><thead><tr><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Estrategia</th><th>Cantidad</th><th>F. Entrega</th><th>Orden Asociada</th><th>Estado</th><th>Acc.</th></tr></thead><tbody id="pedTB"></tbody></table></div></div>
+<div class="cd"><h3>📋 Seguimiento de Pedidos</h3>
+<div class="tw" style="max-height:58vh;overflow-y:auto"><table style="min-width:1500px;font-size:11.5px">
+<thead>
+  <tr><th></th><th>Cumpl.</th><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Estrategia</th>
+      <th>Cantidad</th><th>Servido</th><th>Pendiente</th><th>Reservado</th>
+      <th>Planificado</th><th>F. Entrega</th><th>F. Disponib.</th>
+      <th>Atraso Real</th><th>Atraso Teór.</th><th>Motivo Atraso</th><th>OF Asoc.</th><th>Acc.</th></tr>
+</thead>
+<tbody id="pedTB"></tbody></table></div></div>
+</div>
+
+<!-- STOCK -->
+<div class="pg" id="p-stock">
+<div class="kg" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kc"><div class="kl">Materiales</div><div class="kv" id="kpStMat">—</div></div>
+  <div class="kc s"><div class="kl">Stock Total</div><div class="kv" id="kpStTot">—</div></div>
+  <div class="kc w"><div class="kl">Reservado</div><div class="kv" id="kpStRes">—</div></div>
+  <div class="kc"><div class="kl">Libre / Disponible</div><div class="kv" id="kpStLib">—</div></div>
+</div>
+<div class="fl">
+  <input type="text" placeholder="🔍 Buscar material, familia..." id="qSt" oninput="renderStockPage()">
+  <div><label>Familia</label><select id="fStFam" onchange="renderStockPage()"><option value="">Todas</option></select></div>
+  <button class="secondary btn" onclick="clearStockFilters()">Limpiar</button>
+</div>
+<div class="cd"><h3>📦 Gestión de Stock por Material</h3>
+<div class="tw" style="max-height:65vh;overflow-y:auto"><table id="tStockOPET" style="min-width:950px;font-size:12px">
+<thead><tr>
+  <th></th><th>Id Material</th><th>Descripción</th><th>Familia</th><th>Estrategia</th>
+  <th>Stock Total</th><th>Reservado</th><th>Libre</th><th>Cobertura</th><th>Pedidos reservados</th><th>+ Reservar</th>
+</tr></thead>
+<tbody id="tbodyStockOPET"></tbody>
+</table></div></div>
+</div>
+
+<!-- ASOCIACION ORDENES -->
+<div class="pg" id="p-asocOrd">
+<div class="cd" style="margin-bottom:12px;background:#f0f9ff;border-left:4px solid var(--accent2);padding:12px 16px">
+  <p style="font-size:12px;color:var(--tl);margin:0">
+    <strong>Cómo leer esta pantalla:</strong> las órdenes cuya <em>Orden Asociada</em> coincide con un pedido son <strong>MTO Real</strong>. Las órdenes sin pedido asignado se muestran como <strong>MTS</strong> y se consumen ficticiamente por los pedidos sin orden, por orden de fecha de entrega (FIFO).
+  </p>
+</div>
+<div class="fl">
+  <input type="text" placeholder="🔍 Buscar OF, material, pedido..." id="qAsoc" oninput="renderAsocOrdenes()">
+  <div><label>Tipo asociación</label><select id="fAsocTipo" onchange="renderAsocOrdenes()"><option value="">Todos</option><option>MTO Real</option><option>MTS Ficticia</option><option>Sin consumo</option></select></div>
+  <button class="secondary btn" onclick="clearAsocFilters()">Limpiar</button>
+</div>
+<div class="cd"><h3>🔗 Órdenes Lanzadas y Asociación a Pedidos</h3>
+<div class="tw" style="max-height:65vh;overflow-y:auto"><table style="min-width:1100px;font-size:12px">
+<thead><tr>
+  <th>OF</th><th>Material</th><th>Descripción</th><th>Máquina</th><th>Cantidad</th><th>F. Fin</th>
+  <th>Tipo Asoc.</th><th>Pedido Asoc.</th><th>Cliente</th><th>F. Entrega Ped.</th><th>Cant. Asignada</th><th>Comentario</th>
+</tr></thead>
+<tbody id="tbAsocOrd"></tbody></table></div></div>
 </div>
 
 <!-- CICLOS -->
@@ -515,17 +610,26 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 </div>
 </div>
 <div class="pg" id="p-atraso">
-<div class="kg">
-<div class="kc d"><div class="kl">Total Pedidos Atrasados</div><div class="kv">18</div></div>
-<div class="kc w"><div class="kl">Atraso Medio</div><div class="kv">6.2 días</div></div>
-<div class="kc d"><div class="kl">Pedidos Críticos (&gt;10 días)</div><div class="kv">5</div></div>
-<div class="kc s"><div class="kl">Pedidos a Tiempo (mes)</div><div class="kv">87%</div></div>
+<div class="kg" style="grid-template-columns:repeat(5,1fr)">
+  <div class="kc d"><div class="kl">Atraso Real</div><div class="kv" id="kpAR">0</div></div>
+  <div class="kc w"><div class="kl">Riesgo Teórico</div><div class="kv" id="kpAT">0</div></div>
+  <div class="kc s"><div class="kl">En Fecha</div><div class="kv" id="kpEF">0</div></div>
+  <div class="kc"><div class="kl">Sin Cobertura (NO)</div><div class="kv" id="kpNO">0</div></div>
+  <div class="kc"><div class="kl">Cubiertos por Stock</div><div class="kv" id="kpSTK">0</div></div>
 </div>
 <div class="fl">
-<input type="text" placeholder="🔍 Buscar pedido o cliente..." id="aS" oninput="fA()">
-<div><label>Estado</label><select id="aE" onchange="fA()"><option value="">Todos</option><option>Crítico</option><option>Atrasado</option><option>En plazo</option></select></div>
+  <input type="text" placeholder="🔍 Buscar pedido, cliente, material..." id="aS" oninput="rA()">
+  <div><label>Cumplimiento</label><select id="aE" onchange="rA()"><option value="">Todos</option><option value="red">🔴 Atraso Real</option><option value="yellow">⚠️ Riesgo</option><option value="green">✅ En Fecha</option></select></div>
+  <div><label>Planificado</label><select id="aFPlan" onchange="rA()"><option value="">Todos</option><option>SI</option><option>NO</option><option>STOCK</option></select></div>
 </div>
-<div class="cd"><h3>⏰ Detalle de Atraso de Pedidos</h3><div class="tw"><table><thead><tr><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Cantidad</th><th>F. Entrega</th><th>Orden Asociada</th><th>F. Prevista</th><th>Días Atraso</th><th>Estado</th></tr></thead><tbody id="aB"></tbody></table></div></div>
+<div class="cd"><h3>⏰ Atraso de Pedidos — Seguimiento Completo</h3>
+<div class="tw" style="max-height:60vh;overflow-y:auto"><table style="min-width:1300px;font-size:11.5px">
+<thead><tr>
+  <th>Cumpl.</th><th>Nº Pedido</th><th>Cliente</th><th>Material</th><th>Estrategia</th>
+  <th>Cantidad</th><th>Pendiente</th><th>Reservado</th><th>Planificado</th>
+  <th>F. Entrega</th><th>F. Disponibilidad</th><th>Atraso Real (d)</th><th>Atraso Teórico (d)</th><th>Motivo</th>
+</tr></thead>
+<tbody id="aB"></tbody></table></div></div>
 </div>
 
 <!-- ALERTAS -->
@@ -541,8 +645,9 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 <div class="pg" id="p-ctp">
 <div class="cd"><h3>📦 CTP — Capable To Promise <span style="font-size:11px;font-weight:400;color:var(--tl);font-style:italic">basado en ciclos de producción planificados</span></h3>
 <p style="font-size:12px;color:var(--tl);margin:0 0 14px">Calcula cuándo puede fabricarse un pedido y muestra las dos opciones: hueco libre sin mover nada, o inserción anticipada con replanificación de órdenes existentes.</p>
-<div class="cf">
+<div class="cf" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
 <div class="fg"><label>Material</label><select id="cpM" onchange="initCTPPage()"></select></div>
+<div class="fg"><label>Cliente</label><input type="text" id="cpCli" placeholder="Ej: Mercadona (opcional)"></div>
 <div class="fg"><label>Cantidad (uds)</label><input type="number" id="cpQ" value="500000" min="1" step="50000"></div>
 <div class="fg"><label>Fecha deseada entrega</label><input type="date" id="cpD" value="2026-07-15"></div>
 <div class="fg" style="justify-content:flex-end"><button class="btn bp" onclick="cCTP()" style="align-self:flex-end">⚡ Calcular CTP</button></div>
@@ -604,7 +709,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 function showLoading(on){const el=document.getElementById('loadingOverlay');if(el)el.style.display=on?'flex':'none';}
 
 const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise'};
-function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');document.getElementById('pt').textContent=TT[id]||id;if(id==='ctp')initCTPPage();}
+function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));var p=document.getElementById('p-'+id);if(p)p.classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');var titles={'dashboard':'Dashboard','calendario':'Calendario Máquinas','rutas':'Rutas de Artículos','maquinas':'Máquinas','familias':'Familias / Moldes','pedidos':'Pedidos','ciclos':'Ciclos Producción','ordenes':'Creación Órdenes','carga':'Carga de Capacidad','balanceo':'Simulación Balanceo','atraso':'Atraso Pedidos','alertas':'Gestión Alertas','ctp':'CTP — Capable To Promise','stock':'Stock por Material','asocOrd':'Asociación Órdenes y Pedidos'};document.getElementById('pt').textContent=titles[id]||id;if(id==='pedidos'){allocateMTSOPET();rPed();}if(id==='atraso'){allocateMTSOPET();rA();}if(id==='stock')renderStockPage();if(id==='asocOrd')renderAsocOrdenes();}
 function oM(id){document.getElementById(id).classList.add('sh');}
 function clM(id){document.getElementById(id).classList.remove('sh');}
 
@@ -1025,26 +1130,81 @@ function pedStatus(p){
 }
 function fD2(s){if(!s||s==='-')return '-';var p=s.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s;}
 function rPed(){
+  allocateMTSOPET();
+  var q=(document.getElementById('pedSrch')||{value:''}).value.toLowerCase();
+  var fe=(document.getElementById('pedEstrF')||{value:''}).value;
+  var fs=(document.getElementById('pedSemF')||{value:''}).value;
+  var fp=(document.getElementById('pedPlanF')||{value:''}).value;
   var tb=document.getElementById('pedTB');if(!tb)return;tb.innerHTML='';
-  PED.forEach(function(p,i){
-    var st=pedStatus(p);
-    var ofCell=p.of?'<strong style="color:var(--success)">'+p.of+'</strong>':'<span class="muted">— sin planificar —</span>';
-    var planChip=p.of?'planif':'sin';
-    var rdRow=RD.find(function(r){return r[0]===p.mat;});
-    var estrat=rdRow?rdRow[7]||'MTS':null;
-    var estratCell=estrat?'<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>':'<span class="muted">—</span>';
-    tb.innerHTML+='<tr data-plan="'+planChip+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+estratCell+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td><span class="b '+st.cls+'">'+st.lbl+(st.dias>0?' ('+st.dias+'d)':'')+'</span></td><td><button class="btn bsm" style="background:#0077b6;color:#fff;margin-right:3px" onclick="openEditPed('+i+')">✏</button><button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+i+')">X</button></td></tr>';
+  var data=PED.map(enrichPedidoOPET).filter(function(o){
+    if(fe&&o.estrategia!==fe)return false;
+    if(fs&&o.sem!==fs)return false;
+    if(fp&&o.planificado!==fp)return false;
+    if(q&&!(o.id+o.cli+o.mat).toLowerCase().includes(q))return false;
+    return true;
+  });
+  data.forEach(function(o,i){
+    var idx=PED.indexOf(PED.find(function(p){return p.id===o.id;}));
+    var semDot='<span class="sem-dot sem-'+o.sem+'"></span>';
+    var planPill=o.planificado==='SI'?'<span class="pill-si">SI</span>':o.planificado==='STOCK'?'<span class="pill-stock">STOCK</span>':'<span class="pill-no">NO</span>';
+    var arCls=o.atrasoReal>0?'late-r':o.atrasoReal===0?'ok-cell':'neut-cell';
+    var atCls=o.atrasoTeorico===null?'neut-cell':o.atrasoTeorico>0?'late-t':'ok-cell';
+    var rdRow=RD.find(function(r){return r[0]===o.mat;});
+    var estrat=rdRow?rdRow[7]||'MTS':'MTS';
+    var estratCell='<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>';
+    var mkey=o.id;
+    var mcur=motivosPedidoOPET[mkey]||'';
+    var motivoSel='<select class="motivo-sel'+(mcur?' has-val':'')+'" data-mk="'+mkey+'" onchange="setMotivoPed(this.dataset.mk,this.value);this.className=\x27motivo-sel\x27+(this.value?\x27 has-val\x27:\x27\x27)">'
+      +'<option value="">—</option>'+motivosAtrasoOPET.map(function(m){return'<option'+(m===mcur?' selected':'')+'>'+m+'</option>';}).join('')+'</select>';
+    var ofDisp=o.ofs&&o.ofs.length?o.ofs.map(function(x){return x.of;}).join(', '):(o.of||'—');
+    var fdStr=o.fechaDisp?fD2(o.fechaDisp):'SIN FECHA';
+    var arStr=o.atrasoReal!==null?o.atrasoReal+'d':'—';
+    var atStr=o.atrasoTeorico!==null?o.atrasoTeorico+'d':'SIN FECHA';
+    var detId='peddet-'+o.id.replace(/[^a-z0-9]/gi,'-');
+    tb.innerHTML+='<tr style="cursor:default">'
+      +'<td style="text-align:center"><button class="btn bsm" style="background:#eef7ff;color:#0077b6;padding:3px 7px" onclick="togglePedDet(\''+detId+'\')">+</button></td>'
+      +'<td style="text-align:center">'+semDot+'</td>'
+      +'<td><strong>'+o.id+'</strong></td>'
+      +'<td>'+o.cli+'</td>'
+      +'<td style="font-family:monospace;font-size:10px">'+o.mat+'</td>'
+      +'<td style="text-align:center">'+estratCell+'</td>'
+      +'<td style="text-align:right">'+o.qty.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:right">'+(o.servido||0).toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:right">'+o.pendiente.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:right">'+o.reservado.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:center">'+planPill+'</td>'
+      +'<td style="text-align:center">'+fD2(o.fE)+'</td>'
+      +'<td style="text-align:center">'+fdStr+'</td>'
+      +'<td class="'+arCls+'" style="text-align:center">'+arStr+'</td>'
+      +'<td class="'+atCls+'" style="text-align:center">'+atStr+'</td>'
+      +'<td>'+motivoSel+'</td>'
+      +'<td style="font-family:monospace;font-size:10px">'+ofDisp+'</td>'
+      +'<td style="text-align:center">'
+        +'<button class="btn bsm" style="background:#0077b6;color:#fff;margin-right:3px" onclick="openEditPed('+idx+')">✏</button>'
+        +'<button class="btn bsm" style="background:#e63946;color:#fff" onclick="dPed('+idx+')">✕</button>'
+      +'</td></tr>'
+      +'<tr id="'+detId+'" style="display:none"><td colspan="18" style="padding:0;background:#f9fbfe">'
+        +'<div style="padding:14px 16px"><strong>OFs asociadas:</strong> '+(ofDisp==='—'?'Sin órdenes asociadas.':ofDisp)+'<br>'
+        +'<span style="font-size:11px;color:var(--tl)">Estrategia: '+estrat+' · Planificado: '+o.planificado+' · Fecha disponibilidad: '+fdStr+'</span></div>'
+      +'</td></tr>';
   });
   // KPIs
   var kp=document.getElementById('pedKpi');if(kp){
-    var tot=PED.length,plnd=PED.filter(function(p){return p.of;}).length,nplnd=tot-plnd;
-    var crits=PED.filter(function(p){return pedStatus(p).lbl==='Crítico';}).length;
-    kp.innerHTML='<div class="kc"><div class="kl">Total Pedidos</div><div class="kv">'+tot+'</div></div>'+
-      '<div class="kc s"><div class="kl">Planificados</div><div class="kv">'+plnd+'</div></div>'+
-      '<div class="kc w"><div class="kl">Sin planificar</div><div class="kv">'+nplnd+'</div></div>'+
-      '<div class="kc d"><div class="kl">Críticos</div><div class="kv">'+crits+'</div></div>';
+    var tot=data.length;
+    var plnd=data.filter(function(p){return p.planificado==='SI';}).length;
+    var stk=data.filter(function(p){return p.planificado==='STOCK';}).length;
+    var nplnd=data.filter(function(p){return p.planificado==='NO';}).length;
+    var crits=data.filter(function(p){return p.sem==='red';}).length;
+    var risk=data.filter(function(p){return p.sem==='yellow';}).length;
+    kp.innerHTML='<div class="kc"><div class="kl">Total Pedidos</div><div class="kv">'+tot+'</div></div>'
+      +'<div class="kc s"><div class="kl">Planificados (SI)</div><div class="kv">'+plnd+'</div></div>'
+      +'<div class="kc"><div class="kl">Cubiertos por Stock</div><div class="kv">'+stk+'</div></div>'
+      +'<div class="kc w"><div class="kl">Sin Cobertura (NO)</div><div class="kv">'+nplnd+'</div></div>'
+      +'<div class="kc d"><div class="kl">Atraso Real</div><div class="kv">'+crits+'</div></div>'
+      +'<div class="kc w"><div class="kl">Riesgo Teórico</div><div class="kv">'+risk+'</div></div>';
   }
 }
+function togglePedDet(id){var r=document.getElementById(id);if(r)r.style.display=r.style.display==='none'?'':'none';}
 function fltPed(){var q=(document.getElementById('pedSrch').value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');var pf=document.getElementById('pedPlanF').value;document.querySelectorAll('#pedTB tr').forEach(function(tr){var mq=tr.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').indexOf(q)>=0;var mp=!pf||tr.dataset.plan===pf;tr.style.display=mq&&mp?'':'none';});}
 function updPdEstrat(){
   var mat=document.getElementById('pdMat').value;
@@ -1073,7 +1233,7 @@ function openEditPed(i){
   s.value=p.mat;
   document.getElementById('pdCli').value=p.cli;
   document.getElementById('pdQty').value=p.qty;
-  document.getElementById('pdFE').value=p.fE;
+  document.getElementById('pdFE').value=p.fE;var fpEl=document.getElementById('pdFP');if(fpEl)fpEl.value=p.fechaPrimera||p.fE;var spEl=document.getElementById('pdServ');if(spEl)spEl.value=p.servido||0;
   document.getElementById('pdOF').value=p.of||'';
   updPdEstrat();
   var h3=document.querySelector('#mNewPed h3');if(h3)h3.textContent='✏️ Editar Pedido — '+p.id;
@@ -1088,7 +1248,7 @@ function svPed(){
   if(pedEditIdx>=0&&pedEditIdx<PED.length){
     var p=PED[pedEditIdx];p.mat=mat;p.cli=cli;p.qty=qty;p.fE=fE;
   } else {
-    PED.push({id:'PED-'+nxPed++,cli:cli,mat:mat,qty:qty,fE:fE,of:''});
+    var fdp=document.getElementById('pdFP');var srv=+(document.getElementById('pdServ')||{value:0}).value||0;PED.push({id:'PED-'+nxPed++,cli:cli,mat:mat,qty:qty,fE:fE,of:'',servido:srv,pendiente:qty-srv,reservado:0,fechaPrimera:fdp?fdp.value:fE});
   }
   pedEditIdx=-1;
   clM('mNewPed');rPed();
@@ -1164,30 +1324,52 @@ function genDemoData(){
 }
 
 function rA(){
-  const b=document.getElementById('aB');if(!b)return;b.innerHTML='';
-  // Use PED (master pedidos) — show every pedido with its real status
-  PED.forEach(function(p){
-    var st=pedStatus(p);
-    var bc=st.cls;
-    // Lookup associated order's F.Fin (prevista)
-    var fPrev='-';
-    if(p.of){
-      Object.keys(ordersCreated||{}).forEach(function(mq){(ordersCreated[mq]||[]).forEach(function(o){if(o.of===p.of)fPrev=fD2(o.fFin);});});
-    }
-    var dc=st.dias>10?'#e63946':st.dias>0?'#f4a261':'#2a9d8f';
-    var ofCell=p.of?'<strong style="color:var(--success);font-family:monospace">'+p.of+'</strong>':'<span class="muted">— sin planificar —</span>';
-    b.innerHTML+='<tr data-e="'+st.lbl+'"><td><strong>'+p.id+'</strong></td><td>'+p.cli+'</td><td style="font-family:monospace;font-size:11px">'+p.mat+'</td><td>'+p.qty.toLocaleString()+'</td><td>'+fD2(p.fE)+'</td><td>'+ofCell+'</td><td>'+fPrev+'</td><td style="font-weight:700;color:'+dc+'">'+st.dias+'</td><td><span class="b '+bc+'">'+st.lbl+'</span></td></tr>';
+  allocateMTSOPET();
+  var q=(document.getElementById('aS')||{value:''}).value.toLowerCase();
+  var se=(document.getElementById('aE')||{value:''}).value;
+  var sp=(document.getElementById('aFPlan')||{value:''}).value;
+  var D=PED.map(enrichPedidoOPET).filter(function(o){
+    if(se&&o.sem!==se)return false;
+    if(sp&&o.planificado!==sp)return false;
+    if(q&&!(o.id+o.cli+o.mat).toLowerCase().includes(q))return false;
+    return true;
   });
-  // Recompute top KPIs from PED status
-  var kg=document.querySelector('#p-atraso .kg');
-  if(kg){
-    var tot=PED.filter(function(p){return pedStatus(p).dias>0;}).length;
-    var dsum=PED.reduce(function(a,p){return a+pedStatus(p).dias;},0);
-    var avg=PED.length?Math.round(dsum/PED.length*10)/10:0;
-    var crits=PED.filter(function(p){return pedStatus(p).lbl==='Crítico';}).length;
-    var onTime=PED.length?Math.round(PED.filter(function(p){return pedStatus(p).dias===0;}).length/PED.length*100):0;
-    kg.innerHTML='<div class="kc d"><div class="kl">Total Pedidos Atrasados</div><div class="kv">'+tot+'</div></div><div class="kc w"><div class="kl">Atraso Medio</div><div class="kv">'+avg+' días</div></div><div class="kc d"><div class="kl">Pedidos Críticos (>10 días)</div><div class="kv">'+crits+'</div></div><div class="kc s"><div class="kl">Pedidos a Tiempo (mes)</div><div class="kv">'+onTime+'%</div></div>';
-  }
+  var tb=document.getElementById('aB');if(!tb)return;tb.innerHTML='';
+  D.forEach(function(o){
+    var semDot='<span class="sem-dot sem-'+o.sem+'"></span>';
+    var planPill=o.planificado==='SI'?'<span class="pill-si">SI</span>':o.planificado==='STOCK'?'<span class="pill-stock">STOCK</span>':'<span class="pill-no">NO</span>';
+    var arCls=o.atrasoReal>0?'late-r':o.atrasoReal===0?'ok-cell':'neut-cell';
+    var atCls=o.atrasoTeorico===null?'neut-cell':o.atrasoTeorico>0?'late-t':'ok-cell';
+    var rdRow=RD.find(function(r){return r[0]===o.mat;});
+    var estrat=rdRow?rdRow[7]||'MTS':'MTS';
+    var estratCell='<span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span>';
+    var fdStr=o.fechaDisp?fD2(o.fechaDisp):'SIN FECHA';
+    var mcur=motivosPedidoOPET[o.id]||'';
+    tb.innerHTML+='<tr>'
+      +'<td style="text-align:center">'+semDot+'</td>'
+      +'<td><strong>'+o.id+'</strong></td>'
+      +'<td>'+o.cli+'</td>'
+      +'<td style="font-family:monospace;font-size:10px">'+o.mat+'</td>'
+      +'<td style="text-align:center">'+estratCell+'</td>'
+      +'<td style="text-align:right">'+o.qty.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:right">'+o.pendiente.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:right">'+o.reservado.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:center">'+planPill+'</td>'
+      +'<td style="text-align:center">'+fD2(o.fE)+'</td>'
+      +'<td style="text-align:center">'+fdStr+'</td>'
+      +'<td class="'+arCls+'" style="text-align:center">'+(o.atrasoReal!==null?o.atrasoReal+'d':'—')+'</td>'
+      +'<td class="'+atCls+'" style="text-align:center">'+(o.atrasoTeorico!==null?o.atrasoTeorico+'d':'SIN FECHA')+'</td>'
+      +'<td>'+(mcur||'<span style="color:var(--tl);font-style:italic;font-size:10px">sin motivo</span>')+'</td>'
+      +'</tr>';
+  });
+  // KPIs
+  var nAR=D.filter(function(o){return o.sem==='red';}).length;
+  var nAT=D.filter(function(o){return o.sem==='yellow';}).length;
+  var nEF=D.filter(function(o){return o.sem==='green';}).length;
+  var nNO=D.filter(function(o){return o.planificado==='NO';}).length;
+  var nSTK=D.filter(function(o){return o.planificado==='STOCK';}).length;
+  var kpAR=document.getElementById('kpAR'),kpAT=document.getElementById('kpAT'),kpEF=document.getElementById('kpEF'),kpNO=document.getElementById('kpNO'),kpSTK=document.getElementById('kpSTK');
+  if(kpAR)kpAR.textContent=nAR;if(kpAT)kpAT.textContent=nAT;if(kpEF)kpEF.textContent=nEF;if(kpNO)kpNO.textContent=nNO;if(kpSTK)kpSTK.textContent=nSTK;
 }
 rA();
 function fA(){const q=document.getElementById('aS').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');const e=document.getElementById('aE').value;document.querySelectorAll('#aB tr').forEach(tr=>{const mq=tr.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(q);const me=!e||tr.dataset.e===e;tr.style.display=mq&&me?'':'none';});}
@@ -2709,6 +2891,306 @@ function resetCalPers(){
   renderCalPers();
 }
 
+
+/* ======================================================
+   SEGUIMIENTO PEDIDOS — integración en OPET
+   ====================================================== */
+var motivosAtrasoOPET=['Falta materia prima','Retraso producción','Problema calidad','Falta capacidad','Cambio prioridad','Pendiente confirmación cliente','Problema logístico'];
+var motivosPedidoOPET={};
+var stockDataOPET={};  // {matId: {stockTotal, reservas:[{pedido,cantidad}]}}
+
+/* ── Init stockDataOPET from RD ── */
+function initStockFromRD(){
+  if(!RD||!RD.length)return;
+  RD.forEach(function(r){
+    if(!stockDataOPET[r[0]])stockDataOPET[r[0]]={stockTotal:0,reservas:[]};
+  });
+}
+
+/* ── Get reserved qty for a pedido from stockDataOPET ── */
+function getPedReservado(pedId,matId){
+  var sd=stockDataOPET[matId];if(!sd)return 0;
+  var r=(sd.reservas||[]).find(function(x){return x.pedido===pedId;});
+  return r?r.cantidad:0;
+}
+function getStockLibreOPET(matId){
+  var sd=stockDataOPET[matId];if(!sd)return 0;
+  var tot=(sd.reservas||[]).reduce(function(s,r){return s+r.cantidad;},0);
+  return Math.max(0,(sd.stockTotal||0)-tot);
+}
+function getStockReservadoOPET(matId){
+  var sd=stockDataOPET[matId];if(!sd)return 0;
+  return(sd.reservas||[]).reduce(function(s,r){return s+r.cantidad;},0);
+}
+
+/* ── Allocate MTS orders to PED fictitiously ── */
+function allocateMTSOPET(){
+  // Sync reservado from stockDataOPET
+  PED.forEach(function(p){
+    if(stockDataOPET[p.mat]!==undefined){
+      p.reservado=getPedReservado(p.id,p.mat);
+    } else {
+      p.reservado=p.reservado||0;
+    }
+    p.asigOF=undefined;
+  });
+  // Build MTS pool: all ordersCreated not linked to a PED via p.of
+  var pool={};
+  Object.keys(ordersCreated||{}).forEach(function(maq){
+    (ordersCreated[maq]||[]).forEach(function(o){
+      var isLinked=PED.some(function(p){return p.of===o.of;});
+      if(!isLinked){
+        if(!pool[o.mat])pool[o.mat]=[];
+        pool[o.mat].push(Object.assign({},o,{disp:o.qty,maq:maq}));
+      }
+    });
+  });
+  Object.values(pool).forEach(function(l){l.sort(function(a,b){return new Date(a.fFin||'2099')-new Date(b.fFin||'2099');});});
+  // Assign to unlinked MTS pedidos sorted by fE
+  PED.filter(function(p){return !p.of;}).sort(function(a,b){return new Date(a.fE)-new Date(b.fE);}).forEach(function(p){
+    var rdRow=RD.find(function(r){return r[0]===p.mat;});
+    var estrat=rdRow?rdRow[7]||'MTS':'MTS';
+    if(estrat!=='MTS')return;
+    var reservado=p.reservado||0;
+    var pendiente=(p.qty||0)-(p.servido||0);
+    if(reservado>=pendiente)return;
+    var needed=pendiente-reservado;
+    p.asigOF=[];
+    (pool[p.mat]||[]).forEach(function(o){
+      if(needed<=0)return;if(o.disp<=0)return;
+      var q=Math.min(needed,o.disp);
+      p.asigOF.push({of:o.of,fFin:o.fFin,cantAsig:q,mat:o.mat,maq:o.maq});
+      o.disp-=q;needed-=q;
+    });
+  });
+}
+
+/* ── Enrich a PED entry with seguimiento fields ── */
+function enrichPedidoOPET(p){
+  var rdRow=RD.find(function(r){return r[0]===p.mat;});
+  var estrategia=rdRow?rdRow[7]||'MTS':'MTS';
+  var servido=p.servido||0;
+  var pendiente=(p.qty||0)-servido;
+  var reservado=p.reservado||0;
+  // Find associated orders
+  var ofs=[];
+  if(p.of){
+    Object.keys(ordersCreated||{}).forEach(function(maq){
+      (ordersCreated[maq]||[]).forEach(function(o){if(o.of===p.of)ofs.push(Object.assign({},o,{maq:maq}));});
+    });
+  } else if(p.asigOF&&p.asigOF.length){
+    ofs=p.asigOF;
+  }
+  // fechaDisp
+  var fechaDisp=null;var planificado='NO';
+  if(reservado>=pendiente){
+    planificado='STOCK';fechaDisp=PED_TODAY;
+  } else if(p.of&&ofs.length){
+    var totalOf=ofs.reduce(function(s,o){return s+(o.qty||0);},0);
+    if(totalOf>=pendiente)planificado='SI';
+    var fins=ofs.map(function(o){return o.fFin;}).filter(Boolean).sort();
+    fechaDisp=fins.length?fins[fins.length-1]:null;
+  } else if(!p.of&&p.asigOF&&p.asigOF.length){
+    var totalAsig=p.asigOF.reduce(function(s,o){return s+o.cantAsig;},0);
+    if(totalAsig>=pendiente-reservado)planificado='SI';
+    var fins2=p.asigOF.map(function(o){return o.fFin;}).filter(Boolean).sort();
+    fechaDisp=fins2.length?fins2[fins2.length-1]:null;
+  }
+  if(planificado==='STOCK')fechaDisp=PED_TODAY;
+  // atraso
+  var HOY=new Date(PED_TODAY),FE=new Date(p.fE);
+  var atrasoReal=Math.round((HOY-FE)/86400000);
+  var atrasoTeorico=null;
+  if(fechaDisp){var FD=new Date(fechaDisp);atrasoTeorico=Math.round((FD-FE)/86400000);}
+  // semáforo
+  var sem='green';
+  if(atrasoReal>0)sem='red';
+  else if(atrasoTeorico!==null&&atrasoTeorico>0)sem='yellow';
+  return Object.assign({},p,{estrategia,servido,pendiente,reservado,ofs,fechaDisp,planificado,atrasoReal,atrasoTeorico,sem});
+}
+
+/* ── Motivos de atraso (pedidos) ── */
+function toggleMotPed(){var b=document.getElementById('motPedBody'),t=document.getElementById('motPedToggle');if(b){b.style.display=b.style.display==='none'?'block':'none';if(t)t.textContent=b.style.display==='none'?'▼':'▲';}}
+function renderMotivosOPET(){var el=document.getElementById('motivosListPed');if(!el)return;el.innerHTML=motivosAtrasoOPET.map(function(m,i){return'<span class="motivo-tag-op">'+m+'<button onclick="removeMotivoPed('+i+')" title="Eliminar">×</button></span>';}).join('');}
+function addMotivoPed(){var inp=document.getElementById('nuevoMotivoPed'),v=inp.value.trim();if(!v)return;if(motivosAtrasoOPET.indexOf(v)>=0){alert('Ya existe.');return;}motivosAtrasoOPET.push(v);inp.value='';renderMotivosOPET();rPed();}
+function removeMotivoPed(i){var rem=motivosAtrasoOPET.splice(i,1)[0];Object.keys(motivosPedidoOPET).forEach(function(k){if(motivosPedidoOPET[k]===rem)delete motivosPedidoOPET[k];});renderMotivosOPET();rPed();}
+function setMotivoPed(k,v){if(v)motivosPedidoOPET[k]=v;else delete motivosPedidoOPET[k];}
+
+/* ── STOCK PAGE ─────────────────────────────────────────────────────────────── */
+function renderStockPage(){
+  initStockFromRD();
+  var qv=(document.getElementById('qSt')||{value:''}).value.toLowerCase();
+  var ff=(document.getElementById('fStFam')||{value:''}).value;
+  var matIds=Object.keys(stockDataOPET);
+  var rows=matIds.filter(function(id){
+    var rdRow=RD.find(function(r){return r[0]===id;});if(!rdRow)return false;
+    var fam=findFamilyForMaterial?findFamilyForMaterial(id):null;
+    var famNm=fam?fam.nm:'—';
+    if(ff&&famNm!==ff)return false;
+    if(qv&&!(id.toLowerCase().includes(qv)||(rdRow[1]||'').toLowerCase().includes(qv)||famNm.toLowerCase().includes(qv)))return false;
+    return true;
+  });
+  var totStock=0,totRes=0,totLib=0;
+  rows.forEach(function(id){var sd=stockDataOPET[id]||{stockTotal:0};totStock+=sd.stockTotal||0;totRes+=getStockReservadoOPET(id);totLib+=getStockLibreOPET(id);});
+  var kpStMat=document.getElementById('kpStMat'),kpStTot=document.getElementById('kpStTot'),kpStRes=document.getElementById('kpStRes'),kpStLib=document.getElementById('kpStLib');
+  if(kpStMat)kpStMat.textContent=rows.length;
+  if(kpStTot)kpStTot.textContent=totStock.toLocaleString('es-ES');
+  if(kpStRes)kpStRes.textContent=totRes.toLocaleString('es-ES');
+  if(kpStLib)kpStLib.textContent=totLib.toLocaleString('es-ES');
+  // Populate familia dropdown once
+  var fStFam=document.getElementById('fStFam');
+  if(fStFam&&fStFam.options.length<=1&&FAM&&FAM.length){
+    FAM.forEach(function(f){var o=document.createElement('option');o.value=f.nm;o.textContent=f.id+' · '+f.nm;fStFam.appendChild(o);});
+  }
+  var tb=document.getElementById('tbodyStockOPET');if(!tb)return;tb.innerHTML='';
+  rows.forEach(function(id){
+    var rdRow=RD.find(function(r){return r[0]===id;});if(!rdRow)return;
+    var fam=findFamilyForMaterial?findFamilyForMaterial(id):null;var famNm=fam?fam.id+' '+fam.nm:'—';
+    var estrat=rdRow[7]||'MTS';
+    var sd=stockDataOPET[id]||{stockTotal:0,reservas:[]};
+    var tot=sd.stockTotal||0,res=getStockReservadoOPET(id),lib=getStockLibreOPET(id);
+    var pct=tot?Math.min(100,Math.round(res/tot*100)):0;
+    var bar='<span class="stk-bar"><span class="stk-bar-r" style="width:'+pct+'%"></span><span class="stk-bar-l" style="width:'+(100-pct)+'%"></span></span>';
+    tb.innerHTML+='<tr>'
+      +'<td style="text-align:center"><button class="btn bsm" style="background:#eef7ff;color:#0077b6;padding:3px 7px" onclick="toggleStockDetOPET(\''+id+'\')">+</button></td>'
+      +'<td style="font-family:monospace;font-size:11px"><strong>'+id+'</strong></td>'
+      +'<td>'+rdRow[1]+'</td>'
+      +'<td>'+famNm+'</td>'
+      +'<td style="text-align:center"><span class="b '+(estrat==='MTO'?'w':'g')+'">'+estrat+'</span></td>'
+      +'<td style="text-align:right"><input class="stk-tot-inp" type="number" min="0" value="'+tot+'" onchange="updateStockTotalOPET(\''+id+'\',+this.value)"></td>'
+      +'<td style="text-align:right">'+res.toLocaleString('es-ES')+'</td>'
+      +'<td style="text-align:right;color:'+(lib>0?'#16a34a':'#dc2626')+'"><strong>'+lib.toLocaleString('es-ES')+'</strong></td>'
+      +'<td style="text-align:center">'+bar+'</td>'
+      +'<td style="text-align:center">'+(sd.reservas||[]).length+'</td>'
+      +'<td style="text-align:center"><button class="btn bp bsm" onclick="openAddReservaOPET(\''+id+'\')">+ Reservar</button></td>'
+      +'</tr>'
+      +'<tr id="stdetOPET-'+id+'" style="display:none" class="stk-expand-row"><td colspan="11"><div id="stdetcont-'+id+'" class="stk-inner"></div></td></tr>';
+  });
+}
+function toggleStockDetOPET(id){var row=document.getElementById('stdetOPET-'+id);if(!row)return;var was=row.style.display==='none'||row.style.display==='';row.style.display=was?'table-row':'none';if(was)renderStockDetailOPET(id);}
+function renderStockDetailOPET(id){
+  var sd=stockDataOPET[id]||{stockTotal:0,reservas:[]};
+  var rdRow=RD.find(function(r){return r[0]===id;});var unidad=rdRow?'uds':'uds';
+  var html='<b style="font-size:12px">Reservas para '+id+'</b><div style="margin-top:8px">';
+  if(!(sd.reservas||[]).length)html+='<div style="color:var(--tl);font-style:italic;padding:6px">Sin reservas — todo el stock está libre.</div>';
+  (sd.reservas||[]).forEach(function(r,i){
+    var p=PED.find(function(x){return x.id===r.pedido;});
+    var cli=p?p.cli:'—',fe=p?fD2(p.fE):'—';
+    html+='<div class="stk-res-row"><span class="stk-badge">'+r.pedido+'</span>'
+      +'<span style="flex:1">'+cli+'</span>'
+      +'<span style="color:var(--tl);font-size:11px">F.Entrega: '+fe+'</span>'
+      +'<input type="number" min="0" class="stk-inp" value="'+r.cantidad+'" onchange="updateReservaOPET(\''+id+'\','+i+',+this.value)"> '+unidad
+      +'<button class="stk-del" onclick="deleteReservaOPET(\''+id+'\','+i+')">✕</button></div>';
+  });
+  html+='</div>';
+  var cont=document.getElementById('stdetcont-'+id);if(cont)cont.innerHTML=html;
+}
+function updateStockTotalOPET(id,val){if(!stockDataOPET[id])stockDataOPET[id]={stockTotal:0,reservas:[]};stockDataOPET[id].stockTotal=Math.max(0,val||0);renderStockPage();rPed();rA();}
+function updateReservaOPET(id,idx,val){if(!stockDataOPET[id])return;(stockDataOPET[id].reservas||[])[idx].cantidad=Math.max(0,val||0);renderStockDetailOPET(id);renderStockPage();rPed();rA();}
+function deleteReservaOPET(id,idx){if(!stockDataOPET[id])return;stockDataOPET[id].reservas.splice(idx,1);renderStockDetailOPET(id);renderStockPage();rPed();rA();}
+function openAddReservaOPET(matId){
+  var pedOpts=PED.filter(function(p){return p.mat===matId;}).map(function(p){return'<option value="'+p.id+'">'+p.id+' — '+p.cli+' ('+p.qty.toLocaleString('es-ES')+')</option>';}).join('');
+  if(!pedOpts){alert('No hay pedidos de '+matId);return;}
+  var row=document.getElementById('stdetOPET-'+matId);if(row){row.style.display='table-row';renderStockDetailOPET(matId);}
+  var cont=document.getElementById('stdetcont-'+matId);if(!cont)return;
+  cont.innerHTML+='<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+    +'<b style="font-size:12px">Nueva reserva:</b>'
+    +'<select id="newResPedOPET-'+matId+'">'+pedOpts+'</select>'
+    +'<input id="newResCantOPET-'+matId+'" type="number" min="0" value="0" style="width:90px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px">'
+    +'<button class="btn bp bsm" onclick="saveNewReservaOPET(\''+matId+'\')">Guardar</button>'
+    +'<button class="btn bsm" style="background:#eee;color:#333" onclick="renderStockDetailOPET(\''+matId+'\')">Cancelar</button>'
+    +'</div>';
+}
+function saveNewReservaOPET(matId){
+  var sel=document.getElementById('newResPedOPET-'+matId);
+  var cant=+(document.getElementById('newResCantOPET-'+matId)||{value:0}).value;
+  if(!sel)return;var pedId=sel.value;
+  if(!stockDataOPET[matId])stockDataOPET[matId]={stockTotal:0,reservas:[]};
+  var ex=(stockDataOPET[matId].reservas||[]).find(function(r){return r.pedido===pedId;});
+  if(ex){ex.cantidad+=cant;}else{stockDataOPET[matId].reservas.push({pedido:pedId,cantidad:cant});}
+  renderStockDetailOPET(matId);renderStockPage();rPed();rA();
+}
+function clearStockFilters(){['qSt','fStFam'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});renderStockPage();}
+
+/* ── ASOCIACION ORDENES ─────────────────────────────────────────────────────── */
+function buildAsocRows(){
+  allocateMTSOPET();
+  var rows=[];
+  // MTO: orders linked to a PED via p.of
+  PED.forEach(function(p){
+    if(!p.of)return;
+    Object.keys(ordersCreated||{}).forEach(function(maq){
+      (ordersCreated[maq]||[]).forEach(function(o){
+        if(o.of!==p.of)return;
+        rows.push({of:o.of,mat:o.mat,desc:o.mat,maq:maq,qty:o.qty||0,fFin:o.fFin||'',
+          tipoAsoc:'MTO Real',pedidoAsoc:p.id,cli:p.cli,fePed:p.fE,cantAsig:o.qty||0,
+          comentario:'Orden real asociada a pedido MTO'});
+      });
+    });
+  });
+  // MTS: unlinked orders, show their fictitious assignments
+  Object.keys(ordersCreated||{}).forEach(function(maq){
+    (ordersCreated[maq]||[]).forEach(function(o){
+      var isLinked=PED.some(function(p){return p.of===o.of;});
+      if(isLinked)return;
+      // Find fictitious assignments in PED.asigOF
+      var asigs=[];
+      PED.forEach(function(p){(p.asigOF||[]).forEach(function(a){if(a.of===o.of)asigs.push({ped:p.id,cli:p.cli,fe:p.fE,cantAsig:a.cantAsig});});});
+      if(asigs.length){
+        asigs.forEach(function(a){
+          rows.push({of:o.of,mat:o.mat,desc:o.mat,maq:maq,qty:o.qty||0,fFin:o.fFin||'',
+            tipoAsoc:'MTS Ficticia',pedidoAsoc:a.ped,cli:a.cli,fePed:a.fe,cantAsig:a.cantAsig,
+            comentario:'Asignación ficticia FIFO por fecha entrega'});
+        });
+      } else {
+        rows.push({of:o.of,mat:o.mat,desc:o.mat,maq:maq,qty:o.qty||0,fFin:o.fFin||'',
+          tipoAsoc:'Sin consumo',pedidoAsoc:'—',cli:'—',fePed:'',cantAsig:0,
+          comentario:'No consumida o pedido cubierto por stock'});
+      }
+    });
+  });
+  return rows;
+}
+function renderAsocOrdenes(){
+  var rows=buildAsocRows();
+  var q=(document.getElementById('qAsoc')||{value:''}).value.toLowerCase();
+  var ft=(document.getElementById('fAsocTipo')||{value:''}).value;
+  rows=rows.filter(function(r){
+    if(ft&&r.tipoAsoc!==ft)return false;
+    if(q&&!(r.of+r.mat+r.pedidoAsoc+r.cli).toLowerCase().includes(q))return false;
+    return true;
+  });
+  var tb=document.getElementById('tbAsocOrd');if(!tb)return;tb.innerHTML='';
+  rows.forEach(function(r){
+    var tipoCls=r.tipoAsoc==='MTO Real'?'asoc-mto':r.tipoAsoc==='MTS Ficticia'?'asoc-mts':'asoc-sin';
+    tb.innerHTML+='<tr>'
+      +'<td><strong>'+r.of+'</strong></td>'
+      +'<td style="font-family:monospace;font-size:10px">'+r.mat+'</td>'
+      +'<td>'+r.desc+'</td>'
+      +'<td>'+r.maq+'</td>'
+      +'<td style="text-align:right">'+r.qty.toLocaleString('es-ES')+'</td>'
+      +'<td>'+fD2(r.fFin)+'</td>'
+      +'<td style="text-align:center"><span class="'+tipoCls+'">'+r.tipoAsoc+'</span></td>'
+      +'<td>'+r.pedidoAsoc+'</td>'
+      +'<td>'+r.cli+'</td>'
+      +'<td>'+fD2(r.fePed)+'</td>'
+      +'<td style="text-align:right">'+r.cantAsig.toLocaleString('es-ES')+'</td>'
+      +'<td style="color:var(--tl);font-size:11px">'+r.comentario+'</td>'
+      +'</tr>';
+  });
+}
+function clearAsocFilters(){['qAsoc','fAsocTipo'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});renderAsocOrdenes();}
+
+/* ── Auto-init stock when RD is loaded (extend existing loadFromSupa) ── */
+var _origLoadSupa=typeof loadFromSupa==='function'?loadFromSupa:null;
+if(_origLoadSupa){
+  loadFromSupa=function(){
+    _origLoadSupa.apply(this,arguments);
+    setTimeout(initStockFromRD,500);
+  };
+}
+/* Also init on page load if RD has items */
+setTimeout(function(){initStockFromRD();renderMotivosOPET();},800);
 </script>
 <div class="mo" id="mNewOrder" onclick="if(event.target===this)clM('mNewOrder')"><div class="ml"><button class="cm" onclick="clM('mNewOrder')">X</button><h3>Nueva Orden</h3><div class="fg"><label>📋 Pedido a planificar (opcional)</label><select id="noPed" onchange="onPedChange()"><option value="">— Sin pedido (orden manual) —</option></select></div><div class="fg"><label>Material</label><select id="noMat" onchange="calcNewOrd()"></select></div><div class="fg"><label>Cantidad</label><input type="number" id="noQty" value="50000" onchange="calcNewOrd()"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label>Horas</label><input type="number" id="noHrs" readonly style="background:#f0f0f0"></div><div class="fg"><label>Vel x OEE</label><span id="noVelInfo" style="font-size:11px;color:var(--tl)">-</span></div></div><div class="fg"><label>🔄 Ciclo destino (elige manualmente)</label><select id="noCyc" onchange="onCycChange()"><option value="">— Selecciona un ciclo —</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label>F.Inicio (auto desde ciclo)</label><input type="date" id="noFIni" value="2026-05-04" readonly style="background:#f0f0f0"></div><div class="fg"><label>F.Fin (auto)</label><input type="date" id="noFFin" readonly style="background:#f0f0f0"></div></div><div id="noCycInfo" style="font-size:11px;color:var(--accent2);margin-top:-6px;margin-bottom:10px">-</div><div class="fg"><label>OF</label><input type="text" id="noOF" placeholder="Auto"></div><div class="br"><button class="btn bp" onclick="saveNewOrder()">Guardar</button><button class="btn" onclick="clM('mNewOrder')" style="background:#eee">Cancelar</button></div></div></div>
 <div class="mo" id="mNewPrev" onclick="if(event.target===this)clM('mNewPrev')"><div class="ml" style="border-top:4px solid #f4a261"><button class="cm" onclick="clM('mNewPrev')">✕</button><h3>📊 Añadir Previsión Mensual</h3><p style="font-size:12px;color:var(--tl);margin-bottom:14px;line-height:1.6">Previsión mensual. Fondo naranja. <strong>Solo computa</strong> con <em>Plan.+Previsiones</em>.</p><div class="fg"><label>Material</label><select id="pvMat" onchange="calcNewPrev()"></select></div><div class="fg"><label>Cantidad mensual (uds)</label><input type="number" id="pvQty" value="50000" min="1" onchange="calcNewPrev()"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label>Horas estimadas</label><input type="number" id="pvHrs" readonly style="background:#f0f0f0"></div><div class="fg"><label>Vel × OEE</label><span id="pvVelInfo" style="font-size:11px;color:var(--tl)">-</span></div></div><div class="br"><button class="btn bp" onclick="saveNewPrev()" style="background:#f4a261;color:#333">Guardar Previsión</button><button class="btn" onclick="clM('mNewPrev')" style="background:#eee">Cancelar</button></div></div></div>
@@ -2737,7 +3219,11 @@ function resetCalPers(){
 <div class="fg"><label>Material</label><select id="pdMat" onchange="updPdEstrat()"></select></div>
 <div class="fg"><label>Estrategia</label><input type="text" id="pdEstrat" readonly style="background:#f0f0f0;font-weight:700;color:var(--tl);cursor:default" placeholder="—"></div>
 <div class="fg"><label>Cliente</label><input type="text" id="pdCli" placeholder="Ej: Mercadona"></div>
-<div class="fg"><label>Cantidad (uds)</label><input type="number" id="pdQty" value="50000" min="1" step="1000"></div>
+<div class="fg"><label>Cantidad total pedida (uds)</label><input type="number" id="pdQty" value="50000" min="1" step="1000"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  <div class="fg"><label>Ya servido (uds)</label><input type="number" id="pdServ" value="0" min="0" step="1000"></div>
+  <div class="fg"><label>1ª Fecha Entrega Orig.</label><input type="date" id="pdFP" value="2026-06-15"></div>
+</div>
 <div class="fg"><label>Fecha de Entrega</label><input type="date" id="pdFE" value="2026-06-15"></div>
 <div class="fg"><label>Orden Asociada</label><input type="text" id="pdOF" readonly placeholder="Se rellenará al planificar" style="background:#f0f0f0;font-style:italic;color:var(--tl)"></div>
 <div style="font-size:11px;color:var(--tl);background:#fef3c7;border-left:3px solid #f4a261;padding:8px 12px;border-radius:5px;margin-bottom:12px">ℹ️ La orden asociada se rellena automáticamente cuando planifiques el pedido desde la pantalla <strong>Creación Órdenes</strong>.</div>
