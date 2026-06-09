@@ -346,13 +346,17 @@ tr:hover td{background:rgba(0,180,216,.03);}
 </div></div>
 <div><label>Modo Calendario</label><div class="rg">
 <label><input type="radio" name="cC" value="actual" checked><span>Actual</span></label>
+<label><input type="radio" name="cC" value="1t"><span>1T (L-V)</span></label>
+<label><input type="radio" name="cC" value="2t"><span>2T (L-V)</span></label>
 <label><input type="radio" name="cC" value="3t"><span>3T (L-V)</span></label>
 <label><input type="radio" name="cC" value="4t"><span>4T (L-S)</span></label>
 <label><input type="radio" name="cC" value="5t"><span>5T (L-D)</span></label>
+<label><input type="radio" name="cC" value="custom"><span>Personalizado</span></label>
 </div></div>
 <div><label>Desde</label><br><select id="cdM"><option value="0">Ene</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Abr</option><option value="4" selected>May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dic</option></select><select id="cdY"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
 <div><label>Hasta</label><br><select id="chM"><option value="0">Ene</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Abr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Sep</option><option value="9">Oct</option><option value="10" selected>Nov</option><option value="11">Dic</option></select><select id="chY"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
 <button class="btn bp" onclick="cCa()">⚙️ Calcular</button>
+<button class="btn" style="background:#6c5ce7;color:#fff;margin-left:6px" onclick="openCalPers()">📅 Cal. Personalizado</button>
 </div>
 
 <div id="cRes" style="display:none">
@@ -378,7 +382,7 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <!-- ROW 3: Detalle por Material (aparece al click) -->
 <div class="cd det-mat" id="matDetail"><h3>📦 Detalle por Material — <span id="matSelInfo">Selecciona una fila</span></h3>
 <div class="tw"><table>
-<thead><tr><th>Material</th><th>Descripción</th><th>Molde</th><th>Origen</th><th>Cantidad</th><th>Horas</th><th>% Carga</th><th>OFs</th><th>Ruta Alt.</th></tr></thead>
+<thead><tr><th>Material</th><th>Descripción</th><th>Molde</th><th>Origen</th><th>Cantidad</th><th>Horas</th><th>% Carga</th><th>OFs</th><th>Ruta Alt.</th><th>Hrs. Ruta Alt.</th></tr></thead>
 <tbody id="matBody"></tbody>
 </table></div></div>
 </div>
@@ -460,9 +464,12 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 </div></div>
 <div><label>Modo Calendario</label><div class="rg">
 <label><input type="radio" name="bcC" value="actual" checked><span>Actual</span></label>
+<label><input type="radio" name="bcC" value="1t"><span>1T (L-V)</span></label>
+<label><input type="radio" name="bcC" value="2t"><span>2T (L-V)</span></label>
 <label><input type="radio" name="bcC" value="3t"><span>3T (L-V)</span></label>
 <label><input type="radio" name="bcC" value="4t"><span>4T (L-S)</span></label>
 <label><input type="radio" name="bcC" value="5t"><span>5T (L-D)</span></label>
+<label><input type="radio" name="bcC" value="custom"><span>Personalizado</span></label>
 </div></div>
 <div><label>Desde</label><br><select id="bcdM"><option value="0">Ene</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Abr</option><option value="4" selected>May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dic</option></select><select id="bcdY"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
 <div><label>Hasta</label><br><select id="bchM"><option value="0">Ene</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Abr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Sep</option><option value="9">Oct</option><option value="10" selected>Nov</option><option value="11">Dic</option></select><select id="bchY"><option>2025</option><option selected>2026</option><option>2027</option></select></div>
@@ -546,6 +553,7 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 </div></div>
 
 <!-- MODALS -->
+<div class="mo" id="mCalPers" onclick="if(event.target===this)clM('mCalPers')"><div class="ml" style="max-width:1150px;width:97vw"><button class="cm" onclick="clM('mCalPers')">✕</button><h3>📅 Calendario Personalizado de Capacidad</h3><p style="font-size:11px;color:var(--tl);margin-bottom:14px">Define turnos por máquina y mes. No afecta al calendario real. Al guardar activa el modo <strong>Personalizado</strong>.</p><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)"><div class="fg" style="min-width:120px"><label>Familia</label><select id="cpFam" onchange="renderCalPers()"><option value="">Todas</option></select></div><div class="fg" style="min-width:80px"><label>Año</label><select id="cpYear" onchange="renderCalPers()"><option>2025</option><option selected>2026</option><option>2027</option></select></div><div class="fg" style="min-width:130px"><label>Filtrar máquinas</label><input type="text" id="cpFilter" placeholder="Ej: T1, T4…" oninput="renderCalPers()" style="padding:6px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;width:100%"></div><div style="display:flex;gap:14px;flex-wrap:wrap"><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a TODO</div><div style="display:flex;gap:4px"><select id="cpAllVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option></select><button class="btn bp bsm" onclick="applyCalPersAll()">Aplicar</button></div></div><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a MES</div><div style="display:flex;gap:4px"><select id="cpMonthSel" class="oee-input"><option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option></select><select id="cpMonthVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option></select><button class="btn bp bsm" onclick="applyCalPersMes()">Aplicar</button></div></div><div><div style="font-size:11px;color:var(--tl);margin-bottom:4px">Aplicar a LÍNEA</div><div style="display:flex;gap:4px"><select id="cpLineSel" class="oee-input"></select><select id="cpLineVal" class="oee-input"><option value="1">1T</option><option value="2">2T</option><option value="3" selected>3T</option></select><button class="btn bp bsm" onclick="applyCalPersLine()">Aplicar</button></div></div></div></div><div class="tw" style="overflow-x:auto"><table style="min-width:900px"><thead><tr><th>Máquina</th><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th></tr></thead><tbody id="cpBody"></tbody></table></div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px"><button class="btn" style="background:#eee;color:#333" onclick="resetCalPers()">Restablecer</button><button class="btn bp" onclick="saveCalPers()">Guardar cambios</button></div></div></div>
 <div class="mo" id="mStop" onclick="if(event.target===this)clM('mStop')">
 <div class="ml"><button class="cm" onclick="clM('mStop')">✕</button><h3>Añadir Parada Planificada</h3>
 <div class="fg"><label>Máquina</label><select id="stMaq"><option>T1</option><option>T2</option></select></div>
@@ -621,6 +629,7 @@ new Chart(document.getElementById('chDonut'),{type:'doughnut',data:{labels:['Pla
 
 const stops={T2:[[20,21,'Mto. Preventivo','06:00','22:00']],T5:[[12,12,'Cambio molde','08:00','16:00']],E1:[[8,9,'Limpieza','06:00','14:00']]};
 const dSh={T1:3,T2:3,T3:3,T4:2,T5:3,T6:2,E1:3,E2:2};
+var customShifts={};
 
 // Registro de turnos por máquina y día: calShifts[maq]['2026-05-17'] = [true,true,false]
 const calShifts={};
@@ -649,16 +658,26 @@ function getWorkDays(yr,mo,calMode,maq){
 // Horas reales de un día concreto (respeta calShifts + calMode para días sin override)
 function getDayShiftsCapH(maq,yr,mo,d,calMode){
   const dateStr=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-  // Si hay override explícito del usuario, usarlo siempre
+  const dt=new Date(yr,mo,d),dow=dt.getDay();
+  if(calMode==='1t'||calMode==='2t'||calMode==='3t'){
+    const shN=calMode==='1t'?1:calMode==='2t'?2:3;
+    return (dow>=1&&dow<=5)?shN*8:0;
+  }
+  if(calMode==='4t'||calMode==='5t'){
+    const isWork=calMode==='5t'?true:(dow>=1&&dow<=6);
+    return isWork?(dSh[maq]||3)*8:0;
+  }
+  if(calMode==='custom'){
+    const ym=yr+'-'+String(mo+1).padStart(2,'0');
+    const shN=(customShifts[maq]&&customShifts[maq][ym]!==undefined)?customShifts[maq][ym]:(dSh[maq]||3);
+    return (dow>=1&&dow<=5)?shN*8:0;
+  }
   if(calShifts[maq]&&calShifts[maq][dateStr]!==undefined){
     return calShifts[maq][dateStr].filter(Boolean).length*8;
   }
-  // Sin override: usar lógica por defecto
   const ms=stops[maq]||[],sd=new Set();ms.forEach(s=>{for(let dd=s[0];dd<=s[1];dd++)sd.add(dd);});
   if(sd.has(d)) return 0;
-  const dt=new Date(yr,mo,d),dow=dt.getDay();
-  const isWork=calMode==='5t'?true:calMode==='4t'?(dow>=1&&dow<=6):(dow>=1&&dow<=5);
-  return isWork?(dSh[maq]||3)*8:0;
+  return (dow>=1&&dow<=5)?(dSh[maq]||3)*8:0;
 }
 
 function getCapH(yr,mo,maq,calMode){
@@ -666,7 +685,7 @@ function getCapH(yr,mo,maq,calMode){
   for(let d=1;d<=dim;d++) total+=getDayShiftsCapH(maq,yr,mo,d,calMode||'actual');
   return total;
 }
-function addWD(start,hrs,calMode,maq){var sh=(dSh[maq]||3)*8,days=Math.ceil(hrs/sh),d=new Date(start),added=0;while(added<days){d.setDate(d.getDate()+1);var dow=d.getDay();if(calMode==="5t"){added++;}else if(calMode==="4t"){if(dow>=1&&dow<=6)added++;}else{if(dow>=1&&dow<=5)added++;}}return d;}
+function addWD(start,hrs,calMode,maq){var shN=calMode==='1t'?1:calMode==='2t'?2:calMode==='3t'?3:(dSh[maq]||3);var sh=shN*8,days=Math.ceil(hrs/sh),d=new Date(start),added=0;while(added<days){d.setDate(d.getDate()+1);var dow=d.getDay();if(calMode==="5t"){added++;}else if(calMode==="4t"){if(dow>=1&&dow<=6)added++;}else{if(dow>=1&&dow<=5)added++;}}return d;}
 var ordersCreated={};var nextOfId=90100;
 
 function rCal(){
@@ -1343,14 +1362,18 @@ function selectYm(maq, ym){
   const tipo=document.querySelector('input[name=cT]:checked').value;
   const allRows=(DCData[maq]||[]).filter(r=>tipo==='plan'?r[2]==='Planificado':true).filter(r=>r[3]===ym);
   const b=document.getElementById('matBody');b.innerHTML='';
-  if(!allRows.length){b.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--tl)">Sin materiales</td></tr>';return;}
+  if(!allRows.length){b.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--tl)">Sin materiales</td></tr>';return;}
   var _pp=ym.split('-');var _cap=getCapH(+_pp[0],+_pp[1]-1,maq,(lastCalc.calMode||'actual'))||1;
   allRows.forEach((r,idx)=>{const oC=r[2]==='Planificado'?'bl':'y';const molde=MOLDE_MAP[r[0]]||'-';
     const ofsList=(r[7]||'').split(',').map(s=>s.trim()).filter(s=>s&&s!=='-');let ofsCell='-';
     if(ofsList.length){ofsCell='<span class="ofs-cell" onclick="toggleOfs(\'mat-'+maq+'-'+ym+'-'+idx+'\')">▸ '+ofsList.length+' OF'+(ofsList.length>1?'s':'')+'</span>';}
     var pctMat=Math.round(r[5]/_cap*1000)/10;var pctCo=pctMat>100?'var(--danger)':pctMat>85?'var(--warning)':'var(--success)';
-    b.innerHTML+='<tr><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td><span class="molde-chip normal">'+molde+'</span></td><td><span class="b '+oC+'">'+r[2]+'</span></td><td>'+r[4].toLocaleString()+'</td><td>'+r[5]+'h</td><td><strong style="color:'+pctCo+'">'+pctMat+'%</strong></td><td>'+ofsCell+'</td><td><span class="b g">'+r[8]+'</span></td></tr>';
-    if(ofsList.length){b.innerHTML+='<tr class="ofs-detail" id="ofs-mat-'+maq+'-'+ym+'-'+idx+'"><td colspan="9"><div class="ofs-inner">'+buildOfDetailTable(ofsList,r[4],r[3],maq,_cap)+'</div></td></tr>';}
+    var rt2=RD.find(function(x){return x[0]===r[0];});
+    var aVel2=rt2?rt2[6]:0,aMq2=rt2?(rt2[5]||''):'';
+    var aOEE2=(aMq2&&maqOEE[aMq2]!==undefined)?maqOEE[aMq2]:85;
+    var aHrs2=(aVel2>0&&aMq2&&aMq2!=='Ninguna')?Math.round(r[4]/(aVel2*aOEE2/100)*10)/10+'h':'<span style="color:var(--tl);font-size:10px">Sin V.O.</span>';
+    b.innerHTML+='<tr><td><strong>'+r[0]+'</strong></td><td>'+r[1]+'</td><td><span class="molde-chip normal">'+molde+'</span></td><td><span class="b '+oC+'">'+r[2]+'</span></td><td>'+r[4].toLocaleString()+'</td><td>'+r[5]+'h</td><td><strong style="color:'+pctCo+'">'+pctMat+'%</strong></td><td>'+ofsCell+'</td><td><span class="b g">'+r[8]+'</span></td><td>'+aHrs2+'</td></tr>';
+    if(ofsList.length){b.innerHTML+='<tr class="ofs-detail" id="ofs-mat-'+maq+'-'+ym+'-'+idx+'"><td colspan="10"><div class="ofs-inner">'+buildOfDetailTable(ofsList,r[4],r[3],maq,_cap)+'</div></td></tr>';}
   });panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
 
 /* --- Año_Mes + recalc already integrated into cCa() directly in v10 --- */
@@ -1368,7 +1391,7 @@ function cCaBal(){
   const mn=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   while(cy<yH||(cy===yH&&cm<=mH)){mos.push(mn[cm]+' '+cy);mosKey.push(cy+'-'+String(cm+1).padStart(2,'0'));cm++;if(cm>11){cm=0;cy++;}}
 
-  const ml2={actual:1,'3t':1,'4t':1.15,'5t':1.3},mt=ml2[cal]||1,pm=tipo==='prev'?1.2:1;
+  const ml2={actual:1,'1t':0.33,'2t':0.67,'3t':1,'4t':1.15,'5t':1.3,'custom':1},mt=ml2[cal]!==undefined?ml2[cal]:1,pm=tipo==='prev'?1.2:1;
 
   // === CAPACIDAD REAL desde calendario ===
   const capD=mos.map((_, idx)=>{const ym=mosKey[idx];const[y,m]=ym.split('-').map(Number);return mNamesAll.reduce((s,maq)=>s+getCapH(y,m-1,maq,cal),0);});
@@ -2630,6 +2653,57 @@ async function syncCargaCapacidad(){
 
 // Initial data load
 initFromSupabase();
+
+// ===== CALENDARIO PERSONALIZADO DE CAPACIDAD =====
+function openCalPers(){
+  var famSel=document.getElementById('cpFam');
+  if(famSel){famSel.innerHTML='<option value="">Todas</option>';(typeof FAM!=='undefined'?FAM:[]).forEach(function(f){famSel.innerHTML+='<option value="'+f.id+'">'+f.id+' – '+f.nm+'</option>';});}
+  var cpY=document.getElementById('cpYear');if(cpY){var yr=+(document.getElementById('cdY')||{value:2026}).value||2026;cpY.value=yr;}
+  renderCalPers();oM('mCalPers');
+}
+function renderCalPers(){
+  var yr=+(document.getElementById('cpYear')||{value:2026}).value||2026;
+  var filter=((document.getElementById('cpFilter')||{value:''}).value||'').trim().toLowerCase();
+  var famId=((document.getElementById('cpFam')||{value:''}).value)||'';
+  var maqs=(typeof mNamesAll!=='undefined'?mNamesAll:[]).slice();
+  if(famId&&typeof FAM!=='undefined'){var fam=FAM.find(function(f){return f.id===famId;});if(fam){var fm2=new Set();fam.mt.forEach(function(m){var rt=RD.find(function(r){return r[0]===m;});if(rt){fm2.add(rt[2]);if(rt[5]&&rt[5]!=='Ninguna')fm2.add(rt[5]);}});maqs=maqs.filter(function(m){return fm2.has(m);});}}
+  if(filter)maqs=maqs.filter(function(m){return m.toLowerCase().includes(filter);});
+  var ls=document.getElementById('cpLineSel');if(ls)ls.innerHTML=maqs.map(function(m){return'<option value="'+m+'">'+m+'</option>';}).join('');
+  var ms=['01','02','03','04','05','06','07','08','09','10','11','12'];
+  var tb=document.getElementById('cpBody');if(!tb)return;tb.innerHTML='';
+  maqs.forEach(function(maq){
+    var row='<tr><td><strong>'+maq+'</strong></td>';
+    ms.forEach(function(m){
+      var ym=yr+'-'+m;
+      var cur=(customShifts[maq]&&customShifts[maq][ym]!==undefined)?customShifts[maq][ym]:(dSh[maq]||3);
+      row+='<td><select class="oee-input" style="width:50px" data-maq="'+maq+'" data-ym="'+ym+'">'
+        +'<option value="1"'+(cur===1?' selected':'')+'>1T</option>'
+        +'<option value="2"'+(cur===2?' selected':'')+'>2T</option>'
+        +'<option value="3"'+(cur===3?' selected':'')+'>3T</option>'
+        +'</select></td>';
+    });
+    row+='</tr>';
+    tb.innerHTML+=row;
+  });
+}
+function applyCalPersAll(){var n=+(document.getElementById('cpAllVal')||{value:3}).value||3;document.querySelectorAll('#cpBody select').forEach(function(s){s.value=n;});}
+function applyCalPersMes(){var m=(document.getElementById('cpMonthSel')||{value:'01'}).value||'01';var n=+(document.getElementById('cpMonthVal')||{value:3}).value||3;var yr=(document.getElementById('cpYear')||{value:'2026'}).value||'2026';document.querySelectorAll('#cpBody select[data-ym="'+yr+'-'+m+'"]').forEach(function(s){s.value=n;});}
+function applyCalPersLine(){var maq=(document.getElementById('cpLineSel')||{value:''}).value||'';var n=+(document.getElementById('cpLineVal')||{value:3}).value||3;if(!maq)return;document.querySelectorAll('#cpBody select[data-maq="'+maq+'"]').forEach(function(s){s.value=n;});}
+function saveCalPers(){
+  document.querySelectorAll('#cpBody select').forEach(function(s){
+    var mq=s.dataset.maq,ym=s.dataset.ym,n=+s.value;
+    if(!mq||!ym)return;
+    if(!customShifts[mq])customShifts[mq]={};
+    customShifts[mq][ym]=n;
+  });
+  var cR=document.querySelector('input[name=cC][value=custom]');if(cR)cR.checked=true;
+  clM('mCalPers');cCa();
+}
+function resetCalPers(){
+  var yr=(document.getElementById('cpYear')||{value:'2026'}).value||'2026';
+  mNamesAll.forEach(function(maq){if(customShifts[maq])Object.keys(customShifts[maq]).forEach(function(ym){if(ym.startsWith(yr+'-'))delete customShifts[maq][ym];});});
+  renderCalPers();
+}
 
 </script>
 <div class="mo" id="mNewOrder" onclick="if(event.target===this)clM('mNewOrder')"><div class="ml"><button class="cm" onclick="clM('mNewOrder')">X</button><h3>Nueva Orden</h3><div class="fg"><label>📋 Pedido a planificar (opcional)</label><select id="noPed" onchange="onPedChange()"><option value="">— Sin pedido (orden manual) —</option></select></div><div class="fg"><label>Material</label><select id="noMat" onchange="calcNewOrd()"></select></div><div class="fg"><label>Cantidad</label><input type="number" id="noQty" value="50000" onchange="calcNewOrd()"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label>Horas</label><input type="number" id="noHrs" readonly style="background:#f0f0f0"></div><div class="fg"><label>Vel x OEE</label><span id="noVelInfo" style="font-size:11px;color:var(--tl)">-</span></div></div><div class="fg"><label>🔄 Ciclo destino (elige manualmente)</label><select id="noCyc" onchange="onCycChange()"><option value="">— Selecciona un ciclo —</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label>F.Inicio (auto desde ciclo)</label><input type="date" id="noFIni" value="2026-05-04" readonly style="background:#f0f0f0"></div><div class="fg"><label>F.Fin (auto)</label><input type="date" id="noFFin" readonly style="background:#f0f0f0"></div></div><div id="noCycInfo" style="font-size:11px;color:var(--accent2);margin-top:-6px;margin-bottom:10px">-</div><div class="fg"><label>OF</label><input type="text" id="noOF" placeholder="Auto"></div><div class="br"><button class="btn bp" onclick="saveNewOrder()">Guardar</button><button class="btn" onclick="clM('mNewOrder')" style="background:#eee">Cancelar</button></div></div></div>
