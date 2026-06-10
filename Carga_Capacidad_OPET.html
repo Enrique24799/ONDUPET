@@ -3096,20 +3096,38 @@ function loadDemoData(){
   if(mNamesAll.indexOf('T1')<0)mNamesAll.push('T1');
   if(mNamesAll.indexOf('T2')<0)mNamesAll.push('T2');
 
-  /* ── Fix RD machine assignments to match FAM ── */
-  RD[0][2]='T1';  // BAN-T400 → T1 (FAM F02)
-  RD[3][2]='T1';  // TAR-R250 → T1 (FAM F03)
-  RD[4][2]='T2';  // TAR-R150 → T2 (FAM F09)
-  RD[5][2]='T1';  // ENV-P600 → T1 (FAM F04)
-  RD[6][2]='T2';  // ENV-P300 → T2 (FAM F07)
-  RD[7][2]='T2';  // ENV-P400 → T2 (FAM F07)
-  RD[8][2]='T1';  // TAP-C100 → T1 (FAM F05)
-  RD[9][2]='T1';  // TAP-C200 → T1 (FAM F05)
-  RD[10][2]='T2'; // ENV-T500 → T2 (FAM F08)
-  RD[12][2]='T2'; // TAR-R300 → T2 (FAM F09)
-  /* Set strategies */
-  RD[0][7]='MTO'; RD[1][7]='MTO'; RD[6][7]='MTO';
-  [3,4,5,7,8,9,10,12].forEach(function(i){RD[i][7]='MTS';});
+  /* ── Self-contained material master (RD) — independiente de Supabase ── */
+  RD.length=0;
+  [
+   ['BAN-T400','Bandeja T400 PET transparente','T1',5200,85,'T3',4800,'MTO'],
+   ['BAN-T200','Bandeja T200 PET transparente','T1',6500,85,'T4',5800,'MTO'],
+   ['BAN-T300','Bandeja T300 PET negro','T3',5800,82,'T1',5200,'MTS'],
+   ['TAR-R250','Tarrina R250 PP blanco','T1',4200,80,'T6',3800,'MTS'],
+   ['TAR-R150','Tarrina R150 PP transparente','T2',4800,85,'T5',4200,'MTS'],
+   ['ENV-P600','Envase P600 PET','T1',3200,78,'E2',2800,'MTS'],
+   ['ENV-P300','Envase P300 PP','T2',3800,80,'E2',3400,'MTO'],
+   ['ENV-P400','Envase P400 PET','T2',3500,82,'E1',3100,'MTS'],
+   ['TAP-C100','Tapa C100 PET','T1',7200,88,'T3',6500,'MTS'],
+   ['TAP-C200','Tapa C200 PP','T1',6800,85,'T4',6200,'MTS'],
+   ['ENV-T500','Envase T500 PET','T2',4600,83,'T2',4100,'MTS'],
+   ['BAN-T500','Bandeja T500 PET negro','T2',4800,85,'T1',4400,'MTS'],
+   ['TAR-R300','Tarrina R300 PP colores','T2',5000,80,'T6',4500,'MTS'],
+   ['ENV-P200','Envase P200 PET mini','E2',4200,84,'E1',3900,'MTS']
+  ].forEach(function(r){RD.push(r);});
+
+  /* ── Self-contained families (FAM F01-F09) — independiente de Supabase ── */
+  FAM.length=0;
+  [
+   {id:'F01',nm:'Bandeja T200',m:{T1:{v:1200,o:85,tu:50000},T2:{v:1080,o:85,tu:45000}},mt:['BAN-T200'],cl:'#3d8ef0',r:1},
+   {id:'F02',nm:'Bandeja T400',m:{T1:{v:800,o:85,tu:32000}},mt:['BAN-T400'],cl:'#2dd4a0',r:1},
+   {id:'F03',nm:'Tarrina R250',m:{T1:{v:600,o:88,tu:16000},T2:{v:570,o:88,tu:14000}},mt:['TAR-R250'],cl:'#f59e0b',r:1},
+   {id:'F04',nm:'Envase P600',m:{T1:{v:450,o:82,tu:8800}},mt:['ENV-P600'],cl:'#f43f5e',r:2},
+   {id:'F05',nm:'Caja C300',m:{T1:{v:350,o:80,tu:4500}},mt:['TAP-C100','TAP-C200'],cl:'#a78bfa',r:2},
+   {id:'F06',nm:'Tapa D180',m:{T2:{v:1500,o:90,tu:48000}},mt:['TAP-D180'],cl:'#60a5fa',r:1},
+   {id:'F07',nm:'Envase P800',m:{T2:{v:380,o:80,tu:8500}},mt:['ENV-P300','ENV-P400'],cl:'#fb923c',r:1},
+   {id:'F08',nm:'Caja C500',m:{T2:{v:300,o:78,tu:5200}},mt:['ENV-T500'],cl:'#34d399',r:2},
+   {id:'F09',nm:'Tarrina G400',m:{T2:{v:500,o:85,tu:11000}},mt:['TAR-R150','TAR-R300'],cl:'#e879f9',r:1}
+  ].forEach(function(f){FAM.push(f);});
 
   /* ── Cycles ── */
   // T1 Cycle 1: high saturation (~94% per family)
