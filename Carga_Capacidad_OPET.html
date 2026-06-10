@@ -229,6 +229,20 @@ tr:hover td{background:rgba(0,180,216,.03);}
 .ctp-result-pool{background:#fef2f2;color:#991b1b;border:1.5px solid #f87171;}
 .ctp-pool-btn{display:inline-flex;align-items:center;gap:6px;background:#dc2626;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;}
 .ctp-pool-btn:hover{background:#b91c1c;}
+/* Reservas de Temporal */
+.reserva-card{background:var(--card);border-radius:10px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,.05);margin-bottom:12px;border-left:4px solid #7c3aed;}
+.reserva-card.expired{border-left-color:var(--tl);opacity:.65;}
+.reserva-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.reserva-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;color:#fff;background:#7c3aed;}
+.reserva-badge.exp{background:var(--tl);}
+.reserva-info{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;}
+.reserva-info span{background:#f3f0ff;color:#5b21b6;padding:2px 8px;border-radius:6px;}
+.reserva-info span.grey{background:#f1f5f9;color:var(--tl);}
+.btn-reservar{display:inline-flex;align-items:center;gap:6px;background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;}
+.btn-reservar:hover{background:#6d28d9;}
+/* Pool impact table */
+.pool-impact{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-top:10px;}
+.pool-impact h5{margin:0 0 8px;font-size:12px;color:#92400e;}
 /* === Pool de Consultas === */
 .pool-head{background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;padding:20px 22px;margin-bottom:18px;color:#fff;}
 .pool-kpis{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px;}
@@ -311,11 +325,13 @@ tr:hover td{background:rgba(0,180,216,.03);}
 <div class="st">Promesas</div>
 <div class="ni" onclick="nav('ctp',this)">📦 CTP</div>
 <div class="ni sub" onclick="nav('pool',this)">🗂 Pool Consultas</div>
+<div class="ni sub" onclick="nav('reservas',this)">🕐 Reservas Temporal</div>
 </div>
 <div class="mn">
 <div class="hd"><h2 id="pt">Dashboard</h2><div class="ui">📅 Mayo 2026 · 👤 Planificación Ondupet</div></div>
 <div class="ct">
 <div class="pg on" id="p-dashboard">
+<div style="margin-bottom:10px;display:flex;justify-content:flex-end"><button class="btn bsm" style="background:#7c3aed;color:#fff;font-weight:700" onclick="if(confirm('¿Cargar datos de demo? (borra todos los pedidos, ciclos y órdenes actuales)'))loadDemoData()">🎭 Cargar Demo</button></div>
 <div class="info-bar" id="dashPeriod">📆 <strong>Periodo de cálculo:</strong> 2026-05 → 2026-11 <span style="opacity:.7;margin-left:auto;font-size:11px">(se actualiza desde Carga de Capacidad)</span></div>
 <div class="kg">
 <div class="kc d"><div class="kl">Líneas sobre saturación</div><div class="kv">3</div><div class="ks">T2, T5, E1 &gt; 100%</div></div>
@@ -704,6 +720,22 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 <div id="poolOptDetail"></div>
 </div>
 
+<!-- RESERVAS DE TEMPORAL -->
+<div class="pg" id="p-reservas">
+<div class="cd">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <h3 style="margin:0">🕐 Reservas de Temporal — Capacity Holds</h3>
+    <div style="display:flex;gap:8px">
+      <button class="btn bsm" style="background:#f3f0ff;color:#7c3aed" onclick="purgeExpiredReservas()">🗑 Limpiar expiradas</button>
+      <button class="btn bsm" style="background:#eee;color:#555" onclick="renderTemporalReservas()">↻ Actualizar</button>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--tl);margin-bottom:14px">Las reservas bloquean horas de temporal durante <b>1 hora real</b>. Al expirar el temporal vuelve a estar disponible. Cancélalas manualmente si el comercial ya no las necesita.</p>
+  <div id="reservasKpis" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px"></div>
+  <div id="reservasContainer"><div class="ctp-empty">Sin reservas activas. Se crean desde el CTP cuando hay disponibilidad temporal.</div></div>
+</div>
+</div>
+
 <!-- CTP -->
 <div class="pg" id="p-ctp">
 <div class="cd"><h3>📦 CTP — Capable To Promise <span style="font-size:11px;font-weight:400;color:var(--tl);font-style:italic">basado en ciclos de producción planificados</span></h3>
@@ -771,8 +803,8 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function showLoading(on){const el=document.getElementById('loadingOverlay');if(el)el.style.display=on?'flex':'none';}
 
-const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise',pool:'Pool de Consultas'};
-function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));var p=document.getElementById('p-'+id);if(p)p.classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');var titles={'dashboard':'Dashboard','calendario':'Calendario Máquinas','rutas':'Rutas de Artículos','maquinas':'Máquinas','familias':'Familias / Moldes','pedidos':'Pedidos','ciclos':'Ciclos Producción','ordenes':'Creación Órdenes','carga':'Carga de Capacidad','balanceo':'Simulación Balanceo','atraso':'Atraso Pedidos','alertas':'Gestión Alertas','ctp':'CTP — Capable To Promise','stock':'Stock por Material','asocOrd':'Asociación Órdenes y Pedidos','pool':'Pool de Consultas'};document.getElementById('pt').textContent=titles[id]||id;if(id==='pedidos'){allocateMTSOPET();rPed();}if(id==='atraso'){allocateMTSOPET();rA();}if(id==='stock')renderStockPage();if(id==='asocOrd')renderAsocOrdenes();if(id==='pool')renderPoolConsultas();}
+const TT={dashboard:'Dashboard',calendario:'Calendario Máquinas',rutas:'Rutas de Artículos',maquinas:'Máquinas',carga:'Carga de Capacidad',familias:'Familias / Moldes',pedidos:'Pedidos',ciclos:'Ciclos de Producción',balanceo:'Simulación Balanceo',propuestas:'Propuestas Automáticas',cargabal:'Carga Cap. Balanceada Automática',atraso:'Atraso Pedidos',alertas:'Gestión Alertas',ordenes:'Creaci\u00f3n de \u00d3rdenes',ctp:'CTP — Capable To Promise',pool:'Pool de Consultas',reservas:'Reservas de Temporal'};
+function nav(id,el){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));var p=document.getElementById('p-'+id);if(p)p.classList.add('on');document.querySelectorAll('.ni').forEach(n=>n.classList.remove('a'));if(el)el.classList.add('a');var titles={'dashboard':'Dashboard','calendario':'Calendario Máquinas','rutas':'Rutas de Artículos','maquinas':'Máquinas','familias':'Familias / Moldes','pedidos':'Pedidos','ciclos':'Ciclos Producción','ordenes':'Creación Órdenes','carga':'Carga de Capacidad','balanceo':'Simulación Balanceo','atraso':'Atraso Pedidos','alertas':'Gestión Alertas','ctp':'CTP — Capable To Promise','stock':'Stock por Material','asocOrd':'Asociación Órdenes y Pedidos','pool':'Pool de Consultas','reservas':'Reservas de Temporal'};document.getElementById('pt').textContent=titles[id]||id;if(id==='pedidos'){allocateMTSOPET();rPed();}if(id==='atraso'){allocateMTSOPET();rA();}if(id==='stock')renderStockPage();if(id==='asocOrd')renderAsocOrdenes();if(id==='pool')renderPoolConsultas();if(id==='reservas')renderTemporalReservas();}
 function oM(id){document.getElementById(id).classList.add('sh');}
 function clM(id){document.getElementById(id).classList.remove('sh');}
 
@@ -1386,6 +1418,28 @@ function genDemoData(){
   alert('✅ Datos demo generados:\n• '+newCycs.length+' ciclos nuevos\n• '+PED.length+' pedidos\n• '+totalOF+' órdenes planificadas\n\nRevisa las pantallas Ciclos, Pedidos y Creación Órdenes.');
 }
 
+
+function rebuildCycPlacements(){
+  Object.keys(CYC_PLACEMENTS).forEach(function(k){delete CYC_PLACEMENTS[k];});
+  CYC.forEach(function(cyc){cyc.sl.forEach(function(sl){sl.c=0;});});
+  Object.keys(ordersCreated).forEach(function(maq){
+    (ordersCreated[maq]||[]).forEach(function(o){
+      if(!o.mat||!o.of)return;
+      var fm=findFamilyForMaterial?findFamilyForMaterial(o.mat):null;
+      if(!fm)return;
+      var cyc=CYC.find(function(cx){
+        return cx.mq===maq&&cx.ds<=o.fFin&&cx.de>=o.fIni&&cx.sl.some(function(s){return s.f===fm.id&&!s.sk;});
+      });
+      if(!cyc)return;
+      var sl=cyc.sl.find(function(s){return s.f===fm.id;});
+      if(sl)sl.c=Math.round((sl.c+(o.hrs||0))*10)/10;
+      if(!CYC_PLACEMENTS[cyc.id])CYC_PLACEMENTS[cyc.id]={};
+      if(!CYC_PLACEMENTS[cyc.id][fm.id])CYC_PLACEMENTS[cyc.id][fm.id]=[];
+      CYC_PLACEMENTS[cyc.id][fm.id].push({of:o.of,hrs:o.hrs||0,fIni:o.fIni||cyc.ds,fFin:o.fFin||cyc.de,mat:o.mat,qty:o.qty||0});
+    });
+  });
+}
+
 function rA(){
   allocateMTSOPET();
   var q=(document.getElementById('aS')||{value:''}).value.toLowerCase();
@@ -1456,7 +1510,8 @@ function ctpSlotInfo(cyc,fid,maq,hrsNeeded){
   var posHrs=startHrs+sl.c;
   var ordFIni=addWorkHours(new Date(cyc.ds),posHrs,maq).toISOString().slice(0,10);
   var ordFFin=addWorkHours(new Date(cyc.ds),posHrs+hrsNeeded,maq).toISOString().slice(0,10);
-  var freeHrs=Math.round(Math.max(0,sl.t-sl.c)*10)/10;
+  var _resHrs=getReservedHrs(cyc.id,fid);
+  var freeHrs=Math.round(Math.max(0,sl.t-sl.c-_resHrs)*10)/10;
   var excess=Math.round(Math.max(0,hrsNeeded-freeHrs)*10)/10;
   return{slot:sl,temporal:sl.t,consumed:sl.c,freeHrs:freeHrs,excess:excess,fits:freeHrs>=hrsNeeded,slotFIni:slotFIni,slotFFin:slotFFin,ordFIni:ordFIni,ordFFin:ordFFin};
 }
@@ -1597,6 +1652,8 @@ function cCTP(){
   } else if(step3Pass){
     var onFE=firstFit.info.ordFFin<=fEDesired;
     h+='<div class="ctp-result-banner ctp-result-temp">'+(onFE?'✅':'⚠️')+' CUBIERTO POR TEMPORAL — Fecha disponibilidad estimada: <b>'+fD2(firstFit.info.ordFFin)+'</b>'+(onFE?' (cumple fecha deseada)':' ('+Math.abs(pedDaysDiff(firstFit.info.ordFFin,fEDesired))+'d tarde)')+'</div>';
+    h+='<div style="margin-bottom:14px"><button class="btn-reservar" onclick="addTemporalReserva(\x27'+mat+'\x27,\x27'+maq+'\x27,\x27'+firstFit.cyc.id+'\x27,\x27'+fm.id+'\x27,\x27'+fm.nm.replace(/'/g,'\x27\x27').replace(/"/g,'\x27\x27')+'\x27,'+hrsNeeded+','+qty+',\x27'+cli.replace(/'/g,'\x27\x27')+'\x27)">🕐 Reservar Temporal (1h)</button>'
+      +'<span style="font-size:11px;color:var(--tl);margin-left:10px">Bloquea '+hrsNeeded+'h en ciclo <b>'+firstFit.cyc.id+'</b> durante 1 hora real</span></div>';
   } else {
     h+='<div class="ctp-result-banner ctp-result-pool">🔴 SIN FECHA DISPONIBILIDAD — Este pedido debe gestionarse en el Pool de Consultas</div>';
     h+='<div style="margin-bottom:18px">';
@@ -1700,43 +1757,63 @@ function applyPoolOption(idx,opcion){
   var hrsNeeded=Math.round(e.qty/velEff*10)/10;
   var fm=findFamilyForMaterial?findFamilyForMaterial(e.mat):null;
   var maqCycles=fm?CYC.filter(function(c){return c.active!==false&&c.mq===maq&&c.sl.some(function(s){return s.f===fm.id&&!s.sk;});}).sort(function(a,b){return a.ds<b.ds?-1:1;}):[];
-  var slots=maqCycles.map(function(cyc){var info=ctpSlotInfo(cyc,fm.id,maq,hrsNeeded);return info?{cyc:cyc,info:info}:null;}).filter(Boolean);
-  var firstFit=slots.find(function(x){return x.info.fits;})||slots[0];
 
-  if(opcion==='A'){
-    /* Opción A: primer ciclo con temporal suficiente */
-    if(!fm||!firstFit){alert('No hay familia asignada o ciclos con temporal para Opción A.');return;}
-    e.opcion='A';
-    e.fechaDisp=firstFit.info.ordFFin;
-    e.estado=e.fechaDisp<=e.fE?'resuelto':'resuelto-tarde';
-    e.detalle='Ciclo '+firstFit.cyc.id+' · '+firstFit.info.freeHrs+'h libres';
-  } else if(opcion==='B'){
-    /* Opción B: insertar en primer ciclo planificado + informe afectación */
+  if(opcion==='B'){
     if(!fm||maqCycles.length===0){alert('No hay ciclos activos para Opción B.');return;}
     var firstCyc=maqCycles[0];
     var base=ctpSlotInfo(firstCyc,fm.id,maq,hrsNeeded);
     var insE=addWorkHours(new Date(base.slotFIni),hrsNeeded,maq).toISOString().slice(0,10);
     var shDays=Math.ceil(hrsNeeded/((dSh[maq]||3)*8));
     var allPlaced=[];
-    maqCycles.forEach(function(c){var pl=(CYC_PLACEMENTS[c.id]&&CYC_PLACEMENTS[c.id][fm.id])||[];pl.forEach(function(p){allPlaced.push({cyc:c,p:p});});});
-    var nComp=allPlaced.filter(function(item){
+    maqCycles.forEach(function(c2){var pl=(CYC_PLACEMENTS[c2.id]&&CYC_PLACEMENTS[c2.id][fm.id])||[];pl.forEach(function(p){allPlaced.push({cyc:c2,p:p});});});
+    var affected=allPlaced.filter(function(item){
       if(item.p.fIni<base.slotFIni)return false;
       var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shDays);
       var ped=PED.find(function(p){return p.of===item.p.of;});
       return ped&&nFF.toISOString().slice(0,10)>ped.fE;
-    }).length;
-    e.opcion='B';
-    e.fechaDisp=insE;
-    e.estado=insE<=e.fE?'resuelto':'resuelto-tarde';
-    e.detalle='Insertar en '+firstCyc.id+' · '+shDays+'d desplazamiento · '+nComp+' ped. comprometidos';
+    });
+    e.opcion='B';e.fechaDisp=insE;e.estado=insE<=e.fE?'resuelto':'resuelto-tarde';
+    e.detalle='Insertar en '+firstCyc.id+' · +'+shDays+'d · '+affected.length+' ped. comprometidos';
+    renderPoolImpact(idx,'B',affected,shDays,insE,firstCyc.id);
   } else if(opcion==='C'){
-    /* Opción C: forzar fecha = fecha entrega cliente */
-    e.opcion='C';
-    e.fechaDisp=e.fE;
-    e.estado='resuelto-forzado';
-    e.detalle='Forzado a fE='+e.fE+' (mover órdenes enteras sin reducir qty)';
+    var allPlacedC=[];
+    if(fm) maqCycles.forEach(function(c2){var pl=(CYC_PLACEMENTS[c2.id]&&CYC_PLACEMENTS[c2.id][fm.id])||[];pl.forEach(function(p){allPlacedC.push({cyc:c2,p:p});});});
+    var affectedC=allPlacedC.filter(function(item){
+      var ped=PED.find(function(p){return p.of===item.p.of;});
+      return ped&&item.p.fFin>=e.fE;
+    });
+    e.opcion='C';e.fechaDisp=e.fE;e.estado='resuelto-forzado';
+    e.detalle='Forzado a fE='+e.fE;
+    renderPoolImpact(idx,'C',affectedC,0,e.fE,'');
   }
   renderPoolConsultas();
+}
+
+function renderPoolImpact(idx,opcion,affected,shDays,fechaDisp,cycId){
+  var det=document.getElementById('poolOptDetail');if(!det)return;
+  var e=poolConsultas[idx];if(!e)return;
+  var h='<div class="pool-impact">';
+  if(opcion==='B'){
+    h+='<h5>⚠️ Impacto Opción B — Insertar en ciclo <b>'+cycId+'</b> desplaza +'+shDays+'d · Pedidos comprometidos: <b>'+affected.length+'</b></h5>';
+  } else {
+    h+='<h5>⚠️ Impacto Opción C — Forzar fecha <b>'+fD2(fechaDisp)+'</b> · Órdenes que podrían verse afectadas: <b>'+affected.length+'</b></h5>';
+  }
+  if(!affected.length){h+='<div style="font-size:11px;color:var(--tl);font-style:italic">Sin pedidos comprometidos.</div></div>';det.innerHTML=h;return;}
+  h+='<div class="tw"><table><thead><tr><th>OF</th><th>Material</th><th>Ciclo</th><th>F.Fin actual</th>';
+  if(opcion==='B')h+='<th>Nueva F.Fin (+'+shDays+'d)</th>';
+  h+='<th>Pedido</th><th>F.Entrega</th><th>¿Compromiso?</th></tr></thead><tbody>';
+  affected.forEach(function(item){
+    var ped=PED.find(function(p){return p.of===item.p.of;});
+    var newFF='';
+    if(opcion==='B'){var nFF=new Date(item.p.fFin);nFF.setDate(nFF.getDate()+shDays);newFF='<td style="color:#b45309;font-weight:700">'+fD2(nFF.toISOString().slice(0,10))+'</td>';}
+    h+='<tr><td><b>'+item.p.of+'</b></td><td style="font-family:monospace;font-size:10px">'+item.p.mat+'</td>';
+    h+='<td>'+item.cyc.id+'</td><td style="color:#e63946">'+fD2(item.p.fFin)+'</td>'+newFF;
+    h+='<td>'+(ped?'<b>'+ped.id+'</b>':'<span style="color:var(--tl)">—</span>')+'</td>';
+    h+='<td>'+(ped?fD2(ped.fE):'—')+'</td>';
+    h+='<td><span class="ctp-b no">Comprometido</span></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+  det.innerHTML=h;
 }
 
 function renderPoolConsultas(){
@@ -1783,14 +1860,92 @@ function renderPoolConsultas(){
       '<td>'+fdCell+detCell+'</td>'+
       '<td>'+opBadge+' '+resBadge+'</td>'+
       '<td><div class="pool-opt-btns">'+
-        '<button class="pool-opt-a" onclick="applyPoolOption('+i+',\'A\')" title="Opción A: primer ciclo con temporal">A</button>'+
-        '<button class="pool-opt-b" onclick="applyPoolOption('+i+',\'B\')" title="Opción B: insertar en primer ciclo planificado">B</button>'+
-        '<button class="pool-opt-c" onclick="applyPoolOption('+i+',\'C\')" title="Opción C: forzar a fecha de entrega cliente">C</button>'+
+        '<button class="pool-opt-b" onclick="applyPoolOption('+i+',\'B\')" title="Opción B: insertar en primer ciclo planificado — ver impacto">B</button>'+
+        '<button class="pool-opt-c" onclick="applyPoolOption('+i+',\'C\')" title="Opción C: forzar a fecha de entrega cliente — ver impacto">C</button>'+
         '<button class="pool-opt-del" onclick="removeFromPool('+i+')" title="Eliminar del pool">✕</button>'+
       '</div></td>'+
     '</tr>';
   });
   tb.innerHTML=rows;
+}
+
+
+/* ===================== RESERVAS DE TEMPORAL ===================== */
+var temporalReservas=[];
+
+function getReservedHrs(cicloId,famId){
+  var now=Date.now();
+  return temporalReservas.filter(function(r){return r.activa&&r.cicloId===cicloId&&r.famId===famId&&r.expiresTs>now;}).reduce(function(s,r){return s+r.hrsReservadas;},0);
+}
+
+function addTemporalReserva(mat,maq,cicloId,famId,famNm,hrsReservadas,qty,cli){
+  var now=Date.now();
+  temporalReservas.forEach(function(r){if(r.expiresTs<=now)r.activa=false;});
+  var id='RES-'+now;
+  temporalReservas.push({id:id,mat:mat,maq:maq,cicloId:cicloId,famId:famId,famNm:famNm,hrsReservadas:hrsReservadas,qty:qty,cli:cli||'',creadaTs:now,expiresTs:now+3600000,activa:true});
+  alert('\u2705 Temporal reservado:\n\u2022 Ciclo: '+cicloId+'\n\u2022 Familia: '+famNm+'\n\u2022 Horas: '+hrsReservadas+'h\n\u2022 Expira en: 1 hora real\n\nVe a \u201c\ud83d\udd50 Reservas Temporal\u201d para gestionar las reservas.');
+  cCTP();
+}
+
+function cancelTemporalReserva(id){
+  var r=temporalReservas.find(function(x){return x.id===id;});
+  if(r)r.activa=false;
+  renderTemporalReservas();
+}
+
+function purgeExpiredReservas(){
+  var now=Date.now();
+  temporalReservas=temporalReservas.filter(function(r){return r.activa&&r.expiresTs>now;});
+  renderTemporalReservas();
+}
+
+function renderTemporalReservas(){
+  var now=Date.now();
+  var cont=document.getElementById('reservasContainer');
+  var kpiEl=document.getElementById('reservasKpis');
+  if(!cont)return;
+  temporalReservas.forEach(function(r){if(r.expiresTs<=now)r.activa=false;});
+  var activas=temporalReservas.filter(function(r){return r.activa;});
+  var inactivas=temporalReservas.filter(function(r){return !r.activa;});
+  if(kpiEl){
+    var totHrs=activas.reduce(function(s,r){return s+r.hrsReservadas;},0);
+    kpiEl.innerHTML=
+      '<div class="pool-kpi"><span>Activas</span><b style="color:#7c3aed">'+activas.length+'</b></div>'+
+      '<div class="pool-kpi"><span>Expiradas/Canceladas</span><b style="color:var(--tl)">'+inactivas.length+'</b></div>'+
+      '<div class="pool-kpi"><span>Total horas bloqueadas</span><b>'+Math.round(totHrs*10)/10+'h</b></div>';
+  }
+  if(!temporalReservas.length){
+    cont.innerHTML='<div class="ctp-empty">Sin reservas activas. Se crean desde el CTP cuando hay disponibilidad temporal.</div>';
+    return;
+  }
+  var h='';
+  var all=activas.concat(inactivas);
+  all.forEach(function(r){
+    var isExp=!r.activa;
+    var remaining=isExp?'Expirada/Cancelada':Math.max(0,Math.ceil((r.expiresTs-now)/60000))+'min restantes';
+    var cyc=CYC.find(function(x){return x.id===r.cicloId;});
+    var cycStr=cyc?r.cicloId+' ('+fD2(cyc.ds)+' → '+fD2(cyc.de)+')':r.cicloId;
+    h+='<div class="reserva-card'+(isExp?' expired':'')+'">';
+    h+='<div class="reserva-head">';
+    h+='<div><span class="reserva-badge'+(isExp?' exp':'')+'">'+(!isExp?'Activa':'Inactiva')+'</span>';
+    h+='<b style="font-size:13px;margin-left:10px">'+r.id+'</b></div>';
+    h+='<div style="display:flex;align-items:center;gap:10px">';
+    h+='<span style="font-size:12px;font-weight:700;color:'+(isExp?'var(--tl)':'#7c3aed')+'">&#x23F1; '+remaining+'</span>';
+    if(!isExp)h+='<button class="btn bsm" style="background:#e63946;color:#fff" onclick="cancelTemporalReserva(\x27'+r.id+'\x27)">Cancelar</button>';
+    h+='</div></div>';
+    h+='<div class="reserva-info">';
+    h+='<span>&#x1F4E6; '+r.mat+'</span>';
+    h+='<span>&#x2699;&#xFE0F; '+r.maq+'</span>';
+    h+='<span>&#x1F504; '+cycStr+'</span>';
+    h+='<span>&#x1F9E9; '+r.famNm+'</span>';
+    h+='<span>&#x23F1; '+r.hrsReservadas+'h reservadas</span>';
+    h+='<span>&#x1F4CA; '+r.qty.toLocaleString('es-ES')+' uds</span>';
+    if(r.cli)h+='<span>&#x1F464; '+r.cli+'</span>';
+    h+='<span class="grey">Creada: '+new Date(r.creadaTs).toLocaleTimeString('es-ES')+'</span>';
+    if(!isExp)h+='<span class="grey">Expira: '+new Date(r.expiresTs).toLocaleTimeString('es-ES')+'</span>';
+    h+='</div></div>';
+  });
+  cont.innerHTML=h;
 }
 
 /* ===================== V4 NEW FUNCTIONS ===================== */
@@ -2859,14 +3014,7 @@ async function loadOrdenesSB(){
     }
     var n=parseInt(r.id_orden.replace(/\D/g,''));if(!isNaN(n)&&n>=nextOfId)nextOfId=n+1;
   });
-  // Link OFs to PED
-  PED.forEach(function(p){
-    if(!p.of){
-      Object.keys(ordersCreated).forEach(function(mq){
-        (ordersCreated[mq]||[]).forEach(function(o){if(o.mat===p.mat&&!p.of)p.of=o.of;});
-      });
-    }
-  });
+
 }
 
 async function loadCiclosSB(){
@@ -2931,17 +3079,200 @@ function popMaqFilter(){
   if(cur&&macsConMaterial.has(cur))sel.value=cur;else sel.value='';
 }
 
+
+function loadDemoData(){
+  /* ── Clear all existing data ── */
+  PED.length=0; CYC.length=0;
+  Object.keys(ordersCreated).forEach(function(k){delete ordersCreated[k];});
+  Object.keys(DCData).forEach(function(k){delete DCData[k];});
+  Object.keys(CYC_PLACEMENTS).forEach(function(k){delete CYC_PLACEMENTS[k];});
+  Object.keys(stockDataOPET).forEach(function(k){delete stockDataOPET[k];});
+  nxPed=20001; nxCy=1; nextOfId=90215;
+  poolConsultas.length=0;
+  temporalReservas.length=0;
+
+  /* ── Set machine OEEs ── */
+  maqOEE['T1']=85; maqOEE['T2']=85;
+  if(mNamesAll.indexOf('T1')<0)mNamesAll.push('T1');
+  if(mNamesAll.indexOf('T2')<0)mNamesAll.push('T2');
+
+  /* ── Fix RD machine assignments to match FAM ── */
+  RD[0][2]='T1';  // BAN-T400 → T1 (FAM F02)
+  RD[3][2]='T1';  // TAR-R250 → T1 (FAM F03)
+  RD[4][2]='T2';  // TAR-R150 → T2 (FAM F09)
+  RD[5][2]='T1';  // ENV-P600 → T1 (FAM F04)
+  RD[6][2]='T2';  // ENV-P300 → T2 (FAM F07)
+  RD[7][2]='T2';  // ENV-P400 → T2 (FAM F07)
+  RD[8][2]='T1';  // TAP-C100 → T1 (FAM F05)
+  RD[9][2]='T1';  // TAP-C200 → T1 (FAM F05)
+  RD[10][2]='T2'; // ENV-T500 → T2 (FAM F08)
+  RD[12][2]='T2'; // TAR-R300 → T2 (FAM F09)
+  /* Set strategies */
+  RD[0][7]='MTO'; RD[1][7]='MTO'; RD[6][7]='MTO';
+  [3,4,5,7,8,9,10,12].forEach(function(i){RD[i][7]='MTS';});
+
+  /* ── Cycles ── */
+  // T1 Cycle 1: high saturation (~94% per family)
+  CYC.push({id:'CYC-D01',mq:'T1',ds:'2026-05-15',de:'2026-06-30',active:true,sl:[
+    {f:'F01',t:100,c:95,sk:false},{f:'F02',t:60,c:57,sk:false},
+    {f:'F03',t:40,c:38,sk:false},{f:'F04',t:30,c:28,sk:false},{f:'F05',t:25,c:24,sk:false}
+  ]});
+  // T2 Cycle 1: F07 overcap (90/80 = 112%)
+  CYC.push({id:'CYC-D02',mq:'T2',ds:'2026-05-15',de:'2026-06-30',active:true,sl:[
+    {f:'F07',t:80,c:90,sk:false},{f:'F08',t:50,c:42,sk:false},{f:'F09',t:60,c:42,sk:false}
+  ]});
+  // T1 Cycle 2: mostly free for CTP queries
+  CYC.push({id:'CYC-D03',mq:'T1',ds:'2026-07-01',de:'2026-08-31',active:true,sl:[
+    {f:'F01',t:100,c:5,sk:false},{f:'F02',t:60,c:3,sk:false},
+    {f:'F03',t:40,c:0,sk:false},{f:'F04',t:30,c:0,sk:false},{f:'F05',t:25,c:0,sk:false}
+  ]});
+  // T2 Cycle 2: mostly free
+  CYC.push({id:'CYC-D04',mq:'T2',ds:'2026-07-01',de:'2026-08-31',active:true,sl:[
+    {f:'F07',t:80,c:5,sk:false},{f:'F08',t:50,c:0,sk:false},{f:'F09',t:60,c:0,sk:false}
+  ]});
+
+  /* ── Orders ── */
+  // T1 Cycle 1 orders
+  ordersCreated['T1']=[
+    {of:'OF-D001',mat:'BAN-T200',qty:31492500,hrs:95,fIni:'2026-05-15',fFin:'2026-05-20',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D002',mat:'BAN-T400',qty:15116400,hrs:57,fIni:'2026-05-21',fFin:'2026-05-25',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D003',mat:'TAR-R250',qty:8139600, hrs:38,fIni:'2026-05-25',fFin:'2026-05-27',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D004',mat:'ENV-P600',qty:4569600, hrs:28,fIni:'2026-05-27',fFin:'2026-05-28',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D005',mat:'TAP-C100',qty:8812800, hrs:24,fIni:'2026-05-29',fFin:'2026-06-01',ym:'2026-05',tipo:'Planificado'},
+    // T1 Cycle 2 orders (MTO)
+    {of:'OF-D012',mat:'BAN-T200',qty:1657500,hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D013',mat:'BAN-T400',qty:795600, hrs:3,fIni:'2026-07-07',fFin:'2026-07-07',ym:'2026-07',tipo:'Planificado'}
+  ];
+  // T2 Cycle 1 orders
+  ordersCreated['T2']=[
+    {of:'OF-D006',mat:'ENV-P300',qty:5814000,hrs:30,fIni:'2026-05-15',fFin:'2026-05-18',ym:'2026-05',tipo:'Planificado'}, // MTO→PED-D03
+    {of:'OF-D007',mat:'ENV-P300',qty:6783000,hrs:35,fIni:'2026-05-18',fFin:'2026-05-19',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D008',mat:'ENV-P400',qty:4462500,hrs:25,fIni:'2026-05-19',fFin:'2026-05-20',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D009',mat:'ENV-T500',qty:9853200,hrs:42,fIni:'2026-05-20',fFin:'2026-05-22',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D010',mat:'TAR-R150',qty:5385600,hrs:22,fIni:'2026-05-25',fFin:'2026-05-26',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D011',mat:'TAR-R300',qty:5100000,hrs:20,fIni:'2026-05-26',fFin:'2026-05-26',ym:'2026-05',tipo:'Planificado'},
+    // T2 Cycle 2 orders
+    {of:'OF-D014',mat:'ENV-P300',qty:969000, hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',ym:'2026-07',tipo:'Planificado'}
+  ];
+
+  /* ── DCData ── */
+  DCData['T1']=[
+    ['BAN-T200','Bandeja T200 PET transparente','Planificado','2026-05',31492500,95,0,'OF-D001','T4'],
+    ['BAN-T400','Bandeja T400 PET transparente','Planificado','2026-05',15116400,57,0,'OF-D002','T3'],
+    ['TAR-R250','Tarrina R250 PP blanco',        'Planificado','2026-05',8139600, 38,0,'OF-D003','T2'],
+    ['ENV-P600','Envase P600 PET',               'Planificado','2026-05',4569600, 28,0,'OF-D004','E2'],
+    ['TAP-C100','Tapa C100 PET',                 'Planificado','2026-05',8812800, 24,0,'OF-D005','T3'],
+    ['BAN-T200','Bandeja T200 PET transparente','Planificado','2026-07',1657500,5,0,'OF-D012','T4'],
+    ['BAN-T400','Bandeja T400 PET transparente','Planificado','2026-07',795600, 3,0,'OF-D013','T3']
+  ];
+  DCData['T2']=[
+    ['ENV-P300','Envase P300 PP','Planificado','2026-05',5814000,30,0,'OF-D006','E1'],
+    ['ENV-P300','Envase P300 PP','Planificado','2026-05',6783000,35,0,'OF-D007','E1'],
+    ['ENV-P400','Envase P400 PET','Planificado','2026-05',4462500,25,0,'OF-D008','E1'],
+    ['ENV-T500','Envase T500 PET','Planificado','2026-05',9853200,42,0,'OF-D009','T1'],
+    ['TAR-R150','Tarrina R150 PP transparente','Planificado','2026-05',5385600,22,0,'OF-D010','T5'],
+    ['TAR-R300','Tarrina R300 PP colores',     'Planificado','2026-05',5100000,20,0,'OF-D011','T6'],
+    ['ENV-P300','Envase P300 PP','Planificado','2026-07',969000,5,0,'OF-D014','E1']
+  ];
+
+  /* ── CYC_PLACEMENTS ── */
+  CYC_PLACEMENTS['CYC-D01']={
+    'F01':[{of:'OF-D001',hrs:95,fIni:'2026-05-15',fFin:'2026-05-20',mat:'BAN-T200',qty:31492500}],
+    'F02':[{of:'OF-D002',hrs:57,fIni:'2026-05-21',fFin:'2026-05-25',mat:'BAN-T400',qty:15116400}],
+    'F03':[{of:'OF-D003',hrs:38,fIni:'2026-05-25',fFin:'2026-05-27',mat:'TAR-R250',qty:8139600}],
+    'F04':[{of:'OF-D004',hrs:28,fIni:'2026-05-27',fFin:'2026-05-28',mat:'ENV-P600',qty:4569600}],
+    'F05':[{of:'OF-D005',hrs:24,fIni:'2026-05-29',fFin:'2026-06-01',mat:'TAP-C100',qty:8812800}]
+  };
+  CYC_PLACEMENTS['CYC-D02']={
+    'F07':[
+      {of:'OF-D006',hrs:30,fIni:'2026-05-15',fFin:'2026-05-18',mat:'ENV-P300',qty:5814000},
+      {of:'OF-D007',hrs:35,fIni:'2026-05-18',fFin:'2026-05-19',mat:'ENV-P300',qty:6783000},
+      {of:'OF-D008',hrs:25,fIni:'2026-05-19',fFin:'2026-05-20',mat:'ENV-P400',qty:4462500}
+    ],
+    'F08':[{of:'OF-D009',hrs:42,fIni:'2026-05-20',fFin:'2026-05-22',mat:'ENV-T500',qty:9853200}],
+    'F09':[
+      {of:'OF-D010',hrs:22,fIni:'2026-05-25',fFin:'2026-05-26',mat:'TAR-R150',qty:5385600},
+      {of:'OF-D011',hrs:20,fIni:'2026-05-26',fFin:'2026-05-26',mat:'TAR-R300',qty:5100000}
+    ]
+  };
+  CYC_PLACEMENTS['CYC-D03']={
+    'F01':[{of:'OF-D012',hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',mat:'BAN-T200',qty:1657500}],
+    'F02':[{of:'OF-D013',hrs:3,fIni:'2026-07-07',fFin:'2026-07-07',mat:'BAN-T400',qty:795600}]
+  };
+  CYC_PLACEMENTS['CYC-D04']={
+    'F07':[{of:'OF-D014',hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',mat:'ENV-P300',qty:969000}]
+  };
+
+  /* ── Stock data ── */
+  stockDataOPET['TAR-R250']={stockTotal:1000000,reservas:[{pedido:'PED-D06',cantidad:500000}]};
+  stockDataOPET['TAR-R300']={stockTotal:10000000,reservas:[{pedido:'PED-D16',cantidad:8000000}]};
+
+  /* ── Pedidos (16 pedidos, all scenarios) ── */
+  // MTO en plazo (green)
+  PED.push({id:'PED-D01',cli:'Mercadona',mat:'BAN-T200',qty:31492500,fE:'2026-07-15',of:'OF-D001',servido:0,pendiente:31492500,reservado:0});
+  // MTO atraso teórico (yellow)
+  PED.push({id:'PED-D02',cli:'Carrefour',mat:'BAN-T400',qty:15116400,fE:'2026-05-20',of:'OF-D002',servido:0,pendiente:15116400,reservado:0});
+  // MTO ya atrasado, fE pasada (red)
+  PED.push({id:'PED-D03',cli:'Lidl',mat:'ENV-P300',qty:5814000,fE:'2026-05-10',of:'OF-D006',servido:0,pendiente:5814000,reservado:0});
+  // MTO ciclo 2 en plazo (green)
+  PED.push({id:'PED-D04',cli:'DIA',mat:'BAN-T200',qty:1657500,fE:'2026-08-15',of:'OF-D012',servido:0,pendiente:1657500,reservado:0});
+  // MTO ciclo 2 atraso teórico (yellow) - fE before cycle 2 start
+  PED.push({id:'PED-D05',cli:'Alcampo',mat:'BAN-T400',qty:795600,fE:'2026-06-30',of:'OF-D013',servido:0,pendiente:795600,reservado:0});
+  // MTS cubierto por stock (STOCK, green)
+  PED.push({id:'PED-D06',cli:'Eroski',mat:'TAR-R250',qty:500000,fE:'2026-06-30',of:'',servido:0,pendiente:500000,reservado:0});
+  // MTS asigOF en plazo (green)
+  PED.push({id:'PED-D07',cli:'Mercadona',mat:'ENV-P600',qty:4500000,fE:'2026-06-30',of:'',servido:0,pendiente:4500000,reservado:0});
+  // MTS asigOF atraso teórico (yellow)
+  PED.push({id:'PED-D08',cli:'Carrefour',mat:'TAP-C100',qty:8500000,fE:'2026-05-25',of:'',servido:0,pendiente:8500000,reservado:0});
+  // MTS F07 T2 cubierto en plazo (green)
+  PED.push({id:'PED-D09',cli:'DIA',mat:'ENV-P400',qty:4000000,fE:'2026-06-15',of:'',servido:0,pendiente:4000000,reservado:0});
+  // MTS TAR-R150 atraso teórico (yellow)
+  PED.push({id:'PED-D10',cli:'Lidl',mat:'TAR-R150',qty:3000000,fE:'2026-05-20',of:'',servido:0,pendiente:3000000,reservado:0});
+  // MTS TAR-R150 ya atrasado fE pasada (red)
+  PED.push({id:'PED-D11',cli:'Alcampo',mat:'TAR-R150',qty:2000000,fE:'2026-05-12',of:'',servido:0,pendiente:2000000,reservado:0});
+  // MTS TAR-R300 en plazo (green)
+  PED.push({id:'PED-D12',cli:'Carrefour',mat:'TAR-R300',qty:5000000,fE:'2026-06-01',of:'',servido:0,pendiente:5000000,reservado:0});
+  // MTS ENV-T500 en plazo (green)
+  PED.push({id:'PED-D13',cli:'Alcampo',mat:'ENV-T500',qty:9000000,fE:'2026-06-01',of:'',servido:0,pendiente:9000000,reservado:0});
+  // NO planificado — CTP step3 PASA en ciclo 2 (F05 25h libre)
+  PED.push({id:'PED-D14',cli:'DIA',mat:'TAP-C200',qty:8000000,fE:'2026-07-01',of:'',servido:0,pendiente:8000000,reservado:0});
+  // NO planificado — CTP step3 FALLA → Pool de Consultas (25M / 346800 = 72h > 25h libre)
+  PED.push({id:'PED-D15',cli:'Eroski',mat:'TAP-C200',qty:25000000,fE:'2026-07-15',of:'',servido:0,pendiente:25000000,reservado:0});
+  // Stock exacto (STOCK, green)
+  PED.push({id:'PED-D16',cli:'DIA',mat:'TAR-R300',qty:8000000,fE:'2026-06-10',of:'',servido:0,pendiente:8000000,reservado:0});
+
+  /* ── Refresh all views ── */
+  if(typeof rR==='function')rR();
+  if(typeof rMaq==='function')rMaq();
+  if(typeof rFam==='function')rFam();
+  if(typeof rCyc==='function')rCyc();
+  if(typeof rPed==='function')rPed();
+  if(typeof rA==='function')rA();
+  if(typeof rAl==='function')rAl();
+  var cpM=document.getElementById('cpM');if(cpM){cpM.innerHTML='';RD.forEach(function(r){cpM.innerHTML+='<option value="'+r[0]+'">'+r[0]+'</option>';});}
+  console.log('[DEMO] Loaded: '+PED.length+' pedidos, '+CYC.length+' ciclos, '+Object.keys(ordersCreated).reduce(function(s,k){return s+(ordersCreated[k]||[]).length;},0)+' ordenes');
+  alert('✅ Demo cargada con éxito!\n\n• '+PED.length+' pedidos (todos los escenarios)\n• '+CYC.length+' ciclos (T1\xd72 + T2\xd72)\n• Alta saturaci\xf3n T1C1 (~95% por familia)\n• T2C1 F07 sobrecapacitado (90h vs 80h temporal)\n• Ciclos 2 libres para consultas CTP\n• PED-D15 va al Pool (sin temporal suficiente)\n\nRevisa las pantallas Pedidos, Ciclos y CTP.');
+}
+
 async function initFromSupabase(){
   showLoading(true);
   try{
-    // Familias y máquinas primero — loadMaterialesSB las necesita
     await Promise.all([loadMaquinasSB(),loadFamiliasSB(),loadPedidosSB()]);
     await loadMaterialesSB();
     await loadOrdenesSB();
     await loadCiclosSB();
+    rebuildCycPlacements();
     popMaqFilter();
     rR();rMaq();rPed();rFam();rCyc();rAl();rA();rCal();
-  }catch(e){console.warn('Supabase init error:',e);}
+    // Auto-load demo if tables are empty
+    if(!PED.length&&!CYC.length){
+      console.log('[DEMO] Supabase tables empty — loading demo data');
+      loadDemoData();
+    }
+  }catch(e){
+    console.warn('Supabase init error:',e);
+    if(!PED.length&&!CYC.length){console.log('[DEMO] Init failed — loading demo data');loadDemoData();}
+  }
   showLoading(false);
 }
 
