@@ -3264,14 +3264,8 @@ async function initFromSupabase(){
     rebuildCycPlacements();
     popMaqFilter();
     rR();rMaq();rPed();rFam();rCyc();rAl();rA();rCal();
-    // Auto-load demo if tables are empty
-    if(!PED.length&&!CYC.length){
-      console.log('[DEMO] Supabase tables empty — loading demo data');
-      loadDemoData();
-    }
   }catch(e){
     console.warn('Supabase init error:',e);
-    if(!PED.length&&!CYC.length){console.log('[DEMO] Init failed — loading demo data');loadDemoData();}
   }
   showLoading(false);
 }
