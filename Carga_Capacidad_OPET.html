@@ -747,6 +747,17 @@ Analiza máquinas con sat. &gt; 85% y propone mover OFs a la ruta alternativa ve
 <div class="fg"><label>Fecha deseada entrega</label><input type="date" id="cpD" value="2026-07-15"></div>
 <div class="fg" style="justify-content:flex-end"><button class="btn bp" onclick="cCTP()" style="align-self:flex-end">⚡ Calcular CTP</button></div>
 </div></div>
+<div class="cd" style="border-left:4px solid #7c3aed">
+<h3>🎓 Ejemplos guiados <span style="font-size:11px;font-weight:400;color:var(--tl);font-style:italic">requieren la demo cargada — se carga sola si hace falta</span></h3>
+<p style="font-size:12px;color:var(--tl);margin:0 0 12px">Cada botón rellena la consulta con un caso real de la demo, la calcula y explica paso a paso por qué el árbol de decisión termina donde termina.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn" style="background:#2dd4a0;color:#fff" onclick="ctpEjemplo(1)">📦 1 · Stock libre suficiente</button>
+<button class="btn" style="background:#3d8ef0;color:#fff" onclick="ctpEjemplo(2)">🏭 2 · Orden lanzada con sobrante</button>
+<button class="btn" style="background:#7c3aed;color:#fff" onclick="ctpEjemplo(3)">🕐 3 · Temporal libre + Reserva</button>
+<button class="btn" style="background:#e63946;color:#fff" onclick="ctpEjemplo(4)">🔴 4 · Sin temporal → Pool</button>
+</div>
+<div id="cpGuide" style="display:none;margin-top:14px;padding:14px;border-radius:10px;background:#f6f4ff;border:1px solid #ddd6fe;font-size:12.5px;line-height:1.7"></div>
+</div>
 <div id="cpR" style="display:none"></div>
 </div>
 
@@ -1515,6 +1526,47 @@ function ctpSlotInfo(cyc,fid,maq,hrsNeeded){
   var excess=Math.round(Math.max(0,hrsNeeded-freeHrs)*10)/10;
   return{slot:sl,temporal:sl.t,consumed:sl.c,freeHrs:freeHrs,excess:excess,fits:freeHrs>=hrsNeeded,slotFIni:slotFIni,slotFFin:slotFFin,ordFIni:ordFIni,ordFFin:ordFFin};
 }
+/* ===== Ejemplos guiados CTP (usan los datos de la demo) ===== */
+function ctpEjemplo(n){
+  // La demo es imprescindible: cargarla en silencio si no está
+  if(!CYC.find(function(c){return c.id==='CYC-D03';}))loadDemoData(true);
+  initCTPPage();
+  var cfg={
+    1:{mat:'TAR-R250',qty:400000,fE:'2026-06-30',cli:'Ejemplo Stock',
+       tit:'📦 Ejemplo 1 — Cubierto por stock libre (Paso 1)',
+       txt:'<b>Consulta:</b> 400.000 uds de TAR-R250 para el 30/06.'
+         +'<br><b>Paso 1 — Stock:</b> hay 1.000.000 uds en stock, de las que 500.000 est\xe1n reservadas para PED-D06 → quedan <b>500.000 libres ≥ 400.000</b> solicitadas. <span style="color:#2dd4a0;font-weight:700">✔ PASA</span>'
+         +'<br><b>Resultado:</b> el pedido se sirve directamente de stock, <b>disponibilidad HOY</b>, sin tocar m\xe1quinas ni ciclos. Los pasos 2 y 3 ya no se eval\xfaan.'},
+    2:{mat:'TAR-R250',qty:3000000,fE:'2026-07-31',cli:'Ejemplo Sobrante',
+       tit:'🏭 Ejemplo 2 — MTS lanzado con sobrante planificado (Paso 2)',
+       txt:'<b>Consulta:</b> 3.000.000 uds de TAR-R250 (material MTS ya lanzado a m\xe1quina) para el 31/07.'
+         +'<br><b>Paso 1 — Stock:</b> solo 500.000 libres &lt; 3.000.000. <span style="color:#e63946;font-weight:700">✘ FALLA</span>'
+         +'<br><b>Paso 2 — \xd3rdenes lanzadas:</b> hay 2 OFs en m\xe1quina: OF-D003 (8.139.600 uds, fin 27/05) y OF-D017 (7.282.800 uds, fin 29/07) = <b>15,4M lanzadas</b>. Pedidos MTO comprometidos contra orden: 0 → <b>sobrante 15,4M ≥ 3M</b>. <span style="color:#2dd4a0;font-weight:700">✔ PASA</span>'
+         +'<br><b>Resultado:</b> la consulta se cubre con el sobrante planificado y la <b>fecha de disponibilidad es el fin de la orden que la cubre</b> (OF-D003 → 27/05). No se consume temporal ni se replanifica nada.'},
+    3:{mat:'TAP-C200',qty:7000000,fE:'2026-08-15',cli:'Ejemplo Temporal',
+       tit:'🕐 Ejemplo 3 — Temporal libre + Reserva (Paso 3)',
+       txt:'<b>Consulta:</b> 7.000.000 uds de TAP-C200 para el 15/08.'
+         +'<br><b>Paso 1 — Stock:</b> sin stock. <span style="color:#e63946;font-weight:700">✘ FALLA</span> · <b>Paso 2 — \xd3rdenes:</b> ninguna OF lanzada de este material. <span style="color:#e63946;font-weight:700">✘ FALLA</span>'
+         +'<br><b>Paso 3 — Temporal en familia:</b> TAP-C200 pertenece a la familia <b>F05 \xb7 Caja C300</b> (T1). Horas necesarias: 7M \xf7 346.800 uds/h ≈ <b>20,2 h</b>. En CYC-D01 el slot F05 tiene 25−24 = 1h libre → no cabe; en <b>CYC-D03 tiene 25−0 = 25h libres ≥ 20,2h</b>. <span style="color:#2dd4a0;font-weight:700">✔ PASA</span>'
+         +'<br><b>Resultado:</b> hay hueco temporal. 👉 Pulsa el bot\xf3n <b>“🕐 Reservar Temporal (1h)”</b> del resultado para bloquear esas horas durante 1 hora real: si otro comercial consulta lo mismo 5 minutos despu\xe9s, ver\xe1 el hueco ocupado. Gestiona las reservas en la pantalla <b>Reservas Temporal</b>.'},
+    4:{mat:'TAP-C200',qty:25000000,fE:'2026-07-15',cli:'Ejemplo Pool',
+       tit:'🔴 Ejemplo 4 — Sin temporal suficiente → Pool (Paso 3 falla)',
+       txt:'<b>Consulta:</b> 25.000.000 uds de TAP-C200 para el 15/07.'
+         +'<br><b>Paso 1 — Stock:</b> sin stock. <span style="color:#e63946;font-weight:700">✘ FALLA</span> · <b>Paso 2 — \xd3rdenes:</b> ninguna. <span style="color:#e63946;font-weight:700">✘ FALLA</span>'
+         +'<br><b>Paso 3 — Temporal:</b> horas necesarias: 25M \xf7 346.800 ≈ <b>72,1 h</b>, pero el mayor hueco de la familia F05 es de <b>25h</b> (CYC-D03) → no cabe en ning\xfan ciclo. <span style="color:#e63946;font-weight:700">✘ FALLA</span>'
+         +'<br><b>Resultado:</b> sin fecha de disponibilidad autom\xe1tica. 👉 Pulsa <b>“🗂 A\xf1adir al Pool de Consultas”</b> y ve a la pantalla <b>Pool Consultas</b>: el planificador elegir\xe1 entre la <b>opci\xf3n B</b> (insertar antes y desplazar \xf3rdenes, viendo qu\xe9 pedidos se atrasan) o la <b>opci\xf3n C</b> (a\xf1adir un slot extra al ciclo).'}
+  }[n];
+  if(!cfg)return;
+  document.getElementById('cpM').value=cfg.mat;
+  document.getElementById('cpQ').value=cfg.qty;
+  document.getElementById('cpD').value=cfg.fE;
+  document.getElementById('cpCli').value=cfg.cli;
+  var g=document.getElementById('cpGuide');
+  if(g){g.innerHTML='<div style="font-weight:800;font-size:13px;margin-bottom:6px">'+cfg.tit+'</div>'+cfg.txt;g.style.display='block';}
+  cCTP();
+  var r=document.getElementById('cpR');if(r&&r.scrollIntoView)r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function cCTP(){
   initCTPPage();
   var mat=document.getElementById('cpM').value;
@@ -3100,7 +3152,7 @@ function popMaqFilter(){
 }
 
 
-function loadDemoData(){
+function loadDemoData(silent){
   /* ── Clear all existing data ── */
   PED.length=0; CYC.length=0;
   Object.keys(ordersCreated).forEach(function(k){delete ordersCreated[k];});
@@ -3157,16 +3209,16 @@ function loadDemoData(){
   ]});
   // T2 Cycle 1: F07 overcap (90/80 = 112%)
   CYC.push({id:'CYC-D02',mq:'T2',ds:'2026-05-15',de:'2026-06-30',active:true,sl:[
-    {f:'F07',t:80,c:90,sk:false},{f:'F08',t:50,c:42,sk:false},{f:'F09',t:60,c:42,sk:false}
+    {f:'F07',t:80,c:90,sk:false},{f:'F08',t:50,c:42,sk:false},{f:'F09',t:60,c:50,sk:false}
   ]});
-  // T1 Cycle 2: mostly free for CTP queries
+  // T1 Cycle 2: saturado >80% salvo F05 (reservado para ejemplos guiados CTP)
   CYC.push({id:'CYC-D03',mq:'T1',ds:'2026-07-01',de:'2026-08-31',active:true,sl:[
-    {f:'F01',t:100,c:5,sk:false},{f:'F02',t:60,c:3,sk:false},
-    {f:'F03',t:40,c:0,sk:false},{f:'F04',t:30,c:0,sk:false},{f:'F05',t:25,c:0,sk:false}
+    {f:'F01',t:100,c:85,sk:false},{f:'F02',t:60,c:50,sk:false},
+    {f:'F03',t:40,c:34,sk:false},{f:'F04',t:30,c:25,sk:false},{f:'F05',t:25,c:0,sk:false}
   ]});
-  // T2 Cycle 2: mostly free
+  // T2 Cycle 2: saturado >80%
   CYC.push({id:'CYC-D04',mq:'T2',ds:'2026-07-01',de:'2026-08-31',active:true,sl:[
-    {f:'F07',t:80,c:5,sk:false},{f:'F08',t:50,c:0,sk:false},{f:'F09',t:60,c:0,sk:false}
+    {f:'F07',t:80,c:70,sk:false},{f:'F08',t:50,c:42,sk:false},{f:'F09',t:60,c:50,sk:false}
   ]});
 
   /* ── Orders ── */
@@ -3179,7 +3231,11 @@ function loadDemoData(){
     {of:'OF-D005',mat:'TAP-C100',qty:8812800, hrs:24,fIni:'2026-05-29',fFin:'2026-06-01',ym:'2026-05',tipo:'Planificado'},
     // T1 Cycle 2 orders (MTO)
     {of:'OF-D012',mat:'BAN-T200',qty:1657500,hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',ym:'2026-07',tipo:'Planificado'},
-    {of:'OF-D013',mat:'BAN-T400',qty:795600, hrs:3,fIni:'2026-07-07',fFin:'2026-07-07',ym:'2026-07',tipo:'Planificado'}
+    {of:'OF-D013',mat:'BAN-T400',qty:795600, hrs:3,fIni:'2026-07-07',fFin:'2026-07-07',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D015',mat:'BAN-T200',qty:26520000,hrs:80,fIni:'2026-07-02',fFin:'2026-07-15',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D016',mat:'BAN-T400',qty:12464400,hrs:47,fIni:'2026-07-16',fFin:'2026-07-23',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D017',mat:'TAR-R250',qty:7282800, hrs:34,fIni:'2026-07-24',fFin:'2026-07-29',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D018',mat:'ENV-P600',qty:4080000, hrs:25,fIni:'2026-07-30',fFin:'2026-08-03',ym:'2026-07',tipo:'Planificado'}
   ];
   // T2 Cycle 1 orders
   ordersCreated['T2']=[
@@ -3189,8 +3245,14 @@ function loadDemoData(){
     {of:'OF-D009',mat:'ENV-T500',qty:9853200,hrs:42,fIni:'2026-05-20',fFin:'2026-05-22',ym:'2026-05',tipo:'Planificado'},
     {of:'OF-D010',mat:'TAR-R150',qty:5385600,hrs:22,fIni:'2026-05-25',fFin:'2026-05-26',ym:'2026-05',tipo:'Planificado'},
     {of:'OF-D011',mat:'TAR-R300',qty:5100000,hrs:20,fIni:'2026-05-26',fFin:'2026-05-26',ym:'2026-05',tipo:'Planificado'},
+    {of:'OF-D024',mat:'TAR-R150',qty:1958400,hrs:8, fIni:'2026-05-27',fFin:'2026-05-28',ym:'2026-05',tipo:'Planificado'},
     // T2 Cycle 2 orders
-    {of:'OF-D014',mat:'ENV-P300',qty:969000, hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',ym:'2026-07',tipo:'Planificado'}
+    {of:'OF-D014',mat:'ENV-P300',qty:969000, hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D019',mat:'ENV-P300',qty:6783000,hrs:35,fIni:'2026-07-02',fFin:'2026-07-07',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D020',mat:'ENV-P400',qty:5355000,hrs:30,fIni:'2026-07-08',fFin:'2026-07-12',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D021',mat:'ENV-T500',qty:9853200,hrs:42,fIni:'2026-07-13',fFin:'2026-07-20',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D022',mat:'TAR-R150',qty:6120000,hrs:25,fIni:'2026-07-21',fFin:'2026-07-25',ym:'2026-07',tipo:'Planificado'},
+    {of:'OF-D023',mat:'TAR-R300',qty:6375000,hrs:25,fIni:'2026-07-26',fFin:'2026-07-30',ym:'2026-07',tipo:'Planificado'}
   ];
 
   /* ── DCData ── */
@@ -3201,7 +3263,11 @@ function loadDemoData(){
     ['ENV-P600','Envase P600 PET',               'Planificado','2026-05',4569600, 28,0,'OF-D004','E2'],
     ['TAP-C100','Tapa C100 PET',                 'Planificado','2026-05',8812800, 24,0,'OF-D005','T3'],
     ['BAN-T200','Bandeja T200 PET transparente','Planificado','2026-07',1657500,5,0,'OF-D012','T4'],
-    ['BAN-T400','Bandeja T400 PET transparente','Planificado','2026-07',795600, 3,0,'OF-D013','T3']
+    ['BAN-T400','Bandeja T400 PET transparente','Planificado','2026-07',795600, 3,0,'OF-D013','T3'],
+    ['BAN-T200','Bandeja T200 PET transparente','Planificado','2026-07',26520000,80,0,'OF-D015','T4'],
+    ['BAN-T400','Bandeja T400 PET transparente','Planificado','2026-07',12464400,47,0,'OF-D016','T3'],
+    ['TAR-R250','Tarrina R250 PP blanco',       'Planificado','2026-07',7282800, 34,0,'OF-D017','T2'],
+    ['ENV-P600','Envase P600 PET',              'Planificado','2026-07',4080000, 25,0,'OF-D018','E2']
   ];
   DCData['T2']=[
     ['ENV-P300','Envase P300 PP','Planificado','2026-05',5814000,30,0,'OF-D006','E1'],
@@ -3210,7 +3276,13 @@ function loadDemoData(){
     ['ENV-T500','Envase T500 PET','Planificado','2026-05',9853200,42,0,'OF-D009','T1'],
     ['TAR-R150','Tarrina R150 PP transparente','Planificado','2026-05',5385600,22,0,'OF-D010','T5'],
     ['TAR-R300','Tarrina R300 PP colores',     'Planificado','2026-05',5100000,20,0,'OF-D011','T6'],
-    ['ENV-P300','Envase P300 PP','Planificado','2026-07',969000,5,0,'OF-D014','E1']
+    ['TAR-R150','Tarrina R150 PP transparente','Planificado','2026-05',1958400,8,0,'OF-D024','T5'],
+    ['ENV-P300','Envase P300 PP','Planificado','2026-07',969000,5,0,'OF-D014','E1'],
+    ['ENV-P300','Envase P300 PP','Planificado','2026-07',6783000,35,0,'OF-D019','E1'],
+    ['ENV-P400','Envase P400 PET','Planificado','2026-07',5355000,30,0,'OF-D020','E1'],
+    ['ENV-T500','Envase T500 PET','Planificado','2026-07',9853200,42,0,'OF-D021','T1'],
+    ['TAR-R150','Tarrina R150 PP transparente','Planificado','2026-07',6120000,25,0,'OF-D022','T5'],
+    ['TAR-R300','Tarrina R300 PP colores',     'Planificado','2026-07',6375000,25,0,'OF-D023','T6']
   ];
 
   /* ── CYC_PLACEMENTS ── */
@@ -3230,15 +3302,33 @@ function loadDemoData(){
     'F08':[{of:'OF-D009',hrs:42,fIni:'2026-05-20',fFin:'2026-05-22',mat:'ENV-T500',qty:9853200}],
     'F09':[
       {of:'OF-D010',hrs:22,fIni:'2026-05-25',fFin:'2026-05-26',mat:'TAR-R150',qty:5385600},
-      {of:'OF-D011',hrs:20,fIni:'2026-05-26',fFin:'2026-05-26',mat:'TAR-R300',qty:5100000}
+      {of:'OF-D011',hrs:20,fIni:'2026-05-26',fFin:'2026-05-26',mat:'TAR-R300',qty:5100000},
+      {of:'OF-D024',hrs:8, fIni:'2026-05-27',fFin:'2026-05-28',mat:'TAR-R150',qty:1958400}
     ]
   };
   CYC_PLACEMENTS['CYC-D03']={
-    'F01':[{of:'OF-D012',hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',mat:'BAN-T200',qty:1657500}],
-    'F02':[{of:'OF-D013',hrs:3,fIni:'2026-07-07',fFin:'2026-07-07',mat:'BAN-T400',qty:795600}]
+    'F01':[
+      {of:'OF-D012',hrs:5, fIni:'2026-07-01',fFin:'2026-07-01',mat:'BAN-T200',qty:1657500},
+      {of:'OF-D015',hrs:80,fIni:'2026-07-02',fFin:'2026-07-15',mat:'BAN-T200',qty:26520000}
+    ],
+    'F02':[
+      {of:'OF-D013',hrs:3, fIni:'2026-07-07',fFin:'2026-07-07',mat:'BAN-T400',qty:795600},
+      {of:'OF-D016',hrs:47,fIni:'2026-07-16',fFin:'2026-07-23',mat:'BAN-T400',qty:12464400}
+    ],
+    'F03':[{of:'OF-D017',hrs:34,fIni:'2026-07-24',fFin:'2026-07-29',mat:'TAR-R250',qty:7282800}],
+    'F04':[{of:'OF-D018',hrs:25,fIni:'2026-07-30',fFin:'2026-08-03',mat:'ENV-P600',qty:4080000}]
   };
   CYC_PLACEMENTS['CYC-D04']={
-    'F07':[{of:'OF-D014',hrs:5,fIni:'2026-07-01',fFin:'2026-07-01',mat:'ENV-P300',qty:969000}]
+    'F07':[
+      {of:'OF-D014',hrs:5, fIni:'2026-07-01',fFin:'2026-07-01',mat:'ENV-P300',qty:969000},
+      {of:'OF-D019',hrs:35,fIni:'2026-07-02',fFin:'2026-07-07',mat:'ENV-P300',qty:6783000},
+      {of:'OF-D020',hrs:30,fIni:'2026-07-08',fFin:'2026-07-12',mat:'ENV-P400',qty:5355000}
+    ],
+    'F08':[{of:'OF-D021',hrs:42,fIni:'2026-07-13',fFin:'2026-07-20',mat:'ENV-T500',qty:9853200}],
+    'F09':[
+      {of:'OF-D022',hrs:25,fIni:'2026-07-21',fFin:'2026-07-25',mat:'TAR-R150',qty:6120000},
+      {of:'OF-D023',hrs:25,fIni:'2026-07-26',fFin:'2026-07-30',mat:'TAR-R300',qty:6375000}
+    ]
   };
 
   /* ── Stock data ── */
@@ -3278,6 +3368,21 @@ function loadDemoData(){
   PED.push({id:'PED-D15',cli:'Eroski',mat:'TAP-C200',qty:25000000,fE:'2026-07-15',of:'',servido:0,pendiente:25000000,reservado:0});
   // Stock exacto (STOCK, green)
   PED.push({id:'PED-D16',cli:'DIA',mat:'TAR-R300',qty:8000000,fE:'2026-06-10',of:'',servido:0,pendiente:8000000,reservado:0});
+  // ── Pedidos ciclo 2 (julio-agosto) — saturan T1/T2 por encima del 80% ──
+  // MTO en plazo (green)
+  PED.push({id:'PED-D17',cli:'Mercadona',mat:'BAN-T200',qty:26520000,fE:'2026-08-01',of:'OF-D015',servido:0,pendiente:26520000,reservado:0});
+  // MTO atraso teórico (yellow): OF acaba 23/07 > fE 20/07
+  PED.push({id:'PED-D18',cli:'Carrefour',mat:'BAN-T400',qty:12464400,fE:'2026-07-20',of:'OF-D016',servido:0,pendiente:12464400,reservado:0});
+  // MTS asigOF ciclo 2 (green)
+  PED.push({id:'PED-D19',cli:'Eroski',mat:'TAR-R250',qty:7000000,fE:'2026-08-10',of:'',servido:0,pendiente:7000000,reservado:0});
+  PED.push({id:'PED-D20',cli:'DIA',mat:'ENV-P600',qty:4000000,fE:'2026-08-15',of:'',servido:0,pendiente:4000000,reservado:0});
+  // MTO en plazo (green)
+  PED.push({id:'PED-D21',cli:'Lidl',mat:'ENV-P300',qty:6783000,fE:'2026-07-15',of:'OF-D019',servido:0,pendiente:6783000,reservado:0});
+  // MTS asigOF ciclo 2
+  PED.push({id:'PED-D22',cli:'Alcampo',mat:'ENV-P400',qty:5000000,fE:'2026-08-01',of:'',servido:0,pendiente:5000000,reservado:0});
+  PED.push({id:'PED-D23',cli:'Mercadona',mat:'ENV-T500',qty:9500000,fE:'2026-08-05',of:'',servido:0,pendiente:9500000,reservado:0});
+  PED.push({id:'PED-D24',cli:'Carrefour',mat:'TAR-R150',qty:6000000,fE:'2026-08-10',of:'',servido:0,pendiente:6000000,reservado:0});
+  PED.push({id:'PED-D25',cli:'DIA',mat:'TAR-R300',qty:6200000,fE:'2026-08-15',of:'',servido:0,pendiente:6200000,reservado:0});
 
   /* ── Refresh all views ── */
   if(typeof rR==='function')rR();
@@ -3289,7 +3394,7 @@ function loadDemoData(){
   if(typeof rAl==='function')rAl();
   var cpM=document.getElementById('cpM');if(cpM){cpM.innerHTML='';RD.forEach(function(r){cpM.innerHTML+='<option value="'+r[0]+'">'+r[0]+'</option>';});}
   console.log('[DEMO] Loaded: '+PED.length+' pedidos, '+CYC.length+' ciclos, '+Object.keys(ordersCreated).reduce(function(s,k){return s+(ordersCreated[k]||[]).length;},0)+' ordenes');
-  alert('✅ Demo cargada con éxito!\n\n• '+PED.length+' pedidos (todos los escenarios)\n• '+CYC.length+' ciclos (T1\xd72 + T2\xd72)\n• Alta saturaci\xf3n T1C1 (~95% por familia)\n• T2C1 F07 sobrecapacitado (90h vs 80h temporal)\n• Ciclos 2 libres para consultas CTP\n• PED-D15 va al Pool (sin temporal suficiente)\n\nRevisa las pantallas Pedidos, Ciclos y CTP.');
+  if(!silent)alert('✅ Demo cargada con éxito!\n\n• '+PED.length+' pedidos (todos los escenarios)\n• '+CYC.length+' ciclos (T1\xd72 + T2\xd72)\n• Saturaci\xf3n >80% en todos los ciclos\n• T2C1 F07 sobrecapacitado (90h vs 80h temporal)\n• F05 ciclo 2 con temporal libre para ejemplos CTP\n• PED-D15 va al Pool (sin temporal suficiente)\n\nRevisa las pantallas Pedidos, Ciclos y CTP (ejemplos guiados).');
 }
 
 async function initFromSupabase(){
