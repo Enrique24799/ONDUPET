@@ -19,6 +19,34 @@
 #bmOverlay{position:fixed;inset:0;background:rgba(244,246,248,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:99;font-weight:700;color:#17324d}
 #bmOverlay .spin{width:34px;height:34px;border:4px solid #d8dee6;border-top-color:#2a9d8f;border-radius:50%;animation:bmspin 1s linear infinite}
 @keyframes bmspin{to{transform:rotate(360deg)}}
+/* === Cabeceras de orden en Balance === */
+.bal-order-row td{background:#eef3f8;font-weight:700;color:var(--p);border-top:2px solid #cbd5e1}
+.bal-order-row .traffic{width:13px;height:13px;box-shadow:none;vertical-align:middle;margin-right:4px}
+.bal-sem-motivo{font-weight:400;color:#475569;font-size:11px}
+/* === Control de Órdenes visual === */
+.control-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.ckpi{background:#f8fafc;border:1px solid var(--b);border-radius:12px;padding:10px}
+.ckpi span{display:block;color:var(--m);font-size:11px;text-transform:uppercase;margin-bottom:4px}
+.ckpi strong{font-size:20px;color:var(--p)}
+.ckpi.ok strong{color:#059669}.ckpi.warn strong{color:#d97706}.ckpi.ko strong{color:#dc2626}
+.order-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:14px}
+.order-card{background:white;border:1px solid #e2e8f0;border-left:6px solid #10b981;border-radius:14px;padding:14px;box-shadow:0 3px 10px rgba(15,23,42,.06)}
+.order-card.card-warn{border-left-color:#f59e0b}.order-card.card-ko{border-left-color:#ef4444}
+.order-card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.order-card-title{flex:1;min-width:0}
+.order-card-title strong{display:block;color:var(--p);font-size:15px}
+.order-card-title span{display:block;color:var(--m);font-size:11px;margin-top:2px}
+.order-card-qty{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#475569;margin-bottom:6px}
+.order-card-qty strong{color:#0f172a}
+.notif-bar{height:6px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-bottom:10px}
+.notif-bar-fill{height:100%;background:linear-gradient(90deg,#2a9d8f,#22577a)}
+.order-card-chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-block;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700}
+.chip-ko{background:#fee2e2;color:#991b1b}.chip-warn{background:#fef3c7;color:#92400e}.chip-info{background:#dbeafe;color:#1d4ed8}.chip-ok{background:#dcfce7;color:#166534}
+.order-card-detail{margin-top:10px;border:1px solid #eef2f7;border-radius:10px;background:white}
+.order-card-detail summary{padding:8px 10px;font-size:12px;background:#f8fafc}
+.order-card-detail table{min-width:0}
+@media(max-width:1250px){.control-kpis{grid-template-columns:1fr 1fr}.order-cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -31,7 +59,7 @@
 <section id="orders" class="screen"><div class="panel"><div class="ph"><div><h2>Órdenes de producción y líneas de pesada</h2><span>Cada pesada de merma extrínseca se asocia a una orden concreta (el desplegable muestra las últimas 4) y se reparte entre los lotes de bobina consumidos por esa orden según su % de consumo. La merma intrínseca se calcula con el % de la lista de materiales. Informa fecha y hora de inicio/fin: se usan en la regla de 24 h de la baja automática. Pulsa "Editar" en una orden para modificarla.</span></div></div><div class="body"><div class="grid"><div class="field"><label>Orden</label><input id="opId" placeholder="ORDEN 1"></div><div class="field"><label>Material padre</label><input id="opPadre" placeholder="CESTA A"></div><div class="field"><label>Cantidad teórica</label><input id="opQty" type="number" step="0.001"></div><div class="field"><label>Cantidad notificada</label><input id="opNotif" type="number" step="0.001" placeholder="vacío = teórica"></div><div class="field"><label>Secuencia</label><input id="opSeq" type="number" step="0.1" value="1"></div><div class="field"><label>Máquina/Línea</label><input id="opLinea" placeholder="L1"></div><div class="field"><label>Fecha y hora inicio</label><input id="opIni" type="datetime-local"></div><div class="field"><label>Fecha y hora fin</label><input id="opFin" type="datetime-local"></div><div class="field"><label>Status</label><select id="opStatus"><option>Planificada</option><option>En curso</option><option>Cerrada</option><option>Bloqueada</option></select></div><div class="field"><div style="display:flex;gap:6px"><button class="primary" id="btnAddOrder" onclick="addOrder()" style="flex:1">Añadir orden</button><button class="secondary" id="btnCancelEdit" onclick="cancelEditOrder()" style="display:none">Cancelar</button></div></div></div><hr style="border:0;border-top:1px solid #d8dee6;margin:14px 0"><div class="grid"><div class="field"><label>Nombre pesada (merma extrínseca)</label><input id="wlName" placeholder="Pesada 1"></div><div class="field"><label>Orden asociada</label><select id="wlOrden"></select></div><div class="field"><label>Unidad</label><select id="wlUd"><option>KG</option><option>UD</option><option>M2</option></select></div><div class="field"><label>Peso pesado</label><input id="wlQty" type="number" step="0.001" placeholder="Ej.: 500"></div><div class="field"><label>Material afectado</label><select id="wlMat"><option value="TODOS">TODOS</option></select></div><div class="field"><button class="info" onclick="addWasteLine()">Añadir línea pesada</button></div></div><div class="wide"><table><thead><tr><th>Secuencia</th><th>Tipo</th><th>Nombre/Orden</th><th>Padre / Merma</th><th class="num">Cantidad/Peso</th><th>Ud</th><th>Estado/Criterio</th><th>Material/Comp.</th><th>Fechas (inicio → fin)</th><th>Acción</th></tr></thead><tbody id="orderRows"></tbody></table></div></div></div></section>
 <section id="moves" class="screen"><div class="panel"><div class="ph"><div><h2>Baja automática de lotes</h2><span>Reserva automática por secuencia; el corte se evalúa por componente (hijo), no por material padre. Si tras órdenes de otro componente la secuencia vuelve al mismo, el reparto continúa solo cuando entre el fin de la última orden de la cadena y el inicio de la que lo retoma hay menos de 24 h; si no, el sobrante va a la última orden con necesidad. Para corregir errores manualmente, selecciona una o varias órdenes en "Forzar contra órdenes": la baja se imputa solo a ellas, repartida por su % de teórico del material (debe estar en su lista de materiales).</span></div></div><div class="body"><div class="grid"><div class="field"><label>Material a dar de baja</label><select id="mvMat"></select></div><div class="field"><label>Lote</label><select id="mvLote"></select></div><div class="field"><label>Cantidad a dar de baja</label><input id="mvQty" type="number" step="0.001" placeholder="Vacío = stock esperado"></div><div class="field"><label>Comentario</label><input id="mvCom" placeholder="opcional"></div><div class="field"><label>Forzar contra órdenes (opcional, Ctrl+clic)</label><select id="mvOrden" multiple size="3"></select></div><div class="field"><button class="primary" onclick="addConsumption()">Dar de baja y reservar</button></div><div class="field"><button class="secondary" onclick="clearConsumptions()">Limpiar consumos</button></div></div><div class="wide"><table><thead><tr><th>Orden asignada</th><th>Material</th><th>Lote</th><th>Ud</th><th class="num">Cantidad reservada</th><th>Comentario</th><th>Acción</th></tr></thead><tbody id="consRows"></tbody></table></div></div></div><div class="panel"><div class="ph"><div><h2>Devoluciones reales por lote</h2><span>La diferencia entre devolución esperada (operativa) y real se reparte entre las órdenes que consumieron el lote. La columna "Dev. teórica" es informativa: stock inicial menos consumo teórico asignado; el ajuste se calcula siempre contra la operativa. Para corregir errores, selecciona órdenes en "Forzar contra órdenes": el ajuste se imputa solo a ellas, repartido por su % de consumo del lote (deben tener el material en su LM y consumo del lote).</span></div></div><div class="body"><div class="grid"><div class="field"><label>Material</label><select id="devMat"></select></div><div class="field"><label>Lote</label><select id="devLote"></select></div><div class="field"><label>Cantidad devuelta real</label><input id="devQty" type="number" step="0.001"></div><div class="field"><label>Forzar contra órdenes (opcional, Ctrl+clic)</label><select id="devOrden" multiple size="3"></select></div><div class="field"><button class="primary" onclick="addReturn()">Registrar devolución</button></div></div><div class="wide"><table><thead><tr><th>Material</th><th>Lote</th><th>Ud</th><th class="num">Dev. esperada (operativa)</th><th class="num">Dev. teórica</th><th class="num">Dev. real</th><th class="num">Ajuste consumo</th><th>Imputación</th><th>Interpretación</th><th>Acción</th></tr></thead><tbody id="retRows"></tbody></table></div></div></div></section>
 <section id="balance" class="screen"><div class="panel"><div class="ph"><div><h2>Balance de masas</h2><span>Detalle por orden, componente y lote.</span></div><button class="secondary" onclick="renderAll()">Recalcular</button></div><div class="body"><div class="summary"><div class="box"><span>Órdenes</span><strong id="kOrders">0</strong></div><div class="box"><span>Lotes</span><strong id="kLots">0</strong></div><div class="box"><span>Consumos</span><strong id="kCons">0</strong></div><div class="box"><span>Devoluciones</span><strong id="kRets">0</strong></div><div class="box"><span>Pesadas</span><strong id="kWaste">0</strong></div></div><div class="wide"><table><thead><tr><th>Orden</th><th>Padre</th><th>Componente</th><th>Lote</th><th>Tipo</th><th>Ud</th><th class="num">Teórico línea</th><th class="num">Consumo lote</th><th class="num">Ajuste devolución</th><th class="num">Merma extrínseca</th><th class="num">Merma intrínseca</th><th class="num">Real final</th><th class="num">Dif.</th><th>Estado</th></tr></thead><tbody id="balRows"></tbody></table></div></div></div></section>
-<section id="control" class="screen"><div class="panel"><div class="ph"><div><h2>Control de Órdenes</h2><span>Nivel 1: orden. Nivel 2: componentes. Nivel 3: lotes asignados/consumidos.</span></div><button class="secondary" onclick="renderAll()">Recalcular</button></div><div class="body" id="controlBody"></div></div></section>
+<section id="control" class="screen"><div class="panel"><div class="ph"><div><h2>Control de Órdenes</h2><span>Vista ejecutiva: incidencias por orden, consumos pendientes y devoluciones esperadas. Las órdenes con problemas aparecen primero. El detalle fino por lote está en la pestaña Balance.</span></div><button class="secondary" onclick="renderAll()">Recalcular</button></div><div class="body" id="controlBody"></div></div></section>
 </main>
 <script>
 let LM=[],STOCK=[],ORDERS=[],CONS=[],RETS=[],WASTE_LINES=[];
@@ -89,11 +117,13 @@ let EDIT_ORDER_ID=null;
 async function addOrder(){
  if(!opId.value.trim()||!opPadre.value.trim())return alert('Informa orden y material padre.');
  let qty=+opQty.value||0;
+ /* Notificada: vacío = teórica (regla del documento); se admite 0 explícito = nada notificado aún */
+ let notifVal=opNotif.value.trim()===''?qty:(+opNotif.value||0);
  if(EDIT_ORDER_ID){
   const o=ORDERS.find(x=>x.id===EDIT_ORDER_ID);
   if(!o){cancelEditOrder();return}
   const oldOp=o.op;
-  o.op=opId.value.trim();o.padre=opPadre.value.trim();o.qty=qty;o.notif=+opNotif.value||qty;o.seq=+opSeq.value||1;o.linea=opLinea.value.trim();o.ini=opIni.value;o.fin=opFin.value;o.status=opStatus.value;
+  o.op=opId.value.trim();o.padre=opPadre.value.trim();o.qty=qty;o.notif=notifVal;o.seq=+opSeq.value||1;o.linea=opLinea.value.trim();o.ini=opIni.value;o.fin=opFin.value;o.status=opStatus.value;
   const opChanged=oldOp!==o.op;
   if(opChanged)CONS.forEach(c=>{if(c.orderId===o.id)c.op=o.op});
   cancelEditOrder();renderAll();
@@ -101,7 +131,7 @@ async function addOrder(){
   if(await dbUpdate('ORDERS',o.id,payload)&&opChanged)await dbUpdateWhere('CONS','order_id',o.id,{op:o.op});
   return;
  }
- const x={id:uid(),op:opId.value.trim(),padre:opPadre.value.trim(),qty,notif:+opNotif.value||qty,seq:+opSeq.value||1,linea:opLinea.value.trim(),ini:opIni.value,fin:opFin.value,status:opStatus.value};
+ const x={id:uid(),op:opId.value.trim(),padre:opPadre.value.trim(),qty,notif:notifVal,seq:+opSeq.value||1,linea:opLinea.value.trim(),ini:opIni.value,fin:opFin.value,status:opStatus.value};
  ORDERS.push(x);opId.value='';opQty.value='';opNotif.value='';
  opSeq.value=(Math.max(0,...ORDERS.map(o=>o.seq),...WASTE_LINES.map(w=>w.seq))+1);
  renderAll();await dbInsert('ORDERS',x)
@@ -256,39 +286,88 @@ function theoreticalForLine(o,l,c){
  let real=manual+adj+ext,dif=real-teor;
  return {o,l,c,lot,teor,manual,adj,ext,int,real,dif}
 }function state(dif,teor){let pct=Math.abs(teor)>0?Math.abs(dif)/Math.abs(teor):0;if(Math.abs(dif)<0.0001)return '<span class="pill ok">OK</span>';if(pct<=0.05)return '<span class="pill yellow">Aviso</span>';return '<span class="pill bad">Desvío</span>'}function hasOrderMismatch(o){return balanceRows().filter(r=>r.o.id===o.id).some(r=>Math.abs(r.dif)>0.0001)}
+function compKeysOf(o){return [...new Set(componentsOf(o).filter(l=>l.signo<0).map(l=>l.comp+'||'+l.ud))]}
+function orderSemaphore(o){
+ /* Rojo: hay cantidad notificada y algún componente sin consumo real (prima sobre naranja).
+    Naranja: consumo real por debajo del teórico proporcional a lo notificado. Verde: resto. */
+ let notif=o.notif??o.qty,keys=compKeysOf(o);
+ if(!keys.length)return {color:'ok',motivo:'Sin componentes de consumo en LM'};
+ if(notif>0){
+  let sinCons=keys.filter(k=>{let [comp,ud]=k.split('||');return allocated(o.id,comp,ud)<=0});
+  if(sinCons.length)return {color:'ko',motivo:'Notificado sin consumo real: '+sinCons.map(k=>k.split('||')[0]).join(', ')};
+  let ratio=o.qty>0?notif/o.qty:1;
+  let bajos=keys.filter(k=>{let [comp,ud]=k.split('||');return allocated(o.id,comp,ud)+0.0001<absTheoMat(o,comp,ud)*ratio});
+  if(bajos.length)return {color:'warn',motivo:'Consumo inferior al teórico notificado: '+bajos.map(k=>k.split('||')[0]).join(', ')};
+  return {color:'ok',motivo:'Consumos acordes a lo notificado'};
+ }
+ return {color:'ok',motivo:'Sin cantidad notificada'};
+}
+function orderAlerts(o){
+ let alerts=[],notif=o.notif??o.qty,ratio=o.qty>0?notif/o.qty:1;
+ compKeysOf(o).forEach(k=>{
+  let [comp,ud]=k.split('||');
+  let cons=allocated(o.id,comp,ud),teoTot=absTheoMat(o,comp,ud),teoNotif=teoTot*ratio;
+  if(notif>0&&cons<=0)alerts.push({cl:'ko',txt:'Sin consumo real de '+comp+' (teórico '+fmt(teoTot)+' '+ud+')'});
+  else if(notif>0&&cons+0.0001<teoNotif)alerts.push({cl:'warn',txt:'Consumo bajo de '+comp+': '+fmt(cons)+' de '+fmt(teoNotif)+' '+ud+' según notificado'});
+  else if(cons+0.0001<teoTot)alerts.push({cl:'info',txt:'Se espera consumo de '+comp+': pendiente '+fmt(teoTot-cons)+' '+ud});
+  if(cons>teoTot+0.0001)alerts.push({cl:'warn',txt:'Sobreconsumo de '+comp+': +'+fmt(cons-teoTot)+' '+ud+' sobre teórico'});
+ });
+ [...new Set(CONS.filter(c=>c.orderId===o.id).map(c=>c.stockId))].forEach(id=>{
+  let lot=STOCK.find(s=>s.id===id);if(!lot)return;
+  let expR=expectedReturn(lot);
+  if(expR>0.0001&&!retOf(lot.id))alerts.push({cl:'info',txt:'Se espera devolución del '+lot.lote+' ('+lot.mat+'): '+fmt(expR)+' '+lot.ud});
+ });
+ return alerts;
+}
 function renderSelects(){let matOpts=[...new Set(STOCK.map(s=>s.mat))].map(m=>`<option>${esc(m)}</option>`).join('');mvMat.innerHTML=matOpts;devMat.innerHTML=matOpts;wlMat.innerHTML='<option value="TODOS">TODOS</option>'+matOpts;let ordSorted=[...ORDERS].sort((a,b)=>a.seq-b.seq),ordOpt=o=>`<option value="${o.id}">${esc(o.op)} (${esc(o.padre)})</option>`;wlOrden.innerHTML=ordSorted.slice(-4).reverse().map(ordOpt).join('');mvOrden.innerHTML=ordSorted.map(ordOpt).join('');devOrden.innerHTML=ordSorted.map(ordOpt).join('');updateLotSelects()}function updateLotSelects(){let m=mvMat.value;mvLote.innerHTML=STOCK.filter(s=>!m||s.mat===m).map(s=>`<option value="${s.id}">${esc(s.lote)} (${fmt(s.qty-stockUsed(s.id))} ${s.ud} esperado)</option>`).join('');let dm=devMat.value;devLote.innerHTML=STOCK.filter(s=>!dm||s.mat===dm).map(s=>`<option value="${s.id}">${esc(s.lote)} (${s.ud})</option>`).join('')}document.addEventListener('change',e=>{if(e.target.id==='mvMat'||e.target.id==='devMat')updateLotSelects()});
-function renderAll(){lmRows.innerHTML=LM.map(x=>`<tr><td>${esc(x.padre)}</td><td>${esc(x.comp)}</td><td>${x.tipo}</td><td>${x.ud}</td><td class="num">${fmt(x.qty)}</td><td class="num">${fmt(x.merma)}%</td><td>${x.signo>0?'<span class="pill ok">Genera</span>':'<span class="pill bad">Consume</span>'}</td><td>${x.repartible}</td><td>${x.criterio}</td><td><button class="danger" onclick="del('LM','${x.id}')">Eliminar</button></td></tr>`).join('');stockRows.innerHTML=STOCK.map(s=>{let used=stockUsed(s.id),ret=retOf(s.id),exp=expectedReturn(s);return `<tr><td>${esc(s.mat)}</td><td>${esc(s.lote)}</td><td>${s.tipo}</td><td>${s.ud}</td><td class="num">${fmt(s.qty)}</td><td class="num">${fmt(used)}</td><td class="num">${ret?fmt(ret.qty):''}</td><td class="num">${fmt(exp)}</td><td><button class="danger" onclick="del('STOCK','${s.id}')">Eliminar</button></td></tr>`}).join('');orderRows.innerHTML=[...ORDERS.map(o=>({...o,lineType:'ORDEN'})),...WASTE_LINES.map(w=>({...w,lineType:'PESADA'}))].sort((a,b)=>a.seq-b.seq).map(x=>x.lineType==='ORDEN'?`<tr><td>${x.seq}</td><td><span class="pill ok">Orden</span></td><td>${esc(x.op)}</td><td>${esc(x.padre)}</td><td class="num">${fmt(x.qty)}</td><td>UD padre</td><td>${esc(x.status||'')}</td><td>${componentsOf(x).length}</td><td>${esc(fmtDT(x.ini)||'-')} → ${esc(fmtDT(x.fin)||'-')}</td><td><button class="info" onclick="editOrder('${x.id}')">Editar</button> <button class="danger" onclick="del('ORDERS','${x.id}')">Eliminar</button></td></tr>`:`<tr><td>${x.seq}</td><td><span class="pill blue">Pesada</span></td><td>${esc(x.name)}</td><td>${x.tipo}</td><td class="num">${fmt(x.qty)}</td><td>${x.ud}</td><td>${x.orderId?('Orden: '+esc((ORDERS.find(o=>o.id===x.orderId)||{}).op||'¿?')):esc(x.crit||'')}</td><td>${esc(x.mat)}</td><td></td><td><button class="danger" onclick="del('WASTE_LINES','${x.id}')">Eliminar</button></td></tr>`).join('');renderSelects();consRows.innerHTML=CONS.map(c=>`<tr><td>${esc(c.op)}</td><td>${esc(c.mat)}</td><td>${esc(c.lote)}</td><td>${c.ud}</td><td class="num">${fmt(c.qty)}</td><td>${esc(c.com)}</td><td><button class="danger" onclick="del('CONS','${c.id}')">Eliminar</button></td></tr>`).join('');retRows.innerHTML=RETS.map(r=>{let lot=STOCK.find(s=>s.id===r.stockId),exp=lot?expectedReturn(lot):0,teo=lot?theoreticalReturn(lot):0,adj=lot?returnAdjustment(lot):0,interp=adj>0?'Consumo extra por devolución menor':adj<0?'Consumo inferior por devolución mayor':'Cuadra',imput=r.orderIds&&r.orderIds.length?('Forzada: '+esc(r.orderIds.map(id=>(ORDERS.find(o=>o.id===id)||{}).op||'¿?').join(', '))):'Todas (por % consumo)';return `<tr><td>${esc(r.mat)}</td><td>${esc(r.lote)}</td><td>${r.ud}</td><td class="num">${fmt(exp)}</td><td class="num">${fmt(teo)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(adj)}</td><td>${imput}</td><td>${interp}</td><td><button class="danger" onclick="del('RETS','${r.id}')">Eliminar</button></td></tr>`}).join('');let rows=balanceRows();balRows.innerHTML=rows.map(r=>`<tr><td>${esc(r.o.op)}</td><td>${esc(r.o.padre)}</td><td>${esc(r.l.comp)}</td><td>${r.c?esc(r.c.lote):'<span class="pill muted">sin lote</span>'}</td><td>${r.l.tipo}</td><td>${r.l.ud}</td><td class="num">${fmt(r.teor)}</td><td class="num">${fmt(r.manual)}</td><td class="num">${fmt(r.adj)}</td><td class="num">${fmt(r.ext)}</td><td class="num">${fmt(r.int)}</td><td class="num"><strong>${fmt(r.real)}</strong></td><td class="num">${fmt(r.dif)}</td><td>${state(r.dif,r.teor)}</td></tr>`).join('');kOrders.textContent=ORDERS.length;kLots.textContent=STOCK.length;kCons.textContent=CONS.length;kRets.textContent=RETS.length;kWaste.textContent=WASTE_LINES.length;renderControl()}
+function renderAll(){lmRows.innerHTML=LM.map(x=>`<tr><td>${esc(x.padre)}</td><td>${esc(x.comp)}</td><td>${x.tipo}</td><td>${x.ud}</td><td class="num">${fmt(x.qty)}</td><td class="num">${fmt(x.merma)}%</td><td>${x.signo>0?'<span class="pill ok">Genera</span>':'<span class="pill bad">Consume</span>'}</td><td>${x.repartible}</td><td>${x.criterio}</td><td><button class="danger" onclick="del('LM','${x.id}')">Eliminar</button></td></tr>`).join('');stockRows.innerHTML=STOCK.map(s=>{let used=stockUsed(s.id),ret=retOf(s.id),exp=expectedReturn(s);return `<tr><td>${esc(s.mat)}</td><td>${esc(s.lote)}</td><td>${s.tipo}</td><td>${s.ud}</td><td class="num">${fmt(s.qty)}</td><td class="num">${fmt(used)}</td><td class="num">${ret?fmt(ret.qty):''}</td><td class="num">${fmt(exp)}</td><td><button class="danger" onclick="del('STOCK','${s.id}')">Eliminar</button></td></tr>`}).join('');orderRows.innerHTML=[...ORDERS.map(o=>({...o,lineType:'ORDEN'})),...WASTE_LINES.map(w=>({...w,lineType:'PESADA'}))].sort((a,b)=>a.seq-b.seq).map(x=>x.lineType==='ORDEN'?`<tr><td>${x.seq}</td><td><span class="pill ok">Orden</span></td><td>${esc(x.op)}</td><td>${esc(x.padre)}</td><td class="num">${fmt(x.qty)}</td><td>UD padre</td><td>${esc(x.status||'')}</td><td>${componentsOf(x).length}</td><td>${esc(fmtDT(x.ini)||'-')} → ${esc(fmtDT(x.fin)||'-')}</td><td><button class="info" onclick="editOrder('${x.id}')">Editar</button> <button class="danger" onclick="del('ORDERS','${x.id}')">Eliminar</button></td></tr>`:`<tr><td>${x.seq}</td><td><span class="pill blue">Pesada</span></td><td>${esc(x.name)}</td><td>${x.tipo}</td><td class="num">${fmt(x.qty)}</td><td>${x.ud}</td><td>${x.orderId?('Orden: '+esc((ORDERS.find(o=>o.id===x.orderId)||{}).op||'¿?')):esc(x.crit||'')}</td><td>${esc(x.mat)}</td><td></td><td><button class="danger" onclick="del('WASTE_LINES','${x.id}')">Eliminar</button></td></tr>`).join('');renderSelects();consRows.innerHTML=CONS.map(c=>`<tr><td>${esc(c.op)}</td><td>${esc(c.mat)}</td><td>${esc(c.lote)}</td><td>${c.ud}</td><td class="num">${fmt(c.qty)}</td><td>${esc(c.com)}</td><td><button class="danger" onclick="del('CONS','${c.id}')">Eliminar</button></td></tr>`).join('');retRows.innerHTML=RETS.map(r=>{let lot=STOCK.find(s=>s.id===r.stockId),exp=lot?expectedReturn(lot):0,teo=lot?theoreticalReturn(lot):0,adj=lot?returnAdjustment(lot):0,interp=adj>0?'Consumo extra por devolución menor':adj<0?'Consumo inferior por devolución mayor':'Cuadra',imput=r.orderIds&&r.orderIds.length?('Forzada: '+esc(r.orderIds.map(id=>(ORDERS.find(o=>o.id===id)||{}).op||'¿?').join(', '))):'Todas (por % consumo)';return `<tr><td>${esc(r.mat)}</td><td>${esc(r.lote)}</td><td>${r.ud}</td><td class="num">${fmt(exp)}</td><td class="num">${fmt(teo)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${fmt(adj)}</td><td>${imput}</td><td>${interp}</td><td><button class="danger" onclick="del('RETS','${r.id}')">Eliminar</button></td></tr>`}).join('');let rows=balanceRows();
+let balHtml='';
+[...ORDERS].sort((a,b)=>a.seq-b.seq).forEach(o=>{
+ let sem=orderSemaphore(o);
+ balHtml+=`<tr class="bal-order-row"><td colspan="14"><span class="traffic ${sem.color}"></span> ${esc(o.op)} · Padre: ${esc(o.padre)} · Cantidad: ${fmt(o.qty)} · Notificada: ${fmt(o.notif??o.qty)} · <span class="bal-sem-motivo">${esc(sem.motivo)}</span></td></tr>`;
+ balHtml+=rows.filter(r=>r.o.id===o.id).map(r=>`<tr><td>${esc(r.o.op)}</td><td>${esc(r.o.padre)}</td><td>${esc(r.l.comp)}</td><td>${r.c?esc(r.c.lote):'<span class="pill muted">sin lote</span>'}</td><td>${r.l.tipo}</td><td>${r.l.ud}</td><td class="num">${fmt(r.teor)}</td><td class="num">${fmt(r.manual)}</td><td class="num">${fmt(r.adj)}</td><td class="num">${fmt(r.ext)}</td><td class="num">${fmt(r.int)}</td><td class="num"><strong>${fmt(r.real)}</strong></td><td class="num">${fmt(r.dif)}</td><td>${state(r.dif,r.teor)}</td></tr>`).join('');
+});
+balRows.innerHTML=balHtml;kOrders.textContent=ORDERS.length;kLots.textContent=STOCK.length;kCons.textContent=CONS.length;kRets.textContent=RETS.length;kWaste.textContent=WASTE_LINES.length;renderControl()}
 function controlDiffClass(v){return Math.abs(v)>0.0001?'diff-bad':'diff-good'}
 function controlTraffic(v){return Math.abs(v)>0.0001?'ko':'ok'}
 function controlStatusClass(s){let v=String(s||'Planificada').toLowerCase().replaceAll(' ','-');return 'status-'+v}
 function renderControl(){
  let rows=balanceRows();
  if(!ORDERS.length){
-   controlBody.innerHTML='<div class="empty-control"><strong>No hay órdenes generadas.</strong><br><span class="control-muted">Genera órdenes para ver el control multinivel.</span></div>';
+   controlBody.innerHTML='<div class="empty-control"><strong>No hay órdenes generadas.</strong><br><span class="control-muted">Genera órdenes para ver el control.</span></div>';
    return;
  }
- let htmlCtl=`<div class="control-dashboard"><div class="control-toolbar"><div class="control-toolbar-title"><strong>Control operativo de órdenes</strong><span>Resumen por orden, desglose por componente y trazabilidad por lote.</span></div><div class="control-legend"><span class="legend-item"><span class="legend-dot ok"></span>Sin descuadre</span><span class="legend-item"><span class="legend-dot ko"></span>Con descuadre</span></div></div>`;
- ORDERS.sort((a,b)=>a.seq-b.seq).forEach(o=>{
+ let nOk=0,nWarn=0,nKo=0,cards=[];
+ [...ORDERS].sort((a,b)=>a.seq-b.seq).forEach(o=>{
    let oRows=rows.filter(r=>r.o.id===o.id);
    let orderTeo=oRows.reduce((a,r)=>a+r.teor,0);
    let orderReal=oRows.reduce((a,r)=>a+r.real,0);
    let orderDif=orderReal-orderTeo;
-   let sem=controlTraffic(orderDif);
+   let sem=orderSemaphore(o);
+   let alerts=orderAlerts(o);
+   if(sem.color==='ko')nKo++;else if(sem.color==='warn')nWarn++;else nOk++;
+   let notif=o.notif??o.qty;
+   let pctNot=o.qty>0?Math.min(100,notif/o.qty*100):0;
+   let chips=alerts.length?alerts.map(a=>`<span class="chip chip-${a.cl}">${esc(a.txt)}</span>`).join(''):'<span class="chip chip-ok">Sin incidencias</span>';
    let compKeys=[...new Set(oRows.map(r=>r.l.comp+'||'+r.l.ud))];
-   let compHtml=compKeys.map(k=>{
+   let compMini=compKeys.map(k=>{
      let [comp,ud]=k.split('||');
      let cr=oRows.filter(r=>r.l.comp===comp&&r.l.ud===ud);
-     let tipo=cr[0]?.l.tipo||'';
-     let teo=cr.reduce((a,r)=>a+r.teor,0);
-     let real=cr.reduce((a,r)=>a+r.real,0);
-     let dif=real-teo;
-     let lotRows=cr.map(r=>`<tr><td>${r.c?esc(r.c.lote):'<span class="pill muted">sin lote</span>'}</td><td class="num">${fmt(r.manual)}</td><td class="num">${fmt(r.adj)}</td><td class="num">${fmt(r.ext)}</td><td class="num">${fmt(r.int)}</td><td class="num"><strong>${fmt(r.real)}</strong></td><td class="num ${controlDiffClass(r.dif)}">${fmt(r.dif)}</td></tr>`).join('');
-     return `<details class="control-component"><summary><div class="component-head"><div class="component-title"><strong>${esc(comp)}</strong><span>${esc(tipo)} · ${esc(ud)}</span></div><div class="mini-kpi"><span>Teórico</span><strong>${fmt(teo)}</strong></div><div class="mini-kpi"><span>Real</span><strong>${fmt(real)}</strong></div><div class="mini-kpi"><span>Diferencia</span><strong class="${controlDiffClass(dif)}">${fmt(dif)}</strong></div><div class="mini-kpi"><span>Semáforo</span><strong><span class="traffic ${controlTraffic(dif)}"></span></strong></div></div></summary><div class="lot-wrap"><table><thead><tr><th>Lote</th><th class="num">Consumido</th><th class="num">Ajuste dev.</th><th class="num">Merma ext.</th><th class="num">Merma int.</th><th class="num">Real final</th><th class="num">Dif.</th></tr></thead><tbody>${lotRows}</tbody></table></div></details>`;
+     let teo=cr.reduce((a,r)=>a+r.teor,0),real=cr.reduce((a,r)=>a+r.real,0),dif=real-teo;
+     return `<tr><td>${esc(comp)}</td><td>${esc(cr[0]?.l.tipo||'')}</td><td>${esc(ud)}</td><td class="num">${fmt(teo)}</td><td class="num">${fmt(real)}</td><td class="num ${controlDiffClass(dif)}">${fmt(dif)}</td></tr>`;
    }).join('');
-   htmlCtl+=`<details class="control-order" open><summary><div class="order-head"><div class="order-main"><span class="traffic ${sem}"></span><div class="order-title"><strong>${esc(o.op)}</strong><span>Material padre: ${esc(o.padre)} · Secuencia ${esc(o.seq)}</span></div></div><div class="order-kpi"><span>Cantidad teórica</span><strong>${fmt(o.qty)}</strong></div><div class="order-kpi"><span>Cantidad notificada</span><strong>${fmt(o.notif??o.qty)}</strong></div><div class="order-kpi"><span>Fechas</span><strong>${esc(fmtDT(o.ini)||'-')} → ${esc(fmtDT(o.fin)||'-')}</strong></div><div class="order-kpi"><span>Status</span><strong><span class="status-badge ${controlStatusClass(o.status)}">${esc(o.status||'Planificada')}</span></strong></div><div class="order-kpi"><span>Diferencia global</span><strong class="${Math.abs(orderDif)>0.0001?'order-result-bad':'order-result-good'}">${fmt(orderDif)}</strong></div></div></summary><div class="order-content"><div class="component-list">${compHtml||'<div class="empty-control">Orden sin componentes calculados.</div>'}</div></div></details>`;
+   cards.push({sem,html:`<div class="order-card card-${sem.color}">
+<div class="order-card-head"><span class="traffic ${sem.color}"></span><div class="order-card-title"><strong>${esc(o.op)}</strong><span>${esc(o.padre)} · Sec. ${esc(o.seq)} · ${esc(fmtDT(o.ini)||'-')} → ${esc(fmtDT(o.fin)||'-')}</span></div><span class="status-badge ${controlStatusClass(o.status)}">${esc(o.status||'Planificada')}</span></div>
+<div class="order-card-qty"><span>Teórica <strong>${fmt(o.qty)}</strong></span><span>Notificada <strong>${fmt(notif)}</strong></span><span>Dif. global <strong class="${Math.abs(orderDif)>0.0001?'order-result-bad':'order-result-good'}">${fmt(orderDif)}</strong></span></div>
+<div class="notif-bar" title="% notificado sobre teórico"><div class="notif-bar-fill" style="width:${pctNot}%"></div></div>
+<div class="order-card-chips">${chips}</div>
+<details class="order-card-detail"><summary>Detalle por componente</summary><table><thead><tr><th>Componente</th><th>Tipo</th><th>Ud</th><th class="num">Teórico</th><th class="num">Real</th><th class="num">Dif.</th></tr></thead><tbody>${compMini||'<tr><td colspan="6">Sin componentes</td></tr>'}</tbody></table></details>
+</div>`});
  });
- htmlCtl+='</div>';
- controlBody.innerHTML=htmlCtl;
+ /* Las órdenes con problemas primero (rojo, naranja, verde), manteniendo la secuencia dentro de cada grupo */
+ let peso={ko:0,warn:1,ok:2};
+ cards.sort((a,b)=>peso[a.sem.color]-peso[b.sem.color]);
+ controlBody.innerHTML=`<div class="control-kpis"><div class="ckpi"><span>Órdenes</span><strong>${ORDERS.length}</strong></div><div class="ckpi ok"><span>Sin incidencias</span><strong>${nOk}</strong></div><div class="ckpi warn"><span>Con avisos</span><strong>${nWarn}</strong></div><div class="ckpi ko"><span>Con problemas</span><strong>${nKo}</strong></div></div><div class="order-cards">${cards.map(c=>c.html).join('')}</div>`;
 }
 async function loadExample(){
  LM=[];STOCK=[];ORDERS=[];CONS=[];RETS=[];WASTE_LINES=[];
