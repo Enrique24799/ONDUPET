@@ -279,11 +279,10 @@ function theoreticalForLine(o,l,c){
  }
  let ext=0;
  if(c&&l.tipo==='BOBINA')WASTE_LINES.forEach(w=>{if(w.tipo==='EXTRINSECA'&&w.orderId===o.id&&w.ud===l.ud&&(w.mat==='TODOS'||w.mat===l.comp))ext+=w.qty*extShareForCons(w,c)*l.signo});
- /* Merma intrínseca: ya no va por pesada. Se calcula con el % de la lista de materiales como la parte
-    de merma teórica contenida en el teórico de la línea (teor incluye el factor 1+merma). Es informativa
-    y no se suma al real: el consumo del lote ya incluye físicamente esa merma. */
+ /* Merma intrínseca: se calcula con el % de la lista de materiales (parte de merma contenida en el
+    teórico de la línea, que incluye el factor 1+merma) y se suma al real final igual que la extrínseca. */
  let int=l.merma?teor*(l.merma/100)/(1+l.merma/100):0;
- let real=manual+adj+ext,dif=real-teor;
+ let real=manual+adj+ext+int,dif=real-teor;
  return {o,l,c,lot,teor,manual,adj,ext,int,real,dif}
 }function state(dif,teor){let pct=Math.abs(teor)>0?Math.abs(dif)/Math.abs(teor):0;if(Math.abs(dif)<0.0001)return '<span class="pill ok">OK</span>';if(pct<=0.05)return '<span class="pill yellow">Aviso</span>';return '<span class="pill bad">Desvío</span>'}function hasOrderMismatch(o){return balanceRows().filter(r=>r.o.id===o.id).some(r=>Math.abs(r.dif)>0.0001)}
 function compKeysOf(o){return [...new Set(componentsOf(o).filter(l=>l.signo<0).map(l=>l.comp+'||'+l.ud))]}
