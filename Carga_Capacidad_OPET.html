@@ -1028,40 +1028,54 @@ function buildHeatMap(mosKey,tipo,cal){
     if(sa>60)return{bg:'#2dd4a0',fg:'#fff'};
     return{bg:'#d1fae5',fg:'#065f46'};
   }
-  var termo=mNamesAll.filter(function(_,i){return i<6;}),extru=mNamesAll.filter(function(_,i){return i>=6;});
-  var groups=[{label:'Termoformado',maqs:termo,off:0},{label:'Extrusión',maqs:extru,off:6}];
-  var html='';
-  groups.forEach(function(g){
-    if(!g.maqs.length)return;
-    html+='<div style="font-size:11px;font-weight:700;color:var(--tl);padding:10px 12px 4px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--border)">'+g.label+'</div>';
-    html+='<table style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr><th style="padding:6px 12px;background:var(--nav);color:#fff;font-weight:600;text-align:left;white-space:nowrap;min-width:80px">Máquina</th>';
-    mosKey.forEach(function(ym){var p=ym.split('-');html+='<th style="padding:6px 10px;background:var(--nav);color:#fff;font-weight:600;text-align:center;white-space:nowrap">'+MN[+p[1]-1]+' '+p[0].slice(2)+'</th>';});
-    html+='</tr></thead><tbody>';
-    g.maqs.forEach(function(maq,i){
-      html+='<tr><td style="padding:7px 12px;font-weight:700;white-space:nowrap;background:var(--bg);border-bottom:1px solid var(--border)">'+maq+'</td>';
-      var globalIdx=g.off+i;var totCap=0,totLoad=0;
+  function buildTable(maqs,off){
+    if(!maqs.length)return '<p style="color:var(--tl);font-size:12px;padding:12px">Sin máquinas en este grupo.</p>';
+    var t='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:12px;min-width:100%"><thead><tr>';
+    t+='<th style="padding:7px 14px;background:var(--nav);color:#fff;font-weight:600;text-align:left;white-space:nowrap;position:sticky;left:0;z-index:2">Máquina</th>';
+    mosKey.forEach(function(ym){
+      var p=ym.split('-');
+      t+='<th style="padding:7px 10px;background:var(--nav);color:#fff;font-weight:600;text-align:center;white-space:nowrap">'+MN[+p[1]-1]+'<br><span style="font-size:10px;opacity:.75">'+p[0]+'</span></th>';
+    });
+    t+='</tr></thead><tbody>';
+    maqs.forEach(function(maq,i){
+      t+='<tr><td style="padding:7px 14px;font-weight:700;white-space:nowrap;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;left:0;z-index:1">'+maq+'</td>';
+      var totCap=0,totLoad=0;
       mosKey.forEach(function(ym){
         var yp=ym.split('-').map(Number),tc=getCapH(yp[0],yp[1]-1,maq,cal);
         var tl=(DCData[maq]||[]).filter(function(r){return r[3]===ym&&(tipo==='prev'?true:r[2]==='Planificado');}).reduce(function(a,r){return a+r[5];},0);
         var sa=tc>0?Math.round(tl/tc*100):0;
         totCap+=tc;totLoad+=tl;
         var c=hmColor(sa),lbl=sa>0?sa+'%':'—';
-        html+='<td style="padding:7px 8px;text-align:center;font-weight:700;font-size:12px;background:'+c.bg+';color:'+c.fg+';border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer;transition:opacity .15s" onclick="goDetCarga(\''+maq+'\')" title="'+maq+' · '+ym+' · '+sa+'%">'+lbl+'</td>';
+        t+='<td style="padding:7px 10px;text-align:center;font-weight:700;font-size:12px;background:'+c.bg+';color:'+c.fg+';border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer" onclick="goDetCarga(\''+maq+'\')" title="'+maq+' · '+ym+' · '+sa+'%">'+lbl+'</td>';
       });
-      if(satAll)satAll[globalIdx]=totCap>0?Math.round(totLoad/totCap*100):0;
-      html+='</tr>';
+      if(satAll)satAll[off+i]=totCap>0?Math.round(totLoad/totCap*100):0;
+      t+='</tr>';
     });
-    html+='</tbody></table>';
-  });
-  html+='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:11px;align-items:center;color:var(--tl)">'
+    t+='</tbody></table></div>';
+    return t;
+  }
+  var termo=mNamesAll.filter(function(_,i){return i<6;}),extru=mNamesAll.filter(function(_,i){return i>=6;});
+  var leyenda='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:11px;align-items:center;color:var(--tl)">'
     +'<span style="font-weight:700">Leyenda:</span>'
     +'<span><span style="display:inline-block;width:13px;height:13px;border-radius:3px;background:#d1fae5;vertical-align:middle;margin-right:3px"></span>&lt;60%</span>'
     +'<span><span style="display:inline-block;width:13px;height:13px;border-radius:3px;background:#2dd4a0;vertical-align:middle;margin-right:3px"></span>60–85%</span>'
     +'<span><span style="display:inline-block;width:13px;height:13px;border-radius:3px;background:#f4a261;vertical-align:middle;margin-right:3px"></span>85–100%</span>'
     +'<span><span style="display:inline-block;width:13px;height:13px;border-radius:3px;background:#e63946;vertical-align:middle;margin-right:3px"></span>&gt;100%</span>'
-    +'<span style="margin-left:auto;font-style:italic">Clic → detalle por material</span>'
-    +'</div>';
+    +'<span style="margin-left:auto;font-style:italic">Clic en celda → detalle de material</span></div>';
+  var html='<div class="tabs" id="hmTabs">'
+    +'<div class="tab on" onclick="hmSwitch(\'termo\',this)">Termoformado (T1-T6)</div>'
+    +'<div class="tab" onclick="hmSwitch(\'extru\',this)">Extrusión (E1-E2)</div>'
+    +'</div>'
+    +'<div id="hmPanelTermo">'+buildTable(termo,0)+'</div>'
+    +'<div id="hmPanelExtru" style="display:none">'+buildTable(extru,6)+'</div>'
+    +leyenda;
   hmEl.innerHTML=html;
+}
+function hmSwitch(t,el){
+  el.parentElement.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});
+  el.classList.add('on');
+  document.getElementById('hmPanelTermo').style.display=t==='termo'?'':'none';
+  document.getElementById('hmPanelExtru').style.display=t==='extru'?'':'none';
 }
 function cCa(){
 document.getElementById('cRes').style.display='block';
