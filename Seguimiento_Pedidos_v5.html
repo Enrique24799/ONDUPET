@@ -2,73 +2,25 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seguimiento pedidos cestas y bobinas v5</title>
+<title>Seguimiento pedidos cestas y bobinas v5.2</title>
 <style>
 :root{--bg:#f3f6fa;--panel:#fff;--text:#1f2937;--muted:#64748b;--line:#d7dee8;--blue:#155c91;--green:#16a34a;--yellow:#f59e0b;--red:#dc2626;--green-bg:#dcfce7;--yellow-bg:#fef3c7;--red-bg:#fee2e2;--info-bg:#e0f2fe;--shadow:0 10px 28px rgba(15,23,42,.08);--radius:14px}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Segoe UI,Arial,sans-serif;color:var(--text)}header{background:linear-gradient(120deg,var(--blue),#2d83c4);color:#fff;padding:22px 28px;box-shadow:var(--shadow)}h1{margin:0;font-size:24px}.subtitle{margin:8px 0 0;font-size:13px;line-height:1.45;opacity:.95;max-width:1500px}main{padding:20px;max-width:1920px;margin:auto}.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}.tab{padding:10px 15px;border:1px solid #bad3e8;background:#eef7ff;color:#0f4770;border-radius:999px;font-weight:800;cursor:pointer}.tab.active{background:var(--blue);color:#fff}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px}.filters{display:grid;grid-template-columns:1.5fr repeat(6,minmax(130px,1fr));gap:10px;align-items:end}.field label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:4px;text-transform:uppercase}.field input,.field select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:13px}button{border:0;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer;background:var(--blue);color:#fff}.secondary{background:#f8fafc;color:var(--blue);border:1px solid #b8d4ee}.kpis{display:grid;grid-template-columns:repeat(7,minmax(135px,1fr));gap:10px}.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .value{font-size:22px;font-weight:900;margin-top:4px}.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px}.legend span{display:inline-flex;align-items:center;gap:6px}.dot{display:inline-block;width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.green{background:var(--green)}.yellow{background:var(--yellow)}.red{background:var(--red)}.table-wrap{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto;max-height:calc(100vh - 310px)}table{border-collapse:separate;border-spacing:0;width:100%;min-width:2100px;font-size:12px}th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:7px 8px;vertical-align:middle;white-space:nowrap;text-align:right}th{position:sticky;top:0;background:#edf3f9;color:#334155;text-transform:uppercase;font-size:10.5px;z-index:3;text-align:center}thead tr.filter-row th{top:31px;background:#f8fafc;padding:4px}.col-filter{width:100%;padding:5px;border:1px solid #ccd6e3;border-radius:6px;font-size:11px}.left{text-align:left}.center{text-align:center}.num{font-variant-numeric:tabular-nums}tr:hover td{background:#fbfdff}.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900}.si{background:var(--green-bg);color:#166534}.no{background:var(--red-bg);color:#991b1b}.stock{background:var(--info-bg);color:#075985}.warn{background:var(--yellow-bg);color:#854d0e}.late-real{background:#ffc9c9!important;color:#991b1b;font-weight:900}.late-theo{background:#fff0b8!important;color:#854d0e;font-weight:900}.ok{background:#dcfce7!important;color:#166534;font-weight:900}.neutral{background:#f1f5f9!important;color:#475569}.hidden{display:none!important}.expand{background:#fff;border:1px solid #b8d4ee;color:#155c91;border-radius:8px;padding:5px 9px;font-weight:900}.detail-row td{padding:0!important;background:#f9fbfe!important;white-space:normal;text-align:left}.detail-shell{padding:16px;min-width:1000px}.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(310px,1fr));gap:14px}.detail-card{border:1px solid #d7dee8;border-radius:13px;overflow:hidden;background:#fff;box-shadow:0 4px 12px rgba(15,23,42,.04)}.detail-card h3{margin:0;background:#eef3f9;padding:11px 12px;font-size:13px}.detail-card .note{padding:9px 12px;color:var(--muted);font-size:12px;border-bottom:1px solid #edf2f7}.detail-card table{min-width:0;width:100%;font-size:12px}.detail-card th,.detail-card td{position:static;white-space:normal;text-align:left;padding:8px;border-bottom:1px solid #edf2f7}.detail-card th{background:#f8fafc;text-transform:none;font-size:11px}.empty{color:var(--muted);font-style:italic}.screen{display:none}.screen.active{display:block}.foot{font-size:12px;color:var(--muted);line-height:1.45;margin-top:12px}.association{background:#f8fafc;border-left:4px solid #155c91;padding:10px;border-radius:8px;margin:10px 0;font-size:12px}.tag{font-weight:900;color:#0f4770}@media(max-width:1200px){.filters{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr}.table-wrap{max-height:none}}
 .motivos-panel{margin-bottom:14px}.motivos-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:800;font-size:14px;color:var(--blue);padding:2px 0;user-select:none}.motivos-header:hover{opacity:.8}.motivos-body{margin-top:12px}.motivo-add{display:flex;gap:8px;margin-bottom:12px}.motivo-add input{flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px}.motivo-add button{white-space:nowrap}.motivos-list{display:flex;flex-wrap:wrap;gap:8px}.motivo-tag{display:inline-flex;align-items:center;gap:6px;background:#eef7ff;border:1px solid #bad3e8;color:#0f4770;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}.motivo-tag button{background:none;border:none;color:#991b1b;font-size:16px;cursor:pointer;padding:0 2px;font-weight:900;line-height:1}.motivo-tag button:hover{color:#dc2626}.motivo-select{width:100%;min-width:160px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;font-size:11.5px;background:#fff;cursor:pointer}.motivo-selected{background:#e0f2fe!important;border-color:#7dd3fc}
-.dash{display:grid;gap:14px}.dash-row{display:grid;gap:14px}.dash-row.r4{grid-template-columns:repeat(4,1fr)}.dash-row.r2{grid-template-columns:repeat(2,1fr)}@media(max-width:1200px){.dash-row.r4,.dash-row.r2{grid-template-columns:1fr}}.dcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.dcard-hd{background:linear-gradient(135deg,#1C2B4A,#2D4278);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13.5px}.dcard-hd .badge{font-size:20px;font-weight:900}.dcard-bd{padding:14px 16px}.dcard-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f3f7;font-size:12.5px}.dcard-row:last-child{border-bottom:none}.dcard-row .dlbl{color:var(--muted);font-weight:600}.dcard-row .dval{font-weight:900;display:flex;align-items:center;gap:8px}.minibar{width:60px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;display:inline-block}.minibar span{display:block;height:100%;border-radius:3px}.rank-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f3f7;font-size:13px}.rank-item:last-child{border-bottom:none}.rank-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0}.rank-num.r1{background:#d4a017}.rank-num.r2{background:#8b8b8b}.rank-num.r3{background:#b87333}.rank-name{flex:1;font-weight:600;color:var(--text)}.rank-val{font-weight:900;font-size:14px}.chart-box{padding:16px;min-height:280px;position:relative}.chart-box canvas{max-height:320px}.dcard-title{padding:14px 16px 0;font-weight:800;font-size:14px;color:#1C2B4A}.dcard-sub{padding:2px 16px 0;font-size:11.5px;color:var(--muted)}
-
-.stock-bar-wrap{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#e5e7eb;width:120px;display:inline-flex}
-.stock-bar-res{background:#3b82f6}.stock-bar-libre{background:#22c55e}
-.res-list{margin:0;padding:0;list-style:none}.res-item{display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid #f0f3f7;font-size:12px}
-.res-item:last-child{border-bottom:none}.res-badge{background:#dbeafe;color:#1e40af;border-radius:6px;padding:2px 7px;font-weight:700;font-size:11px}
-.stock-expand-row td{padding:0!important;background:#f8fbff!important;white-space:normal}
-.stock-inner{padding:14px 18px;min-width:600px}
-.res-add-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
-.res-add-row input,.res-add-row select{padding:7px 9px;border:1px solid #d1d5db;border-radius:8px;font-size:12px}
-.del-btn{background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-weight:900}
-.edit-stock-inp{width:90px;padding:5px 8px;border:1px solid #d1d5db;border-radius:7px;font-size:12px;text-align:right}
-.ctp-delta-pos{color:#dc2626;font-weight:900}.ctp-delta-neg{color:#16a34a;font-weight:900}.ctp-delta-zero{color:#64748b}
+.dash{display:grid;gap:14px}.dash-row{display:grid;gap:14px}.dash-row.r4{grid-template-columns:repeat(4,1fr)}.dash-row.r2{grid-template-columns:repeat(2,1fr)}@media(max-width:1200px){.dash-row.r4,.dash-row.r2{grid-template-columns:1fr}}.dcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.dcard-hd{background:linear-gradient(135deg,#1C2B4A,#2D4278);color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13.5px}.dcard-hd .badge{font-size:20px;font-weight:900}.dcard-bd{padding:14px 16px}.dcard-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f3f7;font-size:12.5px}.dcard-row:last-child{border-bottom:none}.dcard-row .dlbl{color:var(--muted);font-weight:600}.dcard-row .dval{font-weight:900;display:flex;align-items:center;gap:8px}.minibar{width:60px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;display:inline-block}.minibar span{display:block;height:100%;border-radius:3px}.rank-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f3f7;font-size:13px}.rank-item:last-child{border-bottom:none}.rank-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0}.rank-num.r1{background:#d4a017}.rank-num.r2{background:#8b8b8b}.rank-num.r3{background:#b87333}.rank-name{flex:1;font-weight:600;color:var(--text)}.rank-val{font-weight:900;font-size:14px}.chart-box{padding:16px;min-height:280px;position:relative}.chart-box canvas{max-height:320px}.dcard-title{padding:14px 16px 0;font-weight:800;font-size:14px;color:#1C2B4A}.dcard-sub{padding:2px 16px 0;font-size:11.5px;color:var(--muted)}.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:14px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
-<header><h1>Seguimiento de pedidos simulados de cestas y bobinas</h1><p class="subtitle">Versión v5. Añade pestaña Stock (gestión de stock y reservas), pestaña CTP (Capable to Promise) y campo Cliente en pedidos y órdenes. Cuando el campo <b>Planificado</b> sea <b>STOCK</b>, la <b>Fecha disponibilidad</b> se calcula como <b>HOY</b>. Se mantiene la pantalla de pedidos, filtros por todos los campos y pantalla de órdenes lanzadas/asociación.</p><div class="legend"><span><i class="dot green"></i>Sin atraso real ni teórico</span><span><i class="dot yellow"></i>Atraso teórico, sin atraso real</span><span><i class="dot red"></i>Atraso real</span></div></header>
-<main><nav class="tabs"><button class="tab active" onclick="showScreen('pedidos',this)">Pedidos</button><button class="tab" onclick="showScreen('ordenes',this)">Órdenes lanzadas y asociación</button><button class="tab" onclick="showScreen('graficas',this)">📊 Gráficas</button><button class="tab" onclick="showScreen('stock',this)">📦 Stock</button><button class="tab" onclick="showScreen('ctp',this)">🎯 CTP</button></nav>
+<header><h1>Seguimiento de pedidos simulados de cestas y bobinas</h1><p class="subtitle">Versión v5.2. Pestaña <b>Gráficas</b> rediseñada con los KPIs clave de cartera: % atrasada (real vs teórica), cobertura con stock, % planificada y pedidos atrasados por motivo. Incluye campo Cliente en pedidos y órdenes. Cuando el campo <b>Planificado</b> sea <b>STOCK</b>, la <b>Fecha disponibilidad</b> se calcula como <b>HOY</b>. Se mantiene la pantalla de pedidos, filtros por todos los campos y pantalla de órdenes lanzadas/asociación.</p><div class="legend"><span><i class="dot green"></i>Sin atraso real ni teórico</span><span><i class="dot yellow"></i>Atraso teórico, sin atraso real</span><span><i class="dot red"></i>Atraso real</span></div></header>
+<main><nav class="tabs"><button class="tab active" onclick="showScreen('pedidos',this)">Pedidos</button><button class="tab" onclick="showScreen('ordenes',this)">Órdenes lanzadas y asociación</button><button class="tab" onclick="showScreen('graficas',this)">📊 Gráficas</button></nav>
 <section id="screen-pedidos" class="screen active"><div class="panel motivos-panel"><div class="motivos-header" onclick="toggleMotivosPanel()"><span>⚙️ Gestión de motivos de atraso</span><span id="motivosToggle">▼</span></div><div class="motivos-body" id="motivosBody" style="display:none"><div class="motivo-add"><input id="nuevoMotivo" placeholder="Nuevo motivo de atraso..." maxlength="80" onkeydown="if(event.key==='Enter')addMotivo()"><button onclick="addMotivo()">+ Añadir</button></div><div class="motivos-list" id="motivosList"></div></div></div>
 <div class="panel filters"><div class="field"><label>Buscar global</label><input id="q" placeholder="Pedido, material, comercial, parte, OF..." oninput="renderPedidos()"></div><div class="field"><label>Tipo material</label><select id="fTipo" onchange="renderPedidos()"><option value="">Todos</option><option>CESTA</option><option>BOBINA</option></select></div><div class="field"><label>Estrategia</label><select id="fEstr" onchange="renderPedidos()"><option value="">Todas</option><option>MTO</option><option>MTS</option></select></div><div class="field"><label>Cumplimiento</label><select id="fSem" onchange="renderPedidos()"><option value="">Todos</option><option value="green">Verde</option><option value="yellow">Amarillo</option><option value="red">Rojo</option></select></div><div class="field"><label>Planificado</label><select id="fPlan" onchange="renderPedidos()"><option value="">Todos</option><option>SI</option><option>NO</option><option>STOCK</option></select></div><div class="field"><label>Comercial</label><select id="fCom" onchange="renderPedidos()"><option value="">Todos</option></select></div><div class="field"><label>Acciones</label><button class="secondary" onclick="clearPedidoFilters()">Limpiar filtros</button></div></div>
 <div class="panel kpis"><div class="kpi"><div class="label">Pedidos visibles</div><div class="value" id="kpTotal">0</div></div><div class="kpi"><div class="label">Cestas</div><div class="value" id="kpCestas">0</div></div><div class="kpi"><div class="label">Bobinas</div><div class="value" id="kpBobinas">0</div></div><div class="kpi"><div class="label">Atraso real</div><div class="value" id="kpRojo">0</div></div><div class="kpi"><div class="label">Riesgo teórico</div><div class="value" id="kpAmarillo">0</div></div><div class="kpi"><div class="label">Cubiertos por stock</div><div class="value" id="kpStock">0</div></div><div class="kpi"><div class="label">Nº pedidos no planificados</div><div class="value" id="kpNoPlan">0</div></div></div>
 <div class="table-wrap"><table><thead id="theadPedidos"></thead><tbody id="tbodyPedidos"></tbody></table></div><p class="foot"><b>Regla MTS:</b> solo se asocia ficticiamente la cantidad pendiente neta, es decir, pendiente menos reserva real. Si <b>Reservado ≥ Pendiente</b>, el pedido queda en <b>STOCK</b>, la <b>Fecha disponibilidad</b> es <b>HOY</b> y no consume órdenes MTS. En <b>MTO</b> se muestran siempre las OF reales asociadas al pedido para detectar errores aunque exista stock reservado.</p></section>
 <section id="screen-ordenes" class="screen"><div class="panel filters"><div class="field"><label>Buscar global</label><input id="qOf" placeholder="OF, material, pedido asociado, estrategia..." oninput="renderOrdenes()"></div><div class="field"><label>Tipo material</label><select id="fOfTipo" onchange="renderOrdenes()"><option value="">Todos</option><option>CESTA</option><option>BOBINA</option></select></div><div class="field"><label>Estrategia</label><select id="fOfEstr" onchange="renderOrdenes()"><option value="">Todas</option><option>MTO</option><option>MTS</option></select></div><div class="field"><label>Estatus</label><select id="fOfStatus" onchange="renderOrdenes()"><option value="">Todos</option><option>LIB</option><option>ABIE</option><option>CTEC</option></select></div><div class="field"><label>Acciones</label><button class="secondary" onclick="clearOfFilters()">Limpiar filtros</button></div></div><div class="panel"><div class="association"><span class="tag">Cómo leer esta pantalla:</span> las órdenes <b>MTO</b> aparecen asociadas directamente a su pedido real. Las órdenes <b>MTS</b> se consumen ficticiamente por los pedidos MTS ordenados por fecha de entrega más antigua, siempre que el pedido no esté ya cubierto por stock reservado real.</div></div><div class="table-wrap"><table><thead id="theadOrdenes"></thead><tbody id="tbodyOrdenes"></tbody></table></div></section><section id="screen-graficas" class="screen"><div class="dash">
-<div class="dash-row r4"><div class="dcard" id="dcPlan"></div><div class="dcard" id="dcStock"></div><div class="dcard" id="dcTopCumpl"></div><div class="dcard" id="dcTopAtraso"></div></div>
-<div class="dash-row r2"><div class="dcard"><div class="dcard-title">Distribución por Semáforo</div><div class="dcard-sub">Proporción de pedidos por estado de cumplimiento</div><div class="chart-box"><canvas id="chSem"></canvas></div></div><div class="dcard"><div class="dcard-title">📊 Pedidos atrasados por Motivo</div><div class="dcard-sub">Cantidad de pedidos asignados a cada motivo de atraso</div><div class="chart-box"><canvas id="chMotivo"></canvas></div></div></div>
-<div class="dash-row r2"><div class="dcard"><div class="dcard-title">Pedidos por Rango de Cumplimiento (días)</div><div class="dcard-sub">Distribución según días de atraso real vs teórico</div><div class="chart-box"><canvas id="chRango"></canvas></div></div><div class="dcard"><div class="dcard-title">Distribución por Tipo Material y Estrategia</div><div class="dcard-sub">Cestas vs Bobinas · MTS vs MTO</div><div class="chart-box"><canvas id="chTipoEstr"></canvas></div></div></div>
-<div class="dash-row r2"><div class="dcard"><div class="dcard-title">Cobertura de Pedidos por Material</div><div class="dcard-sub">% Servido · Reservado · En OF · Sin cubrir</div><div class="chart-box"><canvas id="chCobertura"></canvas></div></div><div class="dcard"><div class="dcard-title">Atraso medio por Comercial (días)</div><div class="dcard-sub">Promedio de atraso real y teórico por comercial</div><div class="chart-box"><canvas id="chComercial"></canvas></div></div></div>
+<div class="dash-row r4"><div class="dcard" id="dcAtrReal"></div><div class="dcard" id="dcAtrTeo"></div><div class="dcard" id="dcStockCob"></div><div class="dcard" id="dcPlanif"></div></div>
+<div class="dash-row r2"><div class="dcard"><div class="dcard-title">Estado de la cartera</div><div class="dcard-sub">Atraso real = fecha de entrega vencida · Atraso teórico = la disponibilidad supera la fecha de entrega</div><div class="chart-box"><canvas id="chCartera"></canvas></div></div><div class="dcard"><div class="dcard-title">📊 Pedidos atrasados por motivo</div><div class="dcard-sub">Pedidos con atraso real o teórico según el motivo asignado en la pestaña Pedidos</div><div class="chart-box"><canvas id="chMotivo"></canvas><div id="chMotivoEmpty" class="chart-empty" style="display:none">No hay pedidos atrasados 🎉</div></div></div></div>
 </div></section>
-
-<section id="screen-stock" class="screen">
-<div class="panel kpis" id="stockKpis"></div>
-<div class="panel filters" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
-  <div class="field"><label>Buscar material</label><input id="qSt" placeholder="Id, descripción, familia..." oninput="renderStock()"></div>
-  <div class="field"><label>Tipo</label><select id="fStTipo" onchange="renderStock()"><option value="">Todos</option><option>CESTA</option><option>BOBINA</option></select></div>
-  <div class="field"><label>Familia</label><select id="fStFam" onchange="renderStock()"><option value="">Todas</option></select></div>
-  <div class="field"><label>Estrategia</label><select id="fStEstr" onchange="renderStock()"><option value="">Todas</option><option>MTS</option><option>MTO</option></select></div>
-  <div class="field"><label>Acciones</label><button class="secondary" onclick="clearStockFilters()">Limpiar</button></div>
-</div>
-<div class="table-wrap"><table id="tStock"><thead><tr>
-  <th></th><th class="left">Id Material</th><th class="left">Descripción</th><th>Tipo</th><th class="left">Familia</th><th>Estrategia</th><th>Unidad</th>
-  <th>Stock Total</th><th>Reservado</th><th>Libre</th><th>Cobertura</th><th>Pedidos</th><th>Acciones</th>
-</tr></thead><tbody id="tbodyStock"></tbody></table></div>
-</section>
-
-<section id="screen-ctp" class="screen">
-<div class="panel filters" style="grid-template-columns:1.5fr 1fr 1fr 1fr 1fr auto">
-  <div class="field"><label>Buscar</label><input id="qCtp" placeholder="Pedido, cliente, material, comercial..." oninput="renderCtp()"></div>
-  <div class="field"><label>Cliente</label><select id="fCtpCliente" onchange="renderCtp()"><option value="">Todos</option></select></div>
-  <div class="field"><label>Tipo material</label><select id="fCtpTipo" onchange="renderCtp()"><option value="">Todos</option><option>CESTA</option><option>BOBINA</option></select></div>
-  <div class="field"><label>Cumplimiento</label><select id="fCtpSem" onchange="renderCtp()"><option value="">Todos</option><option value="green">Verde</option><option value="yellow">Amarillo</option><option value="red">Rojo</option></select></div>
-  <div class="field"><label>Planificado</label><select id="fCtpPlan" onchange="renderCtp()"><option value="">Todos</option><option>SI</option><option>NO</option><option>STOCK</option></select></div>
-  <div class="field"><label>Acciones</label><button class="secondary" onclick="clearCtpFilters()">Limpiar</button></div>
-</div>
-<div class="panel kpis" style="grid-template-columns:repeat(5,1fr)" id="ctpKpis"></div>
-<div class="table-wrap"><table><thead><tr>
-  <th>Cumpl.</th><th>Pedido</th><th>Pos.</th><th class="left">Cliente</th><th class="left">Comercial</th>
-  <th class="left">Id Material</th><th class="left">Material</th><th>Estrategia</th>
-  <th>Cantidad</th><th>Pendiente</th><th>Reservado</th><th>Planificado</th>
-  <th>Fecha Entrega</th><th>Fecha Disponibilidad</th><th>Delta (días)</th>
-</tr><tr class="filter-row"><th></th><th><input class="col-filter" data-col="pedido" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="pos" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="cliente" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="comercial" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="id" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="material" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="estrategia" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="pendiente" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="reservado" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="planificado" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="fechaEntrega" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="fechaDisponibilidad" oninput="renderCtp()" placeholder="Filtrar"></th><th><input class="col-filter" data-col="delta" oninput="renderCtp()" placeholder="Filtrar"></th></tr>
-</thead><tbody id="tbodyCtp"></tbody></table></div>
-</section>
 </main>
 <script>
 const HOY=startOfDay(new Date()); const HOY_ISO=toISO(HOY);
@@ -89,7 +41,7 @@ const pedidos=[
 const ordenes=[
 {of:'1060201',tipoMaterial:'CESTA',material:'CESTA-A',descripcion:'CESTA A producto terminado',estrategia:'MTS',status:'LIB',inicio:'2026-05-01',fin:'2026-05-12',cantidad:8000,unidad:'UD',pedidoReal:''},{of:'1060202',tipoMaterial:'CESTA',material:'CESTA-A',descripcion:'CESTA A producto terminado',estrategia:'MTS',status:'LIB',inicio:'2026-05-08',fin:'2026-05-18',cantidad:9000,unidad:'UD',pedidoReal:''},{of:'1060203',tipoMaterial:'CESTA',material:'CESTA-B',descripcion:'CESTA B producto terminado',estrategia:'MTS',status:'LIB',inicio:'2026-05-03',fin:'2026-05-22',cantidad:7000,unidad:'UD',pedidoReal:''},{of:'1060204',tipoMaterial:'CESTA',material:'CESTA-D',descripcion:'CESTA D producto terminado',estrategia:'MTS',status:'ABIE',inicio:'2026-05-06',fin:'2026-05-14',cantidad:5000,unidad:'UD',pedidoReal:''},{of:'1060301',tipoMaterial:'BOBINA',material:'BOBINA-Y',descripcion:'Bobina Y decapada',estrategia:'MTS',status:'LIB',inicio:'2026-05-20',fin:'2026-06-06',cantidad:12000,unidad:'KG',pedidoReal:''},{of:'1060302',tipoMaterial:'BOBINA',material:'BOBINA-Y',descripcion:'Bobina Y decapada',estrategia:'MTS',status:'ABIE',inicio:'2026-05-25',fin:'2026-06-14',cantidad:13000,unidad:'KG',pedidoReal:''},{of:'1060303',tipoMaterial:'BOBINA',material:'BOBINA-Z',descripcion:'Bobina Z prelacada',estrategia:'MTS',status:'LIB',inicio:'2026-06-01',fin:'2026-06-22',cantidad:9000,unidad:'KG',pedidoReal:''},{of:'1060101',tipoMaterial:'CESTA',material:'CESTA-B',descripcion:'CESTA B producto terminado',estrategia:'MTO',status:'LIB',inicio:'2026-05-07',fin:'2026-05-20',cantidad:5000,unidad:'UD',pedidoReal:'900003'},{of:'1060102',tipoMaterial:'CESTA',material:'CESTA-B',descripcion:'CESTA B producto terminado',estrategia:'MTO',status:'ABIE',inicio:'2026-05-14',fin:'2026-05-28',cantidad:4000,unidad:'UD',pedidoReal:'900003'},{of:'1060103',tipoMaterial:'BOBINA',material:'BOBINA-Z',descripcion:'Bobina Z prelacada',estrategia:'MTO',status:'LIB',inicio:'2026-05-01',fin:'2026-05-10',cantidad:6000,unidad:'KG',pedidoReal:'900006'},{of:'1060104',tipoMaterial:'BOBINA',material:'BOBINA-Z',descripcion:'Bobina Z prelacada',estrategia:'MTO',status:'ABIE',inicio:'2026-05-04',fin:'2026-05-16',cantidad:5000,unidad:'KG',pedidoReal:'900006'},{of:'1060105',tipoMaterial:'CESTA',material:'CESTA-C',descripcion:'CESTA C producto terminado',estrategia:'MTO',status:'LIB',inicio:'2026-05-24',fin:'2026-06-01',cantidad:10000,unidad:'UD',pedidoReal:'900007'},{of:'1060106',tipoMaterial:'CESTA',material:'CESTA-C',descripcion:'CESTA C producto terminado',estrategia:'MTO',status:'ABIE',inicio:'2026-05-28',fin:'2026-06-08',cantidad:5000,unidad:'UD',pedidoReal:'900007'},{of:'1060107',tipoMaterial:'BOBINA',material:'BOBINA-Y',descripcion:'Bobina Y decapada',estrategia:'MTO',status:'CTEC',inicio:'2026-06-01',fin:'2026-06-15',cantidad:18000,unidad:'KG',pedidoReal:'900010'}];
 function startOfDay(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}function toISO(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function parseDate(s){if(!s)return null;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}function fmtDate(s){if(!s)return '';return parseDate(s).toLocaleDateString('es-ES')}function diffDays(a,b){if(!a||!b)return null;return Math.floor((startOfDay(a)-startOfDay(b))/86400000)}function fmtQty(v,u){return new Intl.NumberFormat('es-ES',{minimumFractionDigits:u==='KG'?2:0,maximumFractionDigits:u==='KG'?2:0}).format(v)+' '+u}function sum(a,k){return(a||[]).reduce((x,y)=>x+(Number(y[k])||0),0)}
-function allocateMTS(){pedidos.forEach(p=>{p.asignaciones=[];if(stockData[p.id]!==undefined)p.reservado=getReservadoPedido(p.pedido,p.pos,p.id);});const pool={};ordenes.filter(o=>o.estrategia==='MTS').forEach(o=>(pool[o.material]??=[]).push({...o,disp:o.cantidad}));Object.values(pool).forEach(l=>l.sort((a,b)=>parseDate(a.fin)-parseDate(b.fin)));pedidos.filter(p=>p.estrategia==='MTS').sort((a,b)=>parseDate(a.fechaEntrega)-parseDate(b.fechaEntrega)).forEach(p=>{if(p.reservado>=p.pendiente){p.fechaDisponibilidad=HOY_ISO;return}let restante=Math.max(0,p.pendiente-p.reservado);for(const of of(pool[p.id]||[])){if(restante<=0)break;if(of.disp<=0)continue;const q=Math.min(restante,of.disp);p.asignaciones.push({...of,cantidadAsignada:q});of.disp-=q;restante-=q}p.fechaDisponibilidad=restante<=0&&p.asignaciones.length?p.asignaciones.map(x=>x.fin).sort().slice(-1)[0]:null})}
+function allocateMTS(){pedidos.forEach(p=>p.asignaciones=[]);const pool={};ordenes.filter(o=>o.estrategia==='MTS').forEach(o=>(pool[o.material]??=[]).push({...o,disp:o.cantidad}));Object.values(pool).forEach(l=>l.sort((a,b)=>parseDate(a.fin)-parseDate(b.fin)));pedidos.filter(p=>p.estrategia==='MTS').sort((a,b)=>parseDate(a.fechaEntrega)-parseDate(b.fechaEntrega)).forEach(p=>{if(p.reservado>=p.pendiente){p.fechaDisponibilidad=HOY_ISO;return}let restante=Math.max(0,p.pendiente-p.reservado);for(const of of(pool[p.id]||[])){if(restante<=0)break;if(of.disp<=0)continue;const q=Math.min(restante,of.disp);p.asignaciones.push({...of,cantidadAsignada:q});of.disp-=q;restante-=q}p.fechaDisponibilidad=restante<=0&&p.asignaciones.length?p.asignaciones.map(x=>x.fin).sort().slice(-1)[0]:null})}
 function enrichPedido(p){const enCarga=sum(p.partesCarga,'cantidad');let plan='NO',fechaDisp=null,ofs=[];if(p.estrategia==='MTO'){ofs=ordenes.filter(o=>o.estrategia==='MTO'&&o.pedidoReal===p.pedido);const total=sum(ofs,'cantidad');if(total>=p.pendiente&&p.pendiente>0)plan='SI';else if(p.reservado>=p.pendiente)plan='STOCK';if(ofs.length)fechaDisp=ofs.map(x=>x.fin).sort().slice(-1)[0]}else{ofs=p.asignaciones||[];if(p.reservado>=p.pendiente){plan='STOCK';fechaDisp=HOY_ISO}else if(sum(ofs,'cantidadAsignada')>=Math.max(0,p.pendiente-p.reservado)){plan='SI';fechaDisp=p.fechaDisponibilidad}}if(plan==='STOCK')fechaDisp=HOY_ISO;const atrasoReal=diffDays(HOY,parseDate(p.fechaEntrega));let atrasoTeorico=null;if(fechaDisp)atrasoTeorico=diffDays(parseDate(fechaDisp),parseDate(p.fechaEntrega));let sem='green';if(atrasoReal!==null&&atrasoReal>0)sem='red';else if(atrasoTeorico!==null&&atrasoTeorico>0)sem='yellow';return{...p,enCarga,planificado:plan,fechaDisponibilidad:fechaDisp,ofs,atrasoReal,atrasoTeorico,sem}}
 const pedidoCols=[['sem','Cumpl.'],['pedido','Pedido'],['cliente','Cliente'],['pos','Posición'],['tipoMaterial','Tipo material'],['id','Id material'],['material','Material'],['estrategia','Estrategia'],['unidad','Unidad'],['cantidad','Cantidad'],['servido','Servido'],['pendiente','Pendiente'],['reservado','Reservado'],['enCarga','En carga'],['comercial','Comercial'],['planificado','Planificado'],['fechaCreacion','Fecha creación'],['fechaPrimera','1ª fecha entrega'],['fechaEntrega','Fecha entrega'],['atrasoReal','Atraso real'],['atrasoTeorico','Atraso teórico'],['motivoAtraso','Motivo atraso'],['fechaDisponibilidad','Fecha disponibilidad'],['ofMain','OF SAP'],['statusMain','Estatus OF']];
 function valPedido(o,k){if(k==='sem')return o.sem;if(k==='cliente')return o.cliente||'—';if(['cantidad','servido','pendiente','reservado','enCarga'].includes(k))return fmtQty(o[k],o.unidad);if(['fechaCreacion','fechaPrimera','fechaEntrega','fechaDisponibilidad'].includes(k))return o[k]?fmtDate(o[k]):'SIN FECHA DISP.';if(k==='ofMain')return o.ofs.length?o.ofs.map(x=>x.of).join(', '):'0';if(k==='statusMain')return o.ofs.length?[...new Set(o.ofs.map(x=>x.status))].join(', '):'';if(k==='atrasoTeorico')return o[k]??'SIN FECHA DISP.';if(k==='motivoAtraso')return motivosPedido[o.pedido+'-'+o.pos]||'';return o[k]??''}
@@ -99,7 +51,7 @@ function matchPedido(o){const q=document.getElementById('q').value.toLowerCase()
 function renderPedidos(){allocateMTS();const data=pedidos.map(enrichPedido).filter(matchPedido);document.getElementById('tbodyPedidos').innerHTML=data.map(o=>`<tr><td class="center"><button class="expand" onclick="toggle('det-${o.pedido}-${o.pos}')">+</button></td>`+pedidoCols.map(([k])=>{let v=valPedido(o,k),td='';if(k==='sem')v=dot(o.sem),td='center';if(k==='planificado')v=pill(o.planificado),td='center';if(k==='atrasoReal')td='num '+clsLate(o.atrasoReal,'real');if(k==='atrasoTeorico')td='num '+clsLate(o.atrasoTeorico,'theo');if(k==='motivoAtraso'){var mkey=o.pedido+'-'+o.pos;var mcur=motivosPedido[mkey]||'';v=`<select class="motivo-select${mcur?' motivo-selected':''}" onchange="setMotivo('${mkey}',this.value);this.className='motivo-select'+(this.value?' motivo-selected':'')"><option value="">Sin motivo</option>${motivosAtraso.map(m=>'<option'+(m===mcur?' selected':'')+'>'+m+'</option>').join('')}</select>`;td='left';}if(['material','id','comercial','ofMain','statusMain'].includes(k))td='left';if(['cantidad','servido','pendiente','reservado','enCarga'].includes(k))td='num';return`<td class="${td}">${v}</td>`}).join('')+`</tr>${detailPedido(o)}`).join('');document.getElementById('kpTotal').textContent=data.length;document.getElementById('kpCestas').textContent=data.filter(x=>x.tipoMaterial==='CESTA').length;document.getElementById('kpBobinas').textContent=data.filter(x=>x.tipoMaterial==='BOBINA').length;document.getElementById('kpRojo').textContent=data.filter(x=>x.sem==='red').length;document.getElementById('kpAmarillo').textContent=data.filter(x=>x.sem==='yellow').length;document.getElementById('kpStock').textContent=data.filter(x=>x.planificado==='STOCK').length;document.getElementById('kpNoPlan').textContent=data.filter(x=>x.planificado==='NO').length}
 function buildOrdenRows(){allocateMTS();const enriched=pedidos.map(enrichPedido);let rows=[];for(const o of ordenes){if(o.estrategia==='MTO'){const p=pedidos.find(p=>p.pedido===o.pedidoReal);rows.push({...o,tipoAsociacion:'REAL MTO',pedidoAsociado:o.pedidoReal,cantidadAsociada:o.cantidad,fechaEntregaPedido:p?.fechaEntrega||'',comentario:'Orden creada contra pedido MTO'})}else{const asign=[];enriched.forEach(p=>(p.asignaciones||[]).filter(a=>a.of===o.of).forEach(a=>asign.push({pedido:p.pedido,cantidad:a.cantidadAsignada,fechaEntrega:p.fechaEntrega})));if(asign.length)asign.forEach(a=>rows.push({...o,tipoAsociacion:'FICTICIA MTS',pedidoAsociado:a.pedido,cantidadAsociada:a.cantidad,fechaEntregaPedido:a.fechaEntrega,comentario:'Asignación ficticia por fecha de entrega del pedido'}));else rows.push({...o,tipoAsociacion:'SIN CONSUMO',pedidoAsociado:'',cantidadAsociada:0,fechaEntregaPedido:'',comentario:'No consumida o pedido cubierto por stock'})}}return rows}
 const ofCols=[['of','OF SAP'],['tipoMaterial','Tipo material'],['clienteAsoc','Cliente pedido'],['material','Id material'],['descripcion','Material'],['estrategia','Estrategia'],['status','Estatus'],['inicio','Fecha inicio'],['fin','Fecha fin'],['cantidad','Cantidad OF'],['tipoAsociacion','Tipo asociación'],['pedidoAsociado','Pedido asociado'],['fechaEntregaPedido','Fecha entrega pedido'],['cantidadAsociada','Cantidad asociada'],['comentario','Comentario']];function valOf(o,k){if(k==='clienteAsoc'){var pp=pedidos.find(p=>p.pedido===o.pedidoAsociado);return pp?pp.cliente||'—':'—';}if(['inicio','fin','fechaEntregaPedido'].includes(k))return o[k]?fmtDate(o[k]):'';if(['cantidad','cantidadAsociada'].includes(k))return fmtQty(o[k],o.unidad);return o[k]??''}function renderOrdenHead(){document.getElementById('theadOrdenes').innerHTML='<tr>'+ofCols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr><tr class="filter-row">'+ofCols.map(c=>`<th><input class="col-filter" data-col="${c[0]}" oninput="renderOrdenes()" placeholder="Filtrar"></th>`).join('')+'</tr>'}function matchOf(o){const q=document.getElementById('qOf').value.toLowerCase().trim();if(document.getElementById('fOfTipo').value&&o.tipoMaterial!==document.getElementById('fOfTipo').value)return false;if(document.getElementById('fOfEstr').value&&o.estrategia!==document.getElementById('fOfEstr').value)return false;if(document.getElementById('fOfStatus').value&&o.status!==document.getElementById('fOfStatus').value)return false;if(q&&!JSON.stringify(o).toLowerCase().includes(q))return false;for(const inp of document.querySelectorAll('#theadOrdenes .col-filter')){const v=inp.value.toLowerCase().trim();if(v&&!String(valOf(o,inp.dataset.col)).toLowerCase().includes(v))return false}return true}function renderOrdenes(){const rows=buildOrdenRows().filter(matchOf);document.getElementById('tbodyOrdenes').innerHTML=rows.map(o=>'<tr>'+ofCols.map(([k])=>{let v=valOf(o,k),td='';if(['descripcion','comentario','clienteAsoc'].includes(k))td='left';if(['cantidad','cantidadAsociada'].includes(k))td='num';if(k==='tipoAsociacion')v=`<span class="pill ${o.tipoAsociacion==='REAL MTO'?'si':o.tipoAsociacion==='FICTICIA MTS'?'warn':'stock'}">${o.tipoAsociacion}</span>`,td='center';return`<td class="${td}">${v}</td>`}).join('')+'</tr>').join('')}
-function showScreen(s,btn){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById('screen-'+s).classList.add('active');btn.classList.add('active');if(s==='ordenes')renderOrdenes();if(s==='graficas')renderGraficas();if(s==='stock')renderStock();if(s==='ctp')renderCtp()}function toggle(id){document.getElementById(id)?.classList.toggle('hidden')}function clearPedidoFilters(){['q','fTipo','fEstr','fSem','fPlan','fCom'].forEach(id=>document.getElementById(id).value='');document.querySelectorAll('#theadPedidos .col-filter').forEach(i=>i.value='');renderPedidos()}function clearOfFilters(){['qOf','fOfTipo','fOfEstr','fOfStatus'].forEach(id=>document.getElementById(id).value='');document.querySelectorAll('#theadOrdenes .col-filter').forEach(i=>i.value='');renderOrdenes()}
+function showScreen(s,btn){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById('screen-'+s).classList.add('active');btn.classList.add('active');if(s==='ordenes')renderOrdenes();if(s==='graficas')renderGraficas()}function toggle(id){document.getElementById(id)?.classList.toggle('hidden')}function clearPedidoFilters(){['q','fTipo','fEstr','fSem','fPlan','fCom'].forEach(id=>document.getElementById(id).value='');document.querySelectorAll('#theadPedidos .col-filter').forEach(i=>i.value='');renderPedidos()}function clearOfFilters(){['qOf','fOfTipo','fOfEstr','fOfStatus'].forEach(id=>document.getElementById(id).value='');document.querySelectorAll('#theadOrdenes .col-filter').forEach(i=>i.value='');renderOrdenes()}
 var motivosAtraso=['Falta de materia prima','Retraso en producción','Problema de calidad','Falta de capacidad','Cambio de prioridad','Problema logístico','Pendiente de confirmación cliente'];
 var motivosPedido={};
 function toggleMotivosPanel(){var b=document.getElementById('motivosBody'),t=document.getElementById('motivosToggle');if(b.style.display==='none'){b.style.display='block';t.textContent='▲'}else{b.style.display='none';t.textContent='▼'}}
@@ -109,207 +61,45 @@ function removeMotivo(i){var rem=motivosAtraso.splice(i,1)[0];Object.keys(motivo
 function setMotivo(k,v){if(v)motivosPedido[k]=v;else delete motivosPedido[k]}
 var gC={};function dC(id){if(gC[id]){gC[id].destroy();delete gC[id]}}
 function mkR(l,v,p,c){return'<div class="dcard-row"><span class="dlbl">'+l+'</span><span class="dval">'+v+' <span class="minibar"><span style="width:'+Math.min(100,p)+'%;background:'+c+'"></span></span></span></div>'}
+function mkR2(l,v){return'<div class="dcard-row"><span class="dlbl">'+l+'</span><span class="dval">'+v+'</span></div>'}
 function renderGraficas(){
 allocateMTS();var D=pedidos.map(enrichPedido),T=D.length;if(!T)return;
-var cG='#16a34a',cY='#f59e0b',cR='#dc2626',cB='#2563eb',cCy='#0ea5e9',cP='#7c3aed';
-var nG=D.filter(x=>x.sem==='green').length,nY=D.filter(x=>x.sem==='yellow').length,nR=D.filter(x=>x.sem==='red').length;
-var nPl=D.filter(x=>x.planificado==='SI').length,nSt=D.filter(x=>x.planificado==='STOCK').length,nNo=D.filter(x=>x.planificado==='NO').length;
-var cp=D.filter(x=>x.planificado!=='STOCK'),cpT=cp.length||1;
-var cpOk=cp.filter(x=>x.sem==='green').length,cpRd=cp.filter(x=>x.sem==='red').length,cpYl=cp.filter(x=>x.sem==='yellow').length;
-var pP=Math.round(nPl/cpT*100);
-document.getElementById('dcPlan').innerHTML='<div class="dcard-hd"><span>Cartera Planificado</span><span class="badge" style="color:#4ade80">'+pP+'%</span></div><div class="dcard-bd">'+mkR('% Servicio plan',pP+'%',pP,cG)+mkR('En fecha',cpOk+' ped.',Math.round(cpOk/cpT*100),cG)+mkR('Atrasado',cpRd+' ped.',Math.round(cpRd/cpT*100),cR)+mkR('Potencial atraso',cpYl+' ped.',Math.round(cpYl/cpT*100),cY)+'</div>';
-document.getElementById('dcStock').innerHTML='<div class="dcard-hd"><span>Cartera Stock</span><span class="badge" style="color:#60a5fa">'+nSt+'</span></div><div class="dcard-bd">'+mkR('Cubiertos stock',nSt+' ped.',Math.round(nSt/T*100),cCy)+mkR('Sin planificar',nNo+' ped.',Math.round(nNo/T*100),cR)+mkR('Total pedidos',T+' ped.',100,cB)+mkR('% No planif.',Math.round(nNo/T*100)+'%',Math.round(nNo/T*100),cR)+'</div>';
-var cm={};D.forEach(function(p){if(!cm[p.comercial])cm[p.comercial]={t:0,ok:0,dr:[],dt:[]};cm[p.comercial].t++;if(p.sem==='green')cm[p.comercial].ok++;if(p.atrasoReal!==null&&p.atrasoReal>0)cm[p.comercial].dr.push(p.atrasoReal);if(p.atrasoTeorico!==null&&p.atrasoTeorico>0)cm[p.comercial].dt.push(p.atrasoTeorico)});
-var ca=Object.keys(cm).map(function(k){var d=cm[k].dr;return{n:k,pct:Math.round(cm[k].ok/cm[k].t*100),avg:d.length?Math.round(d.reduce((a,b)=>a+b,0)/d.length*10)/10:0}});
-var tc=ca.slice().sort((a,b)=>b.pct-a.pct).slice(0,3);
-var ta=ca.slice().sort((a,b)=>b.avg-a.avg).slice(0,3);
-document.getElementById('dcTopCumpl').innerHTML='<div class="dcard-hd"><span>Top 3 \u00b7 Cumplimiento</span><span class="badge">\U0001f3c6</span></div><div class="dcard-bd">'+tc.map(function(c,i){return'<div class="rank-item"><span class="rank-num r'+(i+1)+'">'+(i+1)+'</span><span class="rank-name">'+c.n+'</span><span class="rank-val" style="color:#16a34a">'+c.pct+'%</span></div>'}).join('')+'</div>';
-document.getElementById('dcTopAtraso').innerHTML='<div class="dcard-hd"><span>Top 3 \u00b7 Mayor Atraso</span><span class="badge">\u26a0\ufe0f</span></div><div class="dcard-bd">'+ta.map(function(c,i){return'<div class="rank-item"><span class="rank-num r'+(i+1)+'">'+(i+1)+'</span><span class="rank-name">'+c.n+'</span><span class="rank-val" style="color:#dc2626">'+(c.avg>0?c.avg+'d':'0d')+'</span></div>'}).join('')+'</div>';
-dC('chSem');gC['chSem']=new Chart(document.getElementById('chSem'),{type:'doughnut',data:{labels:['Sin atraso','Riesgo te\u00f3rico','Atraso real'],datasets:[{data:[nG,nY,nR],backgroundColor:[cG,cY,cR],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:12,weight:'bold'}}}}}});
-var mc={};Object.keys(motivosPedido).forEach(function(k){var m=motivosPedido[k];mc[m]=(mc[m]||0)+1});var cA=D.filter(p=>p.sem==='red'||p.sem==='yellow').length;var sM=Math.max(0,cA-Object.keys(motivosPedido).length);var mL=Object.keys(mc),mV=mL.map(k=>mc[k]);if(sM>0){mL.push('Sin motivo asignado');mV.push(sM)}var mCo=['#2563eb','#7c3aed','#0ea5e9','#d946ef','#059669','#ea580c','#dc2626','#94a3b8'];
-dC('chMotivo');if(mL.length)gC['chMotivo']=new Chart(document.getElementById('chMotivo'),{type:'bar',data:{labels:mL,datasets:[{label:'Pedidos',data:mV,backgroundColor:mL.map((_,i)=>mCo[i%mCo.length]),borderRadius:6,barThickness:24}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{weight:'bold'}}},y:{ticks:{font:{size:11,weight:'600'}}}}}});
-var rL=['>5d atraso','3\u20135d','1\u20132d','Hoy','1\u20132d futuro','3\u20137d futuro','+7d futuro'],rR=[0,0,0,0,0,0,0],rT=[0,0,0,0,0,0,0];
-function clR(v,a){if(v===null||v===undefined)return;if(v>5)a[0]++;else if(v>=3)a[1]++;else if(v>=1)a[2]++;else if(v===0)a[3]++;else if(v>=-2)a[4]++;else if(v>=-7)a[5]++;else a[6]++}
-D.forEach(p=>{clR(p.atrasoReal,rR);clR(p.atrasoTeorico,rT)});
-dC('chRango');gC['chRango']=new Chart(document.getElementById('chRango'),{type:'bar',data:{labels:rL,datasets:[{label:'Atraso Real',data:rR,backgroundColor:cR,borderRadius:4},{label:'Atraso Te\u00f3rico',data:rT,backgroundColor:cY,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11,weight:'bold'}}}},scales:{x:{ticks:{font:{size:10,weight:'600'}}},y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-var cb={'CESTA-MTS':0,'CESTA-MTO':0,'BOBINA-MTS':0,'BOBINA-MTO':0};D.forEach(p=>{var k=p.tipoMaterial+'-'+p.estrategia;if(cb[k]!==undefined)cb[k]++});
-dC('chTipoEstr');gC['chTipoEstr']=new Chart(document.getElementById('chTipoEstr'),{type:'bar',data:{labels:Object.keys(cb),datasets:[{label:'Pedidos',data:Object.values(cb),backgroundColor:[cB,cCy,cP,'#d946ef'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-var mm={};D.forEach(p=>{if(!mm[p.id])mm[p.id]={c:0,s:0,r:0,pf:0};mm[p.id].c+=p.cantidad;mm[p.id].s+=p.servido;mm[p.id].r+=p.reservado;var oc=0;(p.ofs||[]).forEach(o=>{oc+=(o.cantidadAsignada||o.cantidad||0)});mm[p.id].pf+=oc});
-var mK=Object.keys(mm),mS=mK.map(k=>Math.min(100,Math.round(mm[k].s/mm[k].c*100))),mRe=mK.map((k,i)=>Math.min(100-mS[i],Math.round(mm[k].r/mm[k].c*100))),mPf=mK.map((k,i)=>Math.min(100-mS[i]-mRe[i],Math.round(mm[k].pf/mm[k].c*100))),mNc=mK.map((k,i)=>Math.max(0,100-mS[i]-mRe[i]-mPf[i]));
-dC('chCobertura');gC['chCobertura']=new Chart(document.getElementById('chCobertura'),{type:'bar',data:{labels:mK,datasets:[{label:'% Servido',data:mS,backgroundColor:cG,borderRadius:2},{label:'% Reservado',data:mRe,backgroundColor:cCy,borderRadius:2},{label:'% En OF',data:mPf,backgroundColor:cB,borderRadius:2},{label:'% Sin cubrir',data:mNc,backgroundColor:'#e5e7eb',borderRadius:2}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11,weight:'bold'}}}},scales:{x:{stacked:true,max:100,ticks:{callback:v=>v+'%'}},y:{stacked:true,ticks:{font:{size:11,weight:'600'}}}}}});
-var cN=Object.keys(cm),aRv=cN.map(k=>{var d=cm[k].dr;return d.length?Math.round(d.reduce((a,b)=>a+b,0)/d.length*10)/10:0}),aTv=cN.map(k=>{var d=cm[k].dt;return d.length?Math.round(d.reduce((a,b)=>a+b,0)/d.length*10)/10:0});
-dC('chComercial');gC['chComercial']=new Chart(document.getElementById('chComercial'),{type:'bar',data:{labels:cN,datasets:[{label:'Atraso Real (d\u00edas)',data:aRv,backgroundColor:cR,borderRadius:4},{label:'Atraso Te\u00f3rico (d\u00edas)',data:aTv,backgroundColor:cY,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11,weight:'bold'}}}},scales:{y:{beginAtZero:true}}}});
+var cG='#16a34a',cY='#f59e0b',cR='#dc2626',cB='#2563eb',cCy='#0ea5e9',cGr='#94a3b8';
+/* 1-2. Cartera atrasada: real (entrega vencida) vs teórica (disponibilidad > entrega, sin atraso real aún) */
+var late=D.filter(function(x){return x.atrasoReal!==null&&x.atrasoReal>0});
+var teo=D.filter(function(x){return!(x.atrasoReal>0)&&x.atrasoTeorico!==null&&x.atrasoTeorico>0});
+var noDate=D.filter(function(x){return!(x.atrasoReal>0)&&(x.atrasoTeorico===null||x.atrasoTeorico===undefined)});
+var onTime=T-late.length-teo.length-noDate.length;
+var pR=Math.round(late.length/T*100),pTe=Math.round(teo.length/T*100);
+var avg=function(a){return a.length?Math.round(a.reduce(function(s,x){return s+x},0)/a.length*10)/10:0};
+var avgR=avg(late.map(function(x){return x.atrasoReal})),maxR=late.length?Math.max.apply(null,late.map(function(x){return x.atrasoReal})):0;
+var avgT=avg(teo.map(function(x){return x.atrasoTeorico}));
+document.getElementById('dcAtrReal').innerHTML='<div class="dcard-hd"><span>% Cartera atrasada · Real</span><span class="badge" style="color:#fca5a5;font-size:26px">'+pR+'%</span></div><div class="dcard-bd">'+mkR('Entrega vencida',late.length+' de '+T+' ped.',pR,cR)+mkR2('Atraso medio',avgR+' días')+mkR2('Atraso máximo',maxR+' días')+'</div>';
+document.getElementById('dcAtrTeo').innerHTML='<div class="dcard-hd"><span>% Cartera atrasada · Teórica</span><span class="badge" style="color:#fcd34d;font-size:26px">'+pTe+'%</span></div><div class="dcard-bd">'+mkR('Disponibilidad > entrega',teo.length+' de '+T+' ped.',pTe,cY)+mkR2('Atraso teórico medio',avgT+' días')+mkR('Sin fecha disponibilidad',noDate.length+' ped.',Math.round(noDate.length/T*100),cGr)+'</div>';
+/* 3. Cobertura de la cartera con el stock actual */
+var nSt=D.filter(function(x){return x.planificado==='STOCK'}).length;
+var nPar=D.filter(function(x){return x.planificado!=='STOCK'&&x.reservado>0}).length;
+var pSt=Math.round(nSt/T*100);
+var covQ=function(t){var pend=0,cub=0;D.forEach(function(p){if(p.tipoMaterial===t){pend+=p.pendiente;cub+=Math.min(p.reservado,p.pendiente)}});return pend?Math.round(cub/pend*100):0};
+var covC=covQ('CESTA'),covB=covQ('BOBINA');
+document.getElementById('dcStockCob').innerHTML='<div class="dcard-hd"><span>Cobertura con stock</span><span class="badge" style="color:#7dd3fc;font-size:26px">'+pSt+'%</span></div><div class="dcard-bd">'+mkR('Pedidos cubiertos 100%',nSt+' de '+T+' ped.',pSt,cCy)+mkR('Cobertura parcial',nPar+' ped.',Math.round(nPar/T*100),cB)+mkR('% cantidad cubierta · Cestas',covC+'%',covC,cCy)+mkR('% cantidad cubierta · Bobinas',covB+'%',covB,cCy)+'</div>';
+/* 4. Cartera planificada (OF o stock) */
+var nPl=D.filter(function(x){return x.planificado==='SI'}).length,nNo=D.filter(function(x){return x.planificado==='NO'}).length;
+var pPlan=Math.round((nPl+nSt)/T*100);
+document.getElementById('dcPlanif').innerHTML='<div class="dcard-hd"><span>% Cartera planificada</span><span class="badge" style="color:#4ade80;font-size:26px">'+pPlan+'%</span></div><div class="dcard-bd">'+mkR('Planificada con OF',nPl+' ped.',Math.round(nPl/T*100),cG)+mkR('Cubierta por stock',nSt+' ped.',pSt,cCy)+mkR('Sin planificar',nNo+' ped.',Math.round(nNo/T*100),cR)+'</div>';
+/* Donut: composición de la cartera */
+dC('chCartera');gC['chCartera']=new Chart(document.getElementById('chCartera'),{type:'doughnut',data:{labels:['En fecha','Atraso teórico','Atraso real','Sin fecha disp.'],datasets:[{data:[onTime,teo.length,late.length,noDate.length],backgroundColor:[cG,cY,cR,cGr],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:14,font:{size:12,weight:'bold'}}}}}});
+/* Barras: pedidos atrasados (rojo/amarillo) por motivo asignado */
+var probl=D.filter(function(p){return p.sem==='red'||p.sem==='yellow'});
+var mc={};probl.forEach(function(p){var m=motivosPedido[p.pedido+'-'+p.pos];if(m)mc[m]=(mc[m]||0)+1});
+var sM=probl.filter(function(p){return!motivosPedido[p.pedido+'-'+p.pos]}).length;
+var mL=Object.keys(mc),mV=mL.map(function(k){return mc[k]});if(sM>0){mL.push('Sin motivo asignado');mV.push(sM)}
+var mCo=['#2563eb','#7c3aed','#0ea5e9','#d946ef','#059669','#ea580c','#dc2626'];
+var mCols=mL.map(function(l,i){return l==='Sin motivo asignado'?cGr:mCo[i%mCo.length]});
+dC('chMotivo');var mEmpty=document.getElementById('chMotivoEmpty');
+if(mL.length){if(mEmpty)mEmpty.style.display='none';gC['chMotivo']=new Chart(document.getElementById('chMotivo'),{type:'bar',data:{labels:mL,datasets:[{label:'Pedidos',data:mV,backgroundColor:mCols,borderRadius:6,barThickness:24}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{weight:'bold'}}},y:{ticks:{font:{size:11,weight:'600'}}}}}})}else if(mEmpty){mEmpty.style.display='flex'}
 }
 
 
-const catalogMateriales={
-  'CESTA-A':{descripcion:'CESTA A producto terminado',tipoMaterial:'CESTA',familia:'Cestas Estándar',unidad:'UD',estrategia:'MTS'},
-  'CESTA-B':{descripcion:'CESTA B producto terminado',tipoMaterial:'CESTA',familia:'Cestas Estándar',unidad:'UD',estrategia:'MTS'},
-  'CESTA-C':{descripcion:'CESTA C producto terminado',tipoMaterial:'CESTA',familia:'Cestas Premium',unidad:'UD',estrategia:'MTO'},
-  'CESTA-D':{descripcion:'CESTA D producto terminado',tipoMaterial:'CESTA',familia:'Cestas Premium',unidad:'UD',estrategia:'MTS'},
-  'BOBINA-X':{descripcion:'Bobina X galvanizada',tipoMaterial:'BOBINA',familia:'Bobinas Galvanizadas',unidad:'KG',estrategia:'MTS'},
-  'BOBINA-Y':{descripcion:'Bobina Y decapada',tipoMaterial:'BOBINA',familia:'Bobinas Decapadas',unidad:'KG',estrategia:'MTO'},
-  'BOBINA-Z':{descripcion:'Bobina Z prelacada',tipoMaterial:'BOBINA',familia:'Bobinas Prelacadas',unidad:'KG',estrategia:'MTO'}
-};
-var stockData={
-  'CESTA-A':{stockTotal:5000,reservas:[{pedido:'900005',pos:'20',cantidad:1500}]},
-  'CESTA-B':{stockTotal:0,reservas:[]},
-  'CESTA-C':{stockTotal:0,reservas:[]},
-  'CESTA-D':{stockTotal:5000,reservas:[]},
-  'BOBINA-X':{stockTotal:25000,reservas:[{pedido:'900002',pos:'10',cantidad:19000},{pedido:'900008',pos:'10',cantidad:3000}]},
-  'BOBINA-Y':{stockTotal:20000,reservas:[{pedido:'900010',pos:'10',cantidad:20000}]},
-  'BOBINA-Z':{stockTotal:2000,reservas:[{pedido:'900006',pos:'10',cantidad:2000}]}
-};
-function getReservadoPedido(ped,pos,matId){var sd=stockData[matId];if(!sd)return 0;var r=(sd.reservas||[]).find(x=>x.pedido===ped&&x.pos===pos);return r?r.cantidad:0;}
-function getStockLibre(matId){var sd=stockData[matId];if(!sd)return 0;var tot=(sd.reservas||[]).reduce((s,r)=>s+r.cantidad,0);return Math.max(0,(sd.stockTotal||0)-tot);}
-function getStockReservado(matId){var sd=stockData[matId];if(!sd)return 0;return(sd.reservas||[]).reduce((s,r)=>s+r.cantidad,0);}
-
-/* ── STOCK TAB ────────────────────────────────────────────────────── */
-function renderStock(){
-  var qv=(document.getElementById('qSt')||{value:''}).value.toLowerCase();
-  var ft=document.getElementById('fStTipo').value;
-  var ff=document.getElementById('fStFam').value;
-  var fe=document.getElementById('fStEstr').value;
-  var rows=Object.keys(catalogMateriales).filter(function(id){
-    var m=catalogMateriales[id];
-    if(ft&&m.tipoMaterial!==ft)return false;
-    if(ff&&m.familia!==ff)return false;
-    if(fe&&m.estrategia!==fe)return false;
-    if(qv&&!(id.toLowerCase().includes(qv)||m.descripcion.toLowerCase().includes(qv)||m.familia.toLowerCase().includes(qv)))return false;
-    return true;
-  });
-  var totStock=0,totRes=0,totLib=0;
-  rows.forEach(function(id){var sd=stockData[id]||{stockTotal:0,reservas:[]};totStock+=sd.stockTotal||0;totRes+=getStockReservado(id);totLib+=getStockLibre(id);});
-  document.getElementById('stockKpis').innerHTML=[
-    ['Materiales',rows.length,'#3b82f6'],['Stock Total',totStock.toLocaleString('es-ES'),'#1C2B4A'],
-    ['Total Reservado',totRes.toLocaleString('es-ES'),'#f59e0b'],['Libre/Disponible',totLib.toLocaleString('es-ES'),'#16a34a'],
-    ['% Reservado',totStock?Math.round(totRes/totStock*100)+'%':'—','#7c3aed']
-  ].map(function(k){return'<div class="kpi"><div class="label">'+k[0]+'</div><div class="value" style="color:'+k[2]+'">'+k[1]+'</div></div>';}).join('');
-  var tb=document.getElementById('tbodyStock');tb.innerHTML='';
-  rows.forEach(function(id){
-    var m=catalogMateriales[id];var sd=stockData[id]||{stockTotal:0,reservas:[]};
-    var res=getStockReservado(id),lib=getStockLibre(id),tot=sd.stockTotal||0;
-    var pct=tot?Math.round(res/tot*100):0;
-    var bar='<div class="stock-bar-wrap"><div class="stock-bar-res" style="width:'+Math.min(100,pct)+'%"></div><div class="stock-bar-libre" style="width:'+Math.min(100,100-pct)+'%"></div></div>';
-    tb.innerHTML+='<tr><td class="center"><button class="expand" onclick="toggleStockDet(\''+id+'\')">+</button></td>'
-      +'<td class="left"><b>'+id+'</b></td><td class="left">'+m.descripcion+'</td><td class="center">'+m.tipoMaterial+'</td>'
-      +'<td class="left">'+m.familia+'</td><td class="center">'+m.estrategia+'</td><td class="center">'+m.unidad+'</td>'
-      +'<td class="num"><input class="edit-stock-inp" value="'+tot+'" onchange="updateStockTotal(\''+id+'\',+this.value)" type="number" min="0"></td>'
-      +'<td class="num">'+res.toLocaleString('es-ES')+'</td>'
-      +'<td class="num" style="color:'+( lib>0?'#16a34a':'#dc2626')+'">'+lib.toLocaleString('es-ES')+'</td>'
-      +'<td class="center">'+bar+'</td><td class="center">'+(sd.reservas||[]).length+'</td>'
-      +'<td class="center"><button class="btn" style="font-size:11px;padding:4px 8px" onclick="openAddReserva(\''+id+'\')">+ Reservar</button></td></tr>'
-      +'<tr id="stdet-'+id+'" class="stock-expand-row hidden"><td colspan="13"><div class="stock-inner" id="stdetcont-'+id+'"></div></td></tr>';
-  });
-}
-function toggleStockDet(id){
-  var row=document.getElementById('stdet-'+id);if(!row)return;
-  var was=row.classList.contains('hidden');row.classList.toggle('hidden');
-  if(was)renderStockDetail(id);
-}
-function renderStockDetail(id){
-  var sd=stockData[id]||{stockTotal:0,reservas:[]};var m=catalogMateriales[id];
-  var html='<b style="font-size:13px">Reservas de '+id+'</b><ul class="res-list" style="margin-top:8px">';
-  if((sd.reservas||[]).length===0){html+='<li style="color:var(--muted);padding:8px;font-style:italic">Sin reservas. Todo el stock está libre.</li>';}
-  (sd.reservas||[]).forEach(function(r,i){
-    var p=pedidos.find(function(x){return x.pedido===r.pedido&&x.pos===r.pos;});
-    var cli=p?p.cliente||'—':'—',fe=p?fmtDate(p.fechaEntrega):'—';
-    html+='<li class="res-item"><span class="res-badge">'+r.pedido+'/'+r.pos+'</span>'
-      +'<span style="flex:1">'+cli+'</span>'
-      +'<span style="color:var(--muted)">Entrega: '+fe+'</span>'
-      +'<span class="num"><input type="number" min="0" value="'+r.cantidad+'" style="width:90px;padding:4px 7px;border:1px solid #d1d5db;border-radius:6px;font-size:12px" onchange="updateReserva(\''+id+'\','+i+',+this.value)"> '+m.unidad+'</span>'
-      +'<button class="del-btn" onclick="deleteReserva(\''+id+'\','+i+')">✕</button></li>';
-  });
-  html+='</ul>';
-  document.getElementById('stdetcont-'+id).innerHTML=html;
-}
-function updateStockTotal(id,val){if(!stockData[id])stockData[id]={stockTotal:0,reservas:[]};stockData[id].stockTotal=Math.max(0,val||0);renderStock();renderPedidos();}
-function updateReserva(id,idx,val){if(!stockData[id])return;stockData[id].reservas[idx].cantidad=Math.max(0,val||0);renderStockDetail(id);renderStock();renderPedidos();}
-function deleteReserva(id,idx){if(!stockData[id])return;stockData[id].reservas.splice(idx,1);renderStockDetail(id);renderStock();renderPedidos();}
-function openAddReserva(matId){
-  var opts=pedidos.filter(function(p){return p.id===matId;}).map(function(p){return'<option value="'+p.pedido+'|'+p.pos+'">'+p.pedido+'/'+p.pos+' – '+p.cliente+'</option>';}).join('');
-  if(!opts){alert('No hay pedidos de '+matId);return;}
-  var sd=stockData[matId]||{stockTotal:0,reservas:[]};
-  var html='<div class="res-add-row"><b>Añadir reserva para '+matId+':</b></div>'
-    +'<div class="res-add-row"><label style="font-size:11px;font-weight:700">Pedido/Pos</label>'
-    +'<select id="newResPed">'+opts+'</select>'
-    +'<label style="font-size:11px;font-weight:700">Cantidad</label>'
-    +'<input id="newResCant" type="number" min="0" value="0" style="width:90px">'
-    +'<button onclick="saveNewReserva(\''+matId+'\')" style="background:#155c91;color:#fff;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700">Guardar</button>'
-    +'<button onclick="cancelNewReserva(\''+matId+'\')" class="secondary" style="padding:6px 12px">Cancelar</button></div>';
-  var cont=document.getElementById('stdetcont-'+matId);
-  if(!cont){var row=document.getElementById('stdet-'+matId);if(row){row.classList.remove('hidden');renderStockDetail(matId);cont=document.getElementById('stdetcont-'+matId);}}
-  if(cont){cont.innerHTML+=html;}
-}
-function saveNewReserva(matId){
-  var sel=document.getElementById('newResPed'),cant=+(document.getElementById('newResCant')||{value:0}).value;
-  if(!sel)return;var parts=sel.value.split('|'),ped=parts[0],pos=parts[1];
-  if(!stockData[matId])stockData[matId]={stockTotal:0,reservas:[]};
-  var ex=(stockData[matId].reservas||[]).find(function(r){return r.pedido===ped&&r.pos===pos;});
-  if(ex){ex.cantidad+=cant;}else{stockData[matId].reservas.push({pedido:ped,pos:pos,cantidad:cant});}
-  renderStockDetail(matId);renderStock();renderPedidos();
-}
-function cancelNewReserva(matId){renderStockDetail(matId);}
-function clearStockFilters(){['qSt','fStTipo','fStFam','fStEstr'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});renderStock();}
-
-/* ── CTP TAB ──────────────────────────────────────────────────────── */
-function renderCtp(){
-  allocateMTS();var D=pedidos.map(enrichPedido);
-  var qv=(document.getElementById('qCtp')||{value:''}).value.toLowerCase();
-  var fc=(document.getElementById('fCtpCliente')||{value:''}).value;
-  var ft=(document.getElementById('fCtpTipo')||{value:''}).value;
-  var fs=(document.getElementById('fCtpSem')||{value:''}).value;
-  var fp=(document.getElementById('fCtpPlan')||{value:''}).value;
-  var colFs=document.querySelectorAll('#tbodyCtp')||[];
-  var data=D.filter(function(o){
-    if(fc&&o.cliente!==fc)return false;
-    if(ft&&o.tipoMaterial!==ft)return false;
-    if(fs&&o.sem!==fs)return false;
-    if(fp&&o.planificado!==fp)return false;
-    if(qv&&!JSON.stringify({p:o.pedido,c:o.cliente,m:o.material,co:o.comercial,id:o.id}).toLowerCase().includes(qv))return false;
-    for(var inp of document.querySelectorAll('#screen-ctp thead .col-filter')){var v=inp.value.toLowerCase().trim();if(v){var col=inp.dataset.col;var val=col==='delta'?(o.atrasoTeorico||o.atrasoReal||0):String(valPedido(o,col)||'');if(!val.toLowerCase().includes(v))return false;}}
-    return true;
-  });
-  document.getElementById('ctpKpis').innerHTML=[
-    ['Pedidos CTP',data.length,'#1C2B4A'],['En fecha',data.filter(x=>x.sem==='green').length,'#16a34a'],
-    ['Riesgo teórico',data.filter(x=>x.sem==='yellow').length,'#f59e0b'],
-    ['Atraso real',data.filter(x=>x.sem==='red').length,'#dc2626'],
-    ['Sin cobertura',data.filter(x=>x.planificado==='NO').length,'#7c3aed']
-  ].map(function(k){return'<div class="kpi"><div class="label">'+k[0]+'</div><div class="value" style="color:'+k[2]+'">'+k[1]+'</div></div>';}).join('');
-  var tb=document.getElementById('tbodyCtp');tb.innerHTML='';
-  data.forEach(function(o){
-    var delta=(o.atrasoTeorico!==null&&o.atrasoTeorico!==undefined)?o.atrasoTeorico:(o.atrasoReal||null);
-    var deltaCls=delta===null?'ctp-delta-zero':delta>0?'ctp-delta-pos':'ctp-delta-neg';
-    var deltaStr=delta===null?'SIN FECHA':(delta>0?'+'+delta+'d':delta+'d');
-    tb.innerHTML+='<tr>'
-      +'<td class="center">'+dot(o.sem)+'</td>'
-      +'<td class="center">'+o.pedido+'</td><td class="center">'+o.pos+'</td>'
-      +'<td class="left">'+(o.cliente||'—')+'</td>'
-      +'<td class="left">'+(o.comercial||'—')+'</td>'
-      +'<td class="left">'+o.id+'</td>'
-      +'<td class="left">'+o.material+'</td>'
-      +'<td class="center">'+o.estrategia+'</td>'
-      +'<td class="num">'+fmtQty(o.cantidad,o.unidad)+'</td>'
-      +'<td class="num">'+fmtQty(o.pendiente,o.unidad)+'</td>'
-      +'<td class="num">'+fmtQty(o.reservado,o.unidad)+'</td>'
-      +'<td class="center">'+pill(o.planificado)+'</td>'
-      +'<td class="center">'+(o.fechaEntrega?fmtDate(o.fechaEntrega):'—')+'</td>'
-      +'<td class="center">'+(o.fechaDisponibilidad?o.planificado==='STOCK'?'HOY (STOCK)':fmtDate(o.fechaDisponibilidad):'SIN FECHA')+'</td>'
-      +'<td class="center '+deltaCls+'">'+deltaStr+'</td></tr>';
-  });
-}
-function clearCtpFilters(){['qCtp','fCtpCliente','fCtpTipo','fCtpSem','fCtpPlan'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});renderCtp();}
-
-function init(){renderPedidoHead();renderOrdenHead();document.getElementById('fCom').innerHTML='<option value="">Todos</option>'+[...new Set(pedidos.map(p=>p.comercial))].sort().map(c=>`<option>${c}</option>`).join('');renderMotivos();renderPedidos();renderOrdenes();
-  // Populate stock familia dropdown
-  var fams=[...new Set(Object.values(catalogMateriales).map(m=>m.familia))].sort();
-  var fStFam=document.getElementById('fStFam');
-  fams.forEach(function(f){var o=document.createElement('option');o.textContent=f;fStFam.appendChild(o);});
-  renderStock();
-  // Populate CTP cliente dropdown
-  var clis=[...new Set(pedidos.map(p=>p.cliente).filter(Boolean))].sort();
-  var fCtpCliente=document.getElementById('fCtpCliente');
-  clis.forEach(function(c){var o=document.createElement('option');o.textContent=c;fCtpCliente.appendChild(o);});
-  renderCtp();
-}init();
+function init(){renderPedidoHead();renderOrdenHead();document.getElementById('fCom').innerHTML='<option value="">Todos</option>'+[...new Set(pedidos.map(p=>p.comercial))].sort().map(c=>`<option>${c}</option>`).join('');renderMotivos();renderPedidos();renderOrdenes()}init();
 </script></body></html>

@@ -1,0 +1,337 @@
+// ======================================================================================
+// ALGORITMO DE RESERVAS DE STOCK - ONDUPET  (versión JavaScript, extraída de RESERVAS_ONDUPET.html)
+// Versión lógica: P1 manual + P2 urgente + P3 cliente/referencia prioritaria + P4/P5 horizonte
+// Formato: JavaScript en TXT (ejecutable con Node:  node este_archivo.txt)
+// Fecha: 15/06/2026
+// ======================================================================================
+//
+// QUÉ HAY DE NUEVO EN ESTA VERSIÓN (revisión sobre la V7)
+// --------------------------------------------------------------------------------------
+// El NÚCLEO del algoritmo (clasificación P1-P5, ordenación y consumo de stock) NO cambió:
+// ya era correcto y se verificó que produce exactamente el mismo resultado que la
+// referencia Python V7. Las mejoras aplicadas son de apoyo y robustez:
+//
+//   1. coberturaMaterial() [antes pendingMat]: ahora también cuenta el RESTO pendiente de
+//      los pedidos que tienen partes. Antes solo sumaba las partes y el resto del pedido
+//      quedaba fuera del cálculo de cobertura, así que el indicador "Cubre / Insuficiente"
+//      podía decir "Cubre" cuando en realidad faltaba stock para el resto del pedido.
+//
+//   2. limpiarAutomaticas() [clearAuto]: solo guarda y refresca la pantalla cuando se usa
+//      desde su botón. Dentro del algoritmo se llamaba con guardado/render intermedio
+//      (estado a medias). Aquí se separa el efecto de UI del efecto lógico.
+//
+//   3. Robustez de estado: al cargar, se garantizan los arrays (pedidos, partes, stock,
+//      reservas) aunque el almacenamiento traiga un estado parcial. Evita que la página
+//      reviente con datos incompletos.
+//
+//   (Otras correcciones de la revisión viven en la interfaz, no en el algoritmo: el campo
+//    de horizonte P4 ya no pierde su manejador al guardar una parte; los rótulos incluyen
+//    P3; y se limpió un campo "urgente" sobrante en el stock de la demo.)
+//
+// ======================================================================================
+
+
+// ======================================================================================
+// ESTRUCTURA ESPERADA DE DATOS (idéntica a la del HTML / a la referencia Python)
+// ======================================================================================
+// S = {
+//   settings: { horizonP4: "2026-05-20", prioClientes: ["CLIENTE PRIORITARIO"], prioReferencias: ["ONDUPET-002"] },
+//   pedidos:  [ { id, numero, cliente, fechaPedido, fechaEntrega, material, cantidad, urgente } ],
+//   partes:   [ { id, numero, pedidoId, fechaCreacion, fechaEntrega, cantidad, urgente } ],
+//   stock:    [ { id, lote, material, nombre, cantidad } ],
+//   reservas: [ { id, prioridad, modo, stockId, material, destinoTipo, destinoId, cantidad, fechaOrden, regla } ]
+// }
+//
+// Jerarquía funcional:
+//   P1 = Manual, se conserva siempre (inquebrantable).
+//   P2 = Urgente.
+//   P3 = Cliente o referencia/material prioritaria.
+//   P4 = Dentro de horizonte.
+//   P5 = Fuera de horizonte.
+//
+// Orden de las reservas automáticas:
+//   1) Prioridad: P2 -> P3 -> P4 -> P5
+//   2) Grupo: PARTE antes que PEDIDO
+//   3) Subcriterio horizonte: dentro antes que fuera
+//   4) Fecha entrega (ascendente)
+//   5) Fecha secundaria: fecha creación nota / fecha pedido (ascendente)
+//   6) Documento (desempate)
+// ======================================================================================
+
+
+// --------------------------------------------------------------------------------------
+// FUNCIONES AUXILIARES (operan sobre el estado S que se les pasa)
+// --------------------------------------------------------------------------------------
+
+function generarId(prefijo) {
+  // ID simple y único para las reservas automáticas.
+  return prefijo + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+}
+
+function partesDePedido(S, pedidoId) {
+  // Devuelve las partes/notas asociadas a un pedido.
+  return S.partes.filter(x => x.pedidoId == pedidoId);
+}
+
+function sumaPartes(S, pedidoId) {
+  // Suma las cantidades de todas las partes de un pedido.
+  return partesDePedido(S, pedidoId).reduce((a, x) => a + (+x.cantidad || 0), 0);
+}
+
+function reservaDestino(S, destinoTipo, destinoId) {
+  // Suma lo ya reservado contra un pedido o parte concreta.
+  return S.reservas
+    .filter(r => r.destinoTipo == destinoTipo && r.destinoId == destinoId)
+    .reduce((a, r) => a + (+r.cantidad || 0), 0);
+}
+
+function reservaStock(S, stockId, modo) {
+  // Suma lo reservado contra una línea de stock; opcionalmente filtra por modo (MANUAL/AUTO).
+  return S.reservas
+    .filter(r => r.stockId == stockId && (!modo || r.modo == modo))
+    .reduce((a, r) => a + (+r.cantidad || 0), 0);
+}
+
+function disponibleStock(S, stockId) {
+  // Disponible = stock del lote - todo lo reservado (manual + automático).
+  const st = S.stock.find(x => x.id == stockId);
+  return (st ? +st.cantidad : 0) - reservaStock(S, stockId);
+}
+
+function disponibleMaterial(S, material) {
+  // Disponible total del material sumando todas sus líneas de stock (nunca negativo por línea).
+  return S.stock
+    .filter(s => s.material == material)
+    .reduce((a, s) => a + Math.max(0, disponibleStock(S, s.id)), 0);
+}
+
+function coberturaMaterial(S, material) {
+  // (MEJORADO) Demanda pendiente del material = lo que aún no está reservado.
+  // Para pedidos con partes cuenta: partes pendientes + RESTO del pedido pendiente.
+  // Para pedidos sin partes cuenta: el pedido pendiente completo.
+  let pendiente = 0;
+  S.pedidos.forEach(p => {
+    if (p.material != material) return;
+    const ps = partesDePedido(S, p.id);
+    if (ps.length) {
+      ps.forEach(x => pendiente += Math.max(0, (+x.cantidad || 0) - reservaDestino(S, 'PARTE', x.id)));
+      const resto = (+p.cantidad || 0) - sumaPartes(S, p.id);
+      if (resto > 0) pendiente += Math.max(0, resto - reservaDestino(S, 'PEDIDO', p.id));
+    } else {
+      pendiente += Math.max(0, (+p.cantidad || 0) - reservaDestino(S, 'PEDIDO', p.id));
+    }
+  });
+  return pendiente;
+}
+
+function limpiarAutomaticas(S) {
+  // Elimina solo reservas automáticas. Las reservas MANUAL P1 se conservan siempre.
+  S.reservas = S.reservas.filter(r => r.modo == 'MANUAL');
+}
+
+
+// --------------------------------------------------------------------------------------
+// ALGORITMO PRINCIPAL
+// --------------------------------------------------------------------------------------
+
+function ejecutarAlgoritmoReservas(S) {
+  // 1. Conservar P1 manual y limpiar automáticas anteriores.
+  limpiarAutomaticas(S);
+
+  // 2. Leer configuración.
+  const settings = S.settings || {};
+  const horizonP4 = settings.horizonP4 || '';
+  const clientesP3 = settings.prioClientes || [];
+  const referenciasP3 = settings.prioReferencias || [];
+  const existeP3 = clientesP3.length > 0 || referenciasP3.length > 0;
+
+  const dentroHorizonte = (fecha) => !!(horizonP4 && fecha && fecha <= horizonP4);
+  const subHorizonte = (fecha) => dentroHorizonte(fecha) ? 0 : 1; // 0 = dentro (P4), 1 = fuera (P5)
+
+  const esP3 = (pedido) =>
+    existeP3 && ((pedido.cliente && clientesP3.includes(pedido.cliente)) ||
+                 (pedido.material && referenciasP3.includes(pedido.material)));
+
+  // Clasificación: urgente => P2; si no, prioritario => P3; si no, horizonte => P4/P5.
+  const clasifica = (pedido, fecha, urgente) =>
+    urgente ? 2 : (esP3(pedido) ? 3 : (dentroHorizonte(fecha) ? 4 : 5));
+
+  // 3. Construir la lista de demandas a partir de pedidos y partes.
+  const demandas = [];
+
+  S.pedidos.forEach(pedido => {
+    const ps = partesDePedido(S, pedido.id);
+
+    if (ps.length) {
+      // 3.1. Una demanda por cada parte/nota.
+      ps.forEach(parte => {
+        const urgente = !!parte.urgente;
+        const prio = clasifica(pedido, parte.fechaEntrega, urgente);
+        demandas.push({
+          prio: prio,
+          sub: subHorizonte(parte.fechaEntrega),
+          grupo: 0, // 0 = PARTE, siempre antes que PEDIDO dentro de la misma prioridad
+          tipo: 'PARTE',
+          id: parte.id,
+          material: pedido.material,
+          cantidad: +parte.cantidad || 0,
+          fechaPrincipal: parte.fechaEntrega,
+          fechaSecundaria: parte.fechaCreacion,
+          documento: parte.numero,
+          regla: urgente
+            ? 'P2: URGENTE automática. Partes antes que pedidos; horizonte y fechas'
+            : (prio == 3
+                ? 'P3: cliente/referencia prioritaria. Parte antes que pedidos; horizonte y fechas'
+                : `P${prio}: parte; orden fecha entrega nota y creación`)
+        });
+      });
+
+      // 3.2. Demanda por el RESTO del pedido si las partes no cubren todo.
+      const resto = (+pedido.cantidad || 0) - sumaPartes(S, pedido.id);
+      if (resto > 0) {
+        const urgente = !!pedido.urgente;
+        const prio = clasifica(pedido, pedido.fechaEntrega, urgente);
+        demandas.push({
+          prio: prio,
+          sub: subHorizonte(pedido.fechaEntrega),
+          grupo: 1, // 1 = PEDIDO/resto, después de las partes
+          tipo: 'PEDIDO',
+          id: pedido.id,
+          material: pedido.material,
+          cantidad: resto,
+          fechaPrincipal: pedido.fechaEntrega,
+          fechaSecundaria: pedido.fechaPedido,
+          documento: pedido.numero + ' (resto)',
+          regla: urgente
+            ? 'P2: URGENTE automática. Resto pedido; horizonte y fechas'
+            : (prio == 3
+                ? 'P3: cliente/referencia prioritaria. Resto pedido; horizonte y fechas'
+                : `P${prio}: resto pedido; FIFO por fecha entrega`)
+        });
+      }
+    } else {
+      // 3.3. Pedido sin partes: demanda completa del pedido.
+      const urgente = !!pedido.urgente;
+      const prio = clasifica(pedido, pedido.fechaEntrega, urgente);
+      demandas.push({
+        prio: prio,
+        sub: subHorizonte(pedido.fechaEntrega),
+        grupo: 1,
+        tipo: 'PEDIDO',
+        id: pedido.id,
+        material: pedido.material,
+        cantidad: +pedido.cantidad || 0,
+        fechaPrincipal: pedido.fechaEntrega,
+        fechaSecundaria: pedido.fechaPedido,
+        documento: pedido.numero,
+        regla: urgente
+          ? 'P2: URGENTE automática. Pedido; horizonte y fechas'
+          : (prio == 3
+              ? 'P3: cliente/referencia prioritaria. Pedido; horizonte y fechas'
+              : `P${prio}: pedido; FIFO por fecha entrega`)
+      });
+    }
+  });
+
+  // 4. Ordenar demandas: prioridad -> grupo (parte/pedido) -> horizonte -> fecha entrega
+  //    -> fecha secundaria -> documento.
+  demandas.sort((a, b) =>
+    (a.prio - b.prio) ||
+    (a.grupo - b.grupo) ||
+    (a.sub - b.sub) ||
+    (a.fechaPrincipal || '').localeCompare(b.fechaPrincipal || '') ||
+    (a.fechaSecundaria || '').localeCompare(b.fechaSecundaria || '') ||
+    a.documento.localeCompare(b.documento)
+  );
+
+  // 5. Recorrer demandas y reservar contra líneas de stock del mismo material.
+  let reservasCreadas = 0;
+
+  demandas.forEach(d => {
+    let pendiente = d.cantidad - reservaDestino(S, d.tipo, d.id);
+    if (pendiente <= 0) return;
+
+    const stocksCompatibles = S.stock
+      .filter(s => s.material == d.material)
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    for (const s of stocksCompatibles) {
+      const disponible = disponibleStock(S, s.id);
+      if (disponible <= 0) continue;
+
+      const cantidad = Math.min(disponible, pendiente);
+      S.reservas.push({
+        id: generarId('RA'),
+        prioridad: d.prio,
+        modo: 'AUTO',
+        stockId: s.id,
+        material: s.material,
+        destinoTipo: d.tipo,
+        destinoId: d.id,
+        cantidad: cantidad,
+        fechaOrden: d.fechaPrincipal,
+        regla: d.regla
+      });
+
+      reservasCreadas++;
+      pendiente -= cantidad;
+      if (pendiente <= 0) break;
+    }
+  });
+
+  // 6. Devolver resultado.
+  return { reservasCreadas, demandasOrdenadas: demandas, estado: S };
+}
+
+
+// ======================================================================================
+// EJEMPLO DE USO (mismos datos que la demo del HTML / referencia Python)
+// Ejecutar con:  node algoritmo_reservas_Ondupet_V8_javascript.txt
+// ======================================================================================
+if (typeof require !== 'undefined' && require.main === module) {
+  const S = {
+    settings: { horizonP4: '2026-05-20', prioClientes: ['CLIENTE PRIORITARIO'], prioReferencias: ['ONDUPET-002'] },
+    pedidos: [
+      { id: 'PV1', numero: 'PV-2026-0001', cliente: 'CLIENTE NORMAL',      fechaPedido: '2026-05-12', fechaEntrega: '2026-05-20', material: 'ONDUPET-001', cantidad: 12000, urgente: false },
+      { id: 'PV2', numero: 'PV-2026-0002', cliente: 'CLIENTE NORMAL',      fechaPedido: '2026-05-12', fechaEntrega: '2026-05-18', material: 'ONDUPET-001', cantidad: 8000,  urgente: true  },
+      { id: 'PV3', numero: 'PV-2026-0003', cliente: 'CLIENTE PRIORITARIO', fechaPedido: '2026-05-13', fechaEntrega: '2026-05-22', material: 'ONDUPET-002', cantidad: 6000,  urgente: false }
+    ],
+    partes: [
+      { id: 'NC1', numero: 'NC-2026-0001', pedidoId: 'PV1', fechaCreacion: '2026-05-12', fechaEntrega: '2026-05-25', cantidad: 5000, urgente: false },
+      { id: 'NC2', numero: 'NC-2026-0002', pedidoId: 'PV1', fechaCreacion: '2026-05-13', fechaEntrega: '2026-05-25', cantidad: 4000, urgente: true  }
+    ],
+    stock: [
+      { id: 'ST1', lote: 'LOTE-A1', material: 'ONDUPET-001', nombre: 'Plancha Ondupet 001', cantidad: 12000 },
+      { id: 'ST2', lote: 'LOTE-A2', material: 'ONDUPET-001', nombre: 'Plancha Ondupet 001', cantidad: 3000  },
+      { id: 'ST3', lote: 'LOTE-B1', material: 'ONDUPET-002', nombre: 'Plancha Ondupet 002', cantidad: 3000  }
+    ],
+    reservas: []
+  };
+
+  const resultado = ejecutarAlgoritmoReservas(S);
+
+  console.log('Reservas creadas:', resultado.reservasCreadas);
+  console.log('\nDemandas ordenadas:');
+  resultado.demandasOrdenadas.forEach(d =>
+    console.log(d.prio, d.tipo, d.documento, d.material, d.cantidad, d.fechaPrincipal, '|', d.regla)
+  );
+
+  console.log('\nReservas generadas:');
+  resultado.estado.reservas.forEach(r =>
+    console.log(`P${r.prioridad} ${r.modo} ${r.stockId} ${r.material} ${r.destinoTipo}:${r.destinoId} x${r.cantidad}`)
+  );
+
+  console.log('\nCobertura por material:');
+  ['ONDUPET-001', 'ONDUPET-002'].forEach(m =>
+    console.log(`  ${m}: pendiente=${coberturaMaterial(S, m)} disponible=${disponibleMaterial(S, m)}`)
+  );
+}
+
+// Exporta las funciones por si se quiere reutilizar el algoritmo desde otro módulo.
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    ejecutarAlgoritmoReservas, limpiarAutomaticas, coberturaMaterial,
+    disponibleStock, disponibleMaterial, reservaDestino, reservaStock,
+    partesDePedido, sumaPartes, generarId
+  };
+}
